@@ -52,7 +52,7 @@ export default function PublicPropertyPage({ params }: Props): React.ReactElemen
     </>
   );
 
-  const isStudent = (p['type'] as string) === 'student_housing';
+const isStudent = (p['type'] as string) === 'student_housing';
   const roomList  = (rooms as Record<string,unknown>[] | undefined) ?? [];
   const reviewList= (reviews as Record<string,unknown>[] | undefined) ?? [];
   const nights    = (checkIn && checkOut) ? Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86400000) : 0;
@@ -60,10 +60,13 @@ export default function PublicPropertyPage({ params }: Props): React.ReactElemen
   // TAD 09 §4: student_housing → Apply (no account, no redirect)
   //            all others → "Book now" → my.stayos.co.za/login?redirect=...
   function bookHref(roomId?: string): string {
-    const path = `/accommodation/\( {params.slug}/book \){roomId ? `?room=\( {roomId}` : ''} \){checkIn ? `&checkIn=\( {checkIn}` : ''} \){checkOut ? `&checkOut=${checkOut}` : ''}`;
-    return `\( {CUSTOMER_PORTAL}/login?redirect= \){encodeURIComponent(path)}`;
+    let path = '/accommodation/' + params.slug + '/book';
+    if (roomId) path += '?room=' + roomId;
+    if (checkIn) path += (roomId ? '&' : '?') + 'checkIn=' + checkIn;
+    if (checkOut) path += (roomId || checkIn ? '&' : '?') + 'checkOut=' + checkOut;
+    return CUSTOMER_PORTAL + '/login?redirect=' + encodeURIComponent(path);
   }
-
+  
   return (
     <>
       <PublicHeader />
