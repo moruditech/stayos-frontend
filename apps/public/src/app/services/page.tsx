@@ -66,9 +66,12 @@ export default function ServicesPage(): React.ReactElement {
             </div>
             <div style={{ aspectRatio:'4/3', background:'var(--color-surface-muted)', borderRadius:'var(--radius-xl)', overflow:'hidden' }}>
               {/* /images/public/services-hospitality-detail.jpg */}
-              <img src="/images/public/services-hospitality-detail.jpg" alt="Hotel management"
-                style={{ width:'100%', height:'100%', objectFit:'cover' }} loading="lazy"
-                onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }} />
+              <img
+                src="/images/public/services-hospitality-detail.jpg"
+                alt="Hotel management"
+                style={{ width:'100%', height:'100%', objectFit:'cover' }}
+                loading="lazy"
+              />
             </div>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(260px, 1fr))', gap:'var(--space-5)' }}>
@@ -89,9 +92,12 @@ export default function ServicesPage(): React.ReactElement {
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'var(--space-12)', alignItems:'center', marginBottom:'var(--space-12)' }}>
             <div style={{ aspectRatio:'4/3', background:'var(--color-surface-muted)', borderRadius:'var(--radius-xl)', overflow:'hidden' }}>
               {/* /images/public/services-student-detail.jpg */}
-              <img src="/images/public/services-student-detail.jpg" alt="Student accommodation"
-                style={{ width:'100%', height:'100%', objectFit:'cover' }} loading="lazy"
-                onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }} />
+              <img
+                src="/images/public/services-student-detail.jpg"
+                alt="Student accommodation"
+                style={{ width:'100%', height:'100%', objectFit:'cover' }}
+                loading="lazy"
+              />
             </div>
             <div>
               <span data-section-label>FOR STUDENT HOUSING OPERATORS</span>
