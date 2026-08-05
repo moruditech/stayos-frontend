@@ -63,9 +63,9 @@ export default function PropertySignupPage(): React.ReactElement {
         lastName:    values.lastName,
         email:       values.email,
         password:    values.password,
-        phone:       values.phone,
-        companyName: values.companyName,
-        vatNumber:   values.vatNumber,
+        ...(values.phone ? { phone: values.phone } : {}),
+        ...(values.companyName ? { companyName: values.companyName } : {}),
+        ...(values.vatNumber ? { vatNumber: values.vatNumber } : {}),
       });
       setDone(true);
     } catch (err) {
@@ -255,3 +255,4 @@ export default function PropertySignupPage(): React.ReactElement {
     </>
   );
 }
+
