@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { api } from '@stayos/api-client';
@@ -18,14 +18,13 @@ const SORT_OPTIONS: [string, string][] = [
   ['price_desc', 'Price: high → low'],
 ];
 
-// Per TAD 09 §4: student_housing → Apply (no login), others → Book via Customer Portal
 function ctaHref(p: Record<string,unknown>): string {
   if ((p['type'] as string) === 'student_housing') return `/property/${p['slug'] as string}/apply`;
   const redirect = encodeURIComponent(`/accommodation/${p['slug'] as string}`);
   return `${CUSTOMER_PORTAL}/login?redirect=${redirect}`;
 }
 
-export default function SearchPage(): React.ReactElement {
+function SearchContent(): React.ReactElement {
   const router = useRouter();
   const sp     = useSearchParams();
 
@@ -61,8 +60,6 @@ export default function SearchPage(): React.ReactElement {
 
   return (
     <>
-      <PublicHeader activePage="/search" />
-
       {/* Search bar */}
       <section style={{ background:'var(--color-surface)', borderBottom:'1px solid var(--color-border)', padding:'var(--space-5) var(--page-padding-x)' }}>
         <form onSubmit={handleSearch} style={{ maxWidth:'var(--content-max-width)', margin:'0 auto' }}>
@@ -152,7 +149,6 @@ export default function SearchPage(): React.ReactElement {
                   return (
                     <div key={p['_id'] as string} data-card style={{ display:'grid', gridTemplateColumns:'280px 1fr' }}>
                       <div style={{ position:'relative', background:'var(--color-surface-muted)', overflow:'hidden', minHeight:200 }}>
-                        {/* /images/properties/[slug]-main.jpg */}
                         <img src={`/images/properties/${p['slug'] as string}-main.jpg`} alt={p['name'] as string}
                           style={{ width:'100%', height:'100%', objectFit:'cover' }} loading="lazy"
                           onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }} />
@@ -194,8 +190,19 @@ export default function SearchPage(): React.ReactElement {
           </div>
         </div>
       </div>
+    </>
+  );
+}
 
+export default function SearchPage(): React.ReactElement {
+  return (
+    <>
+      <PublicHeader activePage="/search" />
+      <Suspense fallback={<div style={{ padding: 'var(--space-16)', textAlign: 'center' }}>Searching properties…</div>}>
+        <SearchContent />
+      </Suspense>
       <PublicFooter />
     </>
   );
 }
+
