@@ -114,7 +114,7 @@ export default function PublicPropertyPage({ params }: Props): React.ReactElemen
                 </h1>
                 <div style={{ display:'flex', gap:'var(--space-5)', fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', flexWrap:'wrap' }}>
                   <span>📍 {p['city'] as string}, {p['province'] as string ?? 'South Africa'}</span>
-                  {p['rating'] && (
+                  {Boolean(p['rating']) && (
                     <span style={{ display:'flex', gap:'var(--space-1)', color:'var(--color-text-primary)', fontWeight:'var(--font-semibold)' }}>
                       ★ {(p['rating'] as number).toFixed(1)}
                       <span style={{ color:'var(--color-text-muted)', fontWeight:'normal' }}>({p['reviewCount'] as number ?? 0} reviews)</span>
@@ -125,7 +125,7 @@ export default function PublicPropertyPage({ params }: Props): React.ReactElemen
             </div>
 
             {/* Key amenities */}
-            {(p['amenities'] as string[])?.length > 0 && (
+            {Boolean((p['amenities'] as string[])?.length) && (
               <div style={{ display:'flex', flexWrap:'wrap', gap:'var(--space-3)', padding:'var(--space-5)', background:'var(--color-surface)', border:'1px solid var(--color-border)', borderRadius:'var(--radius-lg)', marginBottom:'var(--space-6)' }}>
                 {(p['amenities'] as string[]).map((a) => (
                   <span key={a} style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', display:'flex', gap:4 }}>✓ {a}</span>
@@ -134,7 +134,7 @@ export default function PublicPropertyPage({ params }: Props): React.ReactElemen
             )}
 
             {/* Description */}
-            {p['description'] && (
+            {Boolean(p['description']) && (
               <div style={{ marginBottom:'var(--space-8)' }}>
                 <h2 style={{ fontSize:'var(--text-xl)', fontWeight:'var(--font-bold)', marginBottom:'var(--space-3)' }}>About this property</h2>
                 <p style={{ fontSize:'var(--text-base)', color:'var(--color-text-secondary)', lineHeight:'var(--leading-relaxed)' }}>
@@ -144,7 +144,7 @@ export default function PublicPropertyPage({ params }: Props): React.ReactElemen
             )}
 
             {/* Policies */}
-            {p['policies'] && (
+            {Boolean(p['policies']) && (
               <div style={{ marginBottom:'var(--space-8)', padding:'var(--space-5)', background:'var(--color-surface-muted)', borderRadius:'var(--radius-lg)' }}>
                 <h2 style={{ fontSize:'var(--text-base)', fontWeight:'var(--font-bold)', marginBottom:'var(--space-3)' }}>Policies</h2>
                 <p style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', lineHeight:'var(--leading-relaxed)' }}>
@@ -178,7 +178,7 @@ export default function PublicPropertyPage({ params }: Props): React.ReactElemen
                               <span>🛏 {r['bedCount'] as number ?? 1} bed{(r['bedCount'] as number)!==1?'s':''}</span>
                               <span>👤 Up to {r['capacity'] as number ?? 1}</span>
                             </div>
-                            {r['amenities'] && (
+                            {Boolean(r['amenities']) && (
                               <div style={{ display:'flex', flexWrap:'wrap', gap:'var(--space-2)' }}>
                                 {((r['amenities'] as string[]) ?? []).slice(0,3).map((a) => (
                                   <span key={a} style={{ fontSize:'var(--text-xs)', color:'var(--color-text-secondary)' }}>✓ {a}</span>
@@ -310,3 +310,4 @@ export default function PublicPropertyPage({ params }: Props): React.ReactElemen
     </>
   );
 }
+
