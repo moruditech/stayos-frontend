@@ -38,7 +38,6 @@ const PORTFOLIO_OPTIONS = [
 ];
 
 export default function AgencySignupPage(): React.ReactElement {
-  const [done, setDone]           = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError]   = useState('');
 
@@ -69,24 +68,6 @@ export default function AgencySignupPage(): React.ReactElement {
       setFormError('Something went wrong. Please try again.');
       setSubmitting(false);
     }
-  }
-
-  if (done) {
-    return (
-      <>
-        <PublicHeader />
-        <div style={{ minHeight:'60vh', display:'flex', alignItems:'center', justifyContent:'center', padding:'var(--space-12) var(--page-padding-x)' }}>
-          <div style={{ maxWidth:480, textAlign:'center' }}>
-            <div style={{ fontSize:'var(--text-5xl)', marginBottom:'var(--space-5)' }}>✅</div>
-            <h1 style={{ fontSize:'var(--text-2xl)', fontWeight:'var(--font-bold)', marginBottom:'var(--space-3)' }}>Account created!</h1>
-            <p style={{ color:'var(--color-text-secondary)', marginBottom:'var(--space-6)', lineHeight:'var(--leading-relaxed)' }}>
-              Redirecting you to the Agency Portal to complete your onboarding…
-            </p>
-          </div>
-        </div>
-        <PublicFooter />
-      </>
-    );
   }
 
   return (
