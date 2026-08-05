@@ -1,4 +1,5 @@
 'use client';
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -9,6 +10,13 @@ const CUSTOMER_PORTAL = process.env['NEXT_PUBLIC_CUSTOMER_PORTAL_URL'] ?? 'https
 
 type FilterType = 'all'|'hotel'|'guesthouse'|'student_housing'|'apartment'|'lodge';
 const TYPE_LABELS: Record<FilterType,string> = { all:'All', hotel:'Hotels', guesthouse:'Guesthouses', student_housing:'Student Housing', apartment:'Apartments', lodge:'Lodges' };
+
+const SORT_OPTIONS: [string, string][] = [
+  ['recommended', 'Recommended'],
+  ['rating', 'Highest rated'],
+  ['price_asc', 'Price: low → high'],
+  ['price_desc', 'Price: high → low'],
+];
 
 // Per TAD 09 §4: student_housing → Apply (no login), others → Book via Customer Portal
 function ctaHref(p: Record<string,unknown>): string {
@@ -107,7 +115,7 @@ export default function SearchPage(): React.ReactElement {
 
             <div>
               <strong style={{ display:'block', fontSize:'var(--text-sm)', fontWeight:'var(--font-bold)', marginBottom:'var(--space-3)' }}>Sort by</strong>
-              {[['recommended','Recommended'],['rating','Highest rated'],['price_asc','Price: low → high'],['price_desc','Price: high → low']].map(([v,l]) => (
+              {SORT_OPTIONS.map(([v,l]) => (
                 <label key={v} data-checkbox-label style={{ marginBottom:'var(--space-2)', cursor:'pointer' }}>
                   <input type="radio" name="sort" checked={sort===v} onChange={() => setSort(v)} style={{ accentColor:'var(--color-primary)' }} />
                   {l}
@@ -149,12 +157,12 @@ export default function SearchPage(): React.ReactElement {
                           style={{ width:'100%', height:'100%', objectFit:'cover' }} loading="lazy"
                           onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }} />
                         <span data-property-type-badge>{(p['type'] as string)?.replace(/_/g,' ')}</span>
-                        {p['discountPercent'] && <span data-property-card-discount>{p['discountPercent'] as number}% OFF</span>}
+                        {Boolean(p['discountPercent']) && <span data-property-card-discount>{p['discountPercent'] as number}% OFF</span>}
                       </div>
                       <div style={{ padding:'var(--space-5)', display:'flex', flexDirection:'column', gap:'var(--space-3)' }}>
                         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
                           <h3 style={{ fontSize:'var(--text-lg)', fontWeight:'var(--font-bold)', lineHeight:'var(--leading-snug)' }}>{p['name'] as string}</h3>
-                          {p['rating'] && <span style={{ display:'flex', gap:4, fontSize:'var(--text-sm)', fontWeight:'var(--font-bold)', flexShrink:0 }}>★ {(p['rating'] as number).toFixed(1)} <span style={{ color:'var(--color-text-muted)', fontWeight:'normal' }}>({p['reviewCount'] as number ?? 0})</span></span>}
+                          {Boolean(p['rating']) && <span style={{ display:'flex', gap:4, fontSize:'var(--text-sm)', fontWeight:'var(--font-bold)', flexShrink:0 }}>★ {(p['rating'] as number).toFixed(1)} <span style={{ color:'var(--color-text-muted)', fontWeight:'normal' }}>({p['reviewCount'] as number ?? 0})</span></span>}
                         </div>
                         <div style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)' }}>📍 {p['city'] as string}{p['distanceFromCentre'] ? ` · ${p['distanceFromCentre'] as string} km from centre` : ''}</div>
                         <div style={{ display:'flex', flexWrap:'wrap', gap:'var(--space-3)' }}>
@@ -162,9 +170,9 @@ export default function SearchPage(): React.ReactElement {
                             <span key={a} style={{ fontSize:'var(--text-xs)', color:'var(--color-text-secondary)', display:'flex', gap:4 }}>✓ {a}</span>
                           ))}
                         </div>
-                        {p['freeCancellation'] && <span data-property-tag="free_cancellation">Free cancellation</span>}
-                        {p['breakfastIncluded'] && <span data-property-tag="breakfast">Breakfast included</span>}
-                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginTop:'auto' }}>
+                        {Boolean(p['freeCancellation']) && <span data-property-tag="free_cancellation">Free cancellation</span>}
+                        {Boolean(p['breakfastIncluded']) && <span data-property-tag="breakfast">Breakfast included</span>}
+                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'end', marginTop:'auto' }}>
                           <div>
                             {!isStudent && <>
                               <div style={{ fontSize:'var(--text-xs)', color:'var(--color-text-muted)' }}>From</div>
