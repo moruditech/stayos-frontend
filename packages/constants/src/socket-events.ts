@@ -1,0 +1,16 @@
+// No central event-name registry exists on the backend — the event
+// string itself is a literal at each call site inside each domain's own
+// service.js. This file is where that fragmentation stops being every
+// app's individual problem. Each entry below must be confirmed against
+// the literal string in the corresponding backend service.js before use.
+// Do not add an entry from a plausible-sounding resource-name guess —
+// an unconfirmed name fails silently (no error, the handler just never
+// fires).
+
+export const SOCKET_EVENTS = {
+  BOOKING_CREATED: 'booking:created',
+  BOOKING_UPDATED: 'booking:updated',
+  // Additional confirmed events are added here per-portal, in the phase
+  // that needs them, each individually verified.
+} as const;
+export type SocketEvent = (typeof SOCKET_EVENTS)[keyof typeof SOCKET_EVENTS];

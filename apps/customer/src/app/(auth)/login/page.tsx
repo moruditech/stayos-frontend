@@ -1,0 +1,329 @@
+'use client';
+
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { api } from '@stayos/api-client';
+import type { ApiError } from '@stayos/api-client';
+import { useSessionContext, useSessionLoading } from '@stayos/auth';
+import { loginSchema, registerSchema } from '@stayos/validators';
+import type { LoginInput, RegisterInput } from '@stayos/validators';
+import { InlineError, applyServerErrors, MfaStep } from '@stayos/ui';
+
+type Tab = 'signin' | 'register';
+
+export default function LoginPage(): React.ReactElement {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { setSession } = useSessionContext();
+  const isLoading = useSessionLoading();
+
+  const [tab, setTab] = useState<Tab>('signin');
+  const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [registerSuccess, setRegisterSuccess] = useState(false);
+  const [mfaState, setMfaState] = useState<{
+    tempToken: string;
+    loginValues: LoginInput;
+  } | null>(null);
+
+  const redirect = searchParams.get('redirect') ?? '/bookings';
+
+  // ── Sign in form ──────────────────────────────────────────────────────────
+  const loginForm = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '', userType: 'customer', rememberMe: false },
+  });
+
+  // ── Register form ─────────────────────────────────────────────────────────
+  const registerForm = useForm<RegisterInput>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: { firstName: '', lastName: '', email: '', password: '' },
+  });
+
+  async function handleLogin(values: LoginInput): Promise<void> {
+    setSubmitting(true);
+    setFormError('');
+    try {
+      const result = await api.auth.login(values);
+      if (result.mfaRequired && result.tempToken) {
+        setMfaState({ tempToken: result.tempToken, loginValues: values });
+        setSubmitting(false);
+        return;
+      }
+      await setSession(result.accessToken);
+      router.replace(redirect);
+    } catch (err) {
+      const apiErr = err as ApiError;
+      if (apiErr.code === 'VALIDATION_ERROR') {
+        applyServerErrors(loginForm, apiErr);
+      } else {
+        setFormError(apiErr.message ?? 'Sign-in failed. Please try again.');
+      }
+      setSubmitting(false);
+    }
+  }
+
+  async function handleRegister(values: RegisterInput): Promise<void> {
+    setSubmitting(true);
+    setFormError('');
+    try {
+      await api.customer.register(values);
+      setRegisterSuccess(true);
+    } catch (err) {
+      const apiErr = err as ApiError;
+      if (apiErr.code === 'VALIDATION_ERROR') {
+        applyServerErrors(registerForm, apiErr);
+      } else {
+        setFormError(apiErr.message ?? 'Registration failed. Please try again.');
+      }
+      setSubmitting(false);
+    }
+  }
+
+  if (isLoading) return <></>;
+
+  // ── MFA step ──────────────────────────────────────────────────────────────
+  if (mfaState) {
+    return (
+      <div data-login-page data-portal="customer">
+        <div data-login-left data-portal="customer">
+          <GuestValueProp />
+        </div>
+        <div data-login-right>
+          <MfaStep
+            tempToken={mfaState.tempToken}
+            loginValues={mfaState.loginValues}
+            onSuccess={async (token) => {
+              await setSession(token);
+              router.replace(redirect);
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div data-login-page data-portal="customer">
+      {/* Left panel */}
+      <div data-login-left data-portal="customer">
+        <GuestValueProp />
+      </div>
+
+      {/* Right panel */}
+      <div data-login-right>
+        {/* Tab switcher */}
+        <div data-tab-bar role="tablist">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'signin'}
+            onClick={() => { setTab('signin'); setFormError(''); }}
+            data-tab={tab === 'signin' ? 'active' : undefined}
+          >
+            Sign in
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'register'}
+            onClick={() => { setTab('register'); setFormError(''); }}
+            data-tab={tab === 'register' ? 'active' : undefined}
+          >
+            Create account
+          </button>
+        </div>
+
+        {/* ── Sign in form ─────────────────────────────────────────────── */}
+        {tab === 'signin' && (
+          <form
+            onSubmit={loginForm.handleSubmit((v) => void handleLogin(v))}
+            data-login-form
+            noValidate
+          >
+            <div data-form-group>
+              <label htmlFor="email">Email address</label>
+              <input
+                id="email"
+                type="email"
+                autoComplete="email"
+                {...loginForm.register('email')}
+              />
+              <InlineError message={loginForm.formState.errors.email?.message} />
+            </div>
+
+            <div data-form-group>
+              <label htmlFor="password">Password</label>
+              <div data-input-with-suffix>
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  {...loginForm.register('password')}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((s) => !s)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  data-password-toggle
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
+              <InlineError message={loginForm.formState.errors.password?.message} />
+            </div>
+
+            <div data-form-row>
+              <label data-checkbox-label>
+                <input type="checkbox" {...loginForm.register('rememberMe')} />
+                Remember me
+              </label>
+              <a href="/forgot-password" data-link>Forgot password?</a>
+            </div>
+
+            {formError && <span role="alert" data-form-error>{formError}</span>}
+
+            <button type="submit" disabled={submitting} data-btn-primary data-btn-full>
+              {submitting ? 'Signing in…' : 'Sign in'}
+            </button>
+
+            <div data-divider><span>or continue with</span></div>
+
+            {/* Google OAuth only — Apple is NOT supported in StayOS */}
+            <a href={api.auth.googleLoginUrl()} data-btn-oauth data-btn-full>
+              <span data-google-icon aria-hidden="true" />
+              Continue with Google
+            </a>
+
+            <p data-login-legal>
+              By continuing, you agree to our{' '}
+              <a href="/legal/terms" data-link>Terms of Use</a> and{' '}
+              <a href="/legal/privacy" data-link>Privacy Policy</a>.
+            </p>
+          </form>
+        )}
+
+        {/* ── Register form ─────────────────────────────────────────────── */}
+        {tab === 'register' && (
+          <>
+            {registerSuccess ? (
+              <div data-register-success role="status">
+                <h2>Check your email</h2>
+                <p>
+                  We&apos;ve sent a verification link to{' '}
+                  <strong>{registerForm.getValues('email')}</strong>. Click
+                  the link to activate your account.
+                </p>
+              </div>
+            ) : (
+              <form
+                onSubmit={registerForm.handleSubmit((v) => void handleRegister(v))}
+                data-login-form
+                noValidate
+              >
+                <div data-form-row>
+                  <div data-form-group>
+                    <label htmlFor="firstName">First name</label>
+                    <input
+                      id="firstName"
+                      type="text"
+                      autoComplete="given-name"
+                      {...registerForm.register('firstName')}
+                    />
+                    <InlineError message={registerForm.formState.errors.firstName?.message} />
+                  </div>
+                  <div data-form-group>
+                    <label htmlFor="lastName">Last name</label>
+                    <input
+                      id="lastName"
+                      type="text"
+                      autoComplete="family-name"
+                      {...registerForm.register('lastName')}
+                    />
+                    <InlineError message={registerForm.formState.errors.lastName?.message} />
+                  </div>
+                </div>
+
+                <div data-form-group>
+                  <label htmlFor="reg-email">Email address</label>
+                  <input
+                    id="reg-email"
+                    type="email"
+                    autoComplete="email"
+                    {...registerForm.register('email')}
+                  />
+                  <InlineError message={registerForm.formState.errors.email?.message} />
+                </div>
+
+                <div data-form-group>
+                  <label htmlFor="reg-password">Password</label>
+                  <input
+                    id="reg-password"
+                    type="password"
+                    autoComplete="new-password"
+                    {...registerForm.register('password')}
+                  />
+                  <InlineError message={registerForm.formState.errors.password?.message} />
+                </div>
+
+                {formError && <span role="alert" data-form-error>{formError}</span>}
+
+                <button type="submit" disabled={submitting} data-btn-primary data-btn-full>
+                  {submitting ? 'Creating account…' : 'Create account'}
+                </button>
+
+                <p data-login-legal>
+                  By creating an account, you agree to our{' '}
+                  <a href="/legal/terms" data-link>Terms of Use</a> and{' '}
+                  <a href="/legal/privacy" data-link>Privacy Policy</a>.
+                </p>
+              </form>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Left panel value proposition ───────────────────────────────────────────
+function GuestValueProp(): React.ReactElement {
+  return (
+    <>
+      <div data-login-portal-label>
+        <span data-portal-icon aria-hidden="true" />
+        GUESTS &amp; CUSTOMERS
+      </div>
+
+      <h1>
+        Welcome back<br />
+        <span data-login-headline-accent>Let&apos;s get you signed in.</span>
+      </h1>
+
+      <p data-login-subtitle>
+        Access your bookings, payments, rewards and more. New here? Create an
+        account in seconds.
+      </p>
+
+      <ul data-login-features>
+        {[
+          { label: 'Manage your bookings',  detail: 'View, modify or cancel your reservations anytime, anywhere.' },
+          { label: 'Secure payments',        detail: 'Safe, encrypted payments and easy refunds when eligible.' },
+          { label: 'Earn rewards',           detail: 'Collect loyalty points and unlock exclusive member benefits.' },
+          { label: "We're here for you",    detail: '24/7 support for a seamless stay experience.' },
+        ].map((f) => (
+          <li key={f.label} data-login-feature>
+            <span data-feature-icon aria-hidden="true" />
+            <div>
+              <strong>{f.label}</strong>
+              <span>{f.detail}</span>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}

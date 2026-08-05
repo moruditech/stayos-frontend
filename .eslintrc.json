@@ -1,0 +1,88 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint", "boundaries"],
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  "settings": {
+    "boundaries/elements": [
+      { "type": "app", "pattern": "apps/*" },
+      { "type": "ui", "pattern": "packages/ui" },
+      { "type": "api-client", "pattern": "packages/api-client" },
+      { "type": "auth", "pattern": "packages/auth" },
+      { "type": "validators", "pattern": "packages/validators" },
+      { "type": "types", "pattern": "packages/types" },
+      { "type": "constants", "pattern": "packages/constants" }
+    ]
+  },
+  "rules": {
+    "boundaries/element-types": [
+      "error",
+      {
+        "default": "disallow",
+        "rules": [
+          {
+            "from": "app",
+            "allow": ["ui", "api-client", "auth", "validators", "types", "constants"]
+          },
+          {
+            "from": "ui",
+            "allow": ["auth", "constants", "types"]
+          },
+          {
+            "from": "api-client",
+            "allow": ["types", "constants"]
+          },
+          {
+            "from": "auth",
+            "allow": ["types", "constants"]
+          },
+          {
+            "from": "validators",
+            "allow": ["types", "constants"]
+          },
+          {
+            "from": "types",
+            "allow": []
+          },
+          {
+            "from": "constants",
+            "allow": []
+          }
+        ]
+      }
+    ],
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "group": ["@stayos/*/src/*", "@stayos/*/dist/*"],
+            "message": "Import only a package's public entry point (its `exports` field) — never a deep path. See TAD 00 §9.3."
+          },
+          {
+            "group": ["jwt-decode"],
+            "message": "Only @stayos/auth is permitted to decode a JWT. See TAD 00 §6.2 / TAD 01 §4."
+          }
+        ]
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["packages/auth/src/**/*.ts", "packages/auth/src/**/*.tsx"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@stayos/*/src/*", "@stayos/*/dist/*"],
+                "message": "Import only a package's public entry point (its `exports` field) — never a deep path. See TAD 00 §9.3."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
