@@ -60,13 +60,14 @@ const isStudent = (p['type'] as string) === 'student_housing';
   // TAD 09 §4: student_housing → Apply (no account, no redirect)
   //            all others → "Book now" → my.stayos.co.za/login?redirect=...
   function bookHref(roomId?: string): string {
-    let path = '/accommodation/' + params.slug + '/book';
-    if (roomId) path += '?room=' + roomId;
-    if (checkIn) path += (roomId ? '&' : '?') + 'checkIn=' + checkIn;
-    if (checkOut) path += (roomId || checkIn ? '&' : '?') + 'checkOut=' + checkOut;
-    return CUSTOMER_PORTAL + '/login?redirect=' + encodeURIComponent(path);
-  }
-  
+  const path =
+    `/accommodation/${params.slug}/book` +
+    `${roomId ? `?room=${roomId}` : ''}` +
+    `${checkIn ? `${roomId ? '&' : '?'}checkIn=${checkIn}` : ''}` +
+    `${checkOut ? `${roomId || checkIn ? '&' : '?'}checkOut=${checkOut}` : ''}`;
+
+  return `${CUSTOMER_PORTAL}/login?redirect=${encodeURIComponent(path)}`;
+}
   return (
     <>
       <PublicHeader />
