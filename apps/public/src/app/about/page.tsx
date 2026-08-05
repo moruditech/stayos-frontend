@@ -66,9 +66,11 @@ export default function AboutPage(): React.ReactElement {
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
       <section style={{ position: 'relative', overflow: 'hidden', minHeight: '480px', display: 'flex', alignItems: 'center' }}>
         {/* Image: /images/public/about-hero.jpg — Cape Town aerial */}
-        <img src="/images/public/about-hero.jpg" alt="South African hospitality"
+        <img
+          src="/images/public/about-hero.jpg"
+          alt="South African hospitality"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }}
-          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+        />
         <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 1 }} />
         <div data-container style={{ position: 'relative', zIndex: 2, color: 'white', padding: 'var(--space-20) var(--page-padding-x)' }}>
           <span data-section-label style={{ color: 'rgba(255,255,255,0.7)' }}>ABOUT STAYOS</span>
@@ -262,3 +264,4 @@ export default function AboutPage(): React.ReactElement {
     </>
   );
 }
+
