@@ -11,7 +11,6 @@ interface Props { params: { slug: string } }
 const CUSTOMER_PORTAL = process.env['NEXT_PUBLIC_CUSTOMER_PORTAL_URL'] ?? 'https://my.stayos.co.za';
 
 export default function PublicPropertyPage({ params }: Props): React.ReactElement {
-  const router = useRouter();
   const [checkIn, setCheckIn]   = useState('');
   const [checkOut, setCheckOut] = useState('');
   const [guests, setGuests]     = useState(1);
