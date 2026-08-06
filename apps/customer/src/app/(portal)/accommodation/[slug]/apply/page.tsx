@@ -45,6 +45,7 @@ export default function ApplicationFormPage({ params }: Props): React.ReactEleme
   const closingDate = ft['closingDate'] ? new Date(ft['closingDate'] as string) : null;
   const isClosed    = closingDate && closingDate < new Date();
   const requiredDocs= (ft['requiredDocuments'] as string[]) ?? [];
+  const propertyName = ft['propertyName'] as string;
 
   async function handleSubmit(e: React.FormEvent): Promise<void> {
     e.preventDefault();
@@ -63,7 +64,7 @@ export default function ApplicationFormPage({ params }: Props): React.ReactEleme
       termsAccepted: true,
       consentSnapshot: {
         acknowledged: true,
-        text: `By submitting this application, you agree to share your personal information with ${ft['propertyName'] as string} for accommodation placement purposes in accordance with POPIA.`,
+        text: `By submitting this application, you agree to share your personal information with ${propertyName} for accommodation placement purposes in accordance with POPIA.`,
       },
     };
     // If session exists, the backend links to the existing customer record automatically
