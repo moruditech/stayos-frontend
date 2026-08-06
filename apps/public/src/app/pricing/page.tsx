@@ -1,4 +1,5 @@
 import React from 'react';
+import { Check, Minus, ArrowRight } from 'lucide-react';
 import { PublicHeader, PublicFooter } from '@/components/PublicLayout';
 
 const PLANS = [
@@ -72,7 +73,7 @@ export default function PricingPage(): React.ReactElement {
                 <ul style={{ display:'flex', flexDirection:'column', gap:'var(--space-2)', margin:'var(--space-5) 0', flex:1 }}>
                   {plan.features.map((f) => (
                     <li key={f} style={{ display:'flex', gap:'var(--space-2)', fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', alignItems:'flex-start' }}>
-                      <span style={{ color:'var(--color-primary)', fontWeight:'var(--font-bold)', flexShrink:0, marginTop:2 }}>✓</span>
+                      <Check size={15} aria-hidden="true" style={{ color:'var(--color-primary)', flexShrink:0, marginTop:2 }} />
                       {f}
                     </li>
                   ))}
@@ -91,7 +92,7 @@ export default function PricingPage(): React.ReactElement {
           <div data-card-padded style={{ background:'var(--color-primary-light)', borderColor:'var(--color-primary)', textAlign:'center', marginBottom:'var(--space-12)' }}>
             <p style={{ fontSize:'var(--text-sm)', color:'var(--color-primary)' }}>
               All plans include a <strong>14-day free trial</strong> with no credit card required.
-              Questions? <a href="/contact" data-link>Talk to our team →</a>
+              Questions? <a href="/contact" data-link>Talk to our team <ArrowRight size={12} aria-hidden="true" /></a>
             </p>
           </div>
 
@@ -131,7 +132,7 @@ export default function PricingPage(): React.ReactElement {
                     <td style={{ padding:'var(--space-3) var(--space-4)', color:'var(--color-text-secondary)' }}>{feat}</td>
                     {vals.map((v, i) => (
                       <td key={i} style={{ padding:'var(--space-3) var(--space-4)', textAlign:'center', color: v==='✓' ? 'var(--color-success)' : v==='—' ? 'var(--color-text-muted)' : 'var(--color-text-primary)', fontWeight: v!=='✓'&&v!=='—' ? 'var(--font-semibold)' : 'normal' }}>
-                        {v}
+                        {v==='✓' ? <Check size={16} aria-hidden="true" style={{ display:'inline-block' }} /> : v==='—' ? <Minus size={14} aria-hidden="true" style={{ display:'inline-block' }} /> : v}
                       </td>
                     ))}
                   </tr>
@@ -163,8 +164,8 @@ export default function PricingPage(): React.ReactElement {
           <h2 style={{ fontSize:'var(--text-3xl)', fontWeight:'var(--font-bold)', marginBottom:'var(--space-4)' }}>Ready to get started?</h2>
           <p style={{ opacity:0.9, marginBottom:'var(--space-8)', fontSize:'var(--text-lg)' }}>Start your 14-day free trial — no credit card required.</p>
           <div style={{ display:'flex', gap:'var(--space-4)', justifyContent:'center', flexWrap:'wrap' }}>
-            <a href="/signup/property" style={{ padding:'var(--space-4) var(--space-8)', background:'white', color:'var(--color-primary)', borderRadius:'var(--radius-md)', fontWeight:'var(--font-bold)', fontSize:'var(--text-base)', textDecoration:'none' }}>
-              Start free trial →
+            <a href="/signup/property" style={{ padding:'var(--space-4) var(--space-8)', background:'white', color:'var(--color-primary)', borderRadius:'var(--radius-md)', fontWeight:'var(--font-bold)', fontSize:'var(--text-base)', textDecoration:'none', display:'inline-flex', alignItems:'center', gap:'var(--space-2)' }}>
+              Start free trial <ArrowRight size={16} aria-hidden="true" />
             </a>
             <a href="/contact" style={{ padding:'var(--space-4) var(--space-8)', background:'rgba(255,255,255,0.15)', color:'white', border:'1.5px solid rgba(255,255,255,0.4)', borderRadius:'var(--radius-md)', fontWeight:'var(--font-semibold)', fontSize:'var(--text-base)', textDecoration:'none' }}>
               Talk to sales
