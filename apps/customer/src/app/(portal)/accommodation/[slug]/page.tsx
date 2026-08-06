@@ -16,7 +16,7 @@ export default function PropertyDetailPage({ params }: Props): React.ReactElemen
   const [checkIn, setCheckIn]   = useState('');
   const [checkOut, setCheckOut] = useState('');
   const [guests, setGuests]     = useState(1);
-  const [reviewPage, setReviewPage] = useState(1);
+  const [reviewPage] = useState(1);
 
   const { data: property, isLoading: propLoading } = useQuery({
     queryKey: accommodationKeys.detail(params.slug),
