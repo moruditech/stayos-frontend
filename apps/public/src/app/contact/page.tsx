@@ -6,15 +6,19 @@ import { PublicHeader, PublicFooter } from '@/components/PublicLayout';
 import { contactSchema } from '@stayos/validators';
 import type { ContactInput } from '@stayos/validators';
 import { InlineError } from '@stayos/ui';
+import {
+  Mail, Headphones, Building2, Users, Zap, ShieldCheck, Phone, MessageSquare,
+  BookOpen, MapPin, CheckCircle2, ChevronRight, ArrowRight, type LucideIcon,
+} from 'lucide-react';
 // NOTE: POST /public/contact and ContactInquiry backend model do not yet exist.
 // The form schema is ready; the api call is feature-flagged off until the
 // backend route is built (confirmed absent — see Phase 3 implementation plan).
 
-const CATEGORIES = [
-  { id: 'sales',       icon: '✉️', label: 'General Enquiries',    desc: 'Questions about StayOS, our platform, or how we can help you.' },
-  { id: 'support',     icon: '🎧', label: 'Customer Support',     desc: 'Get help with bookings, accounts, payments and more.' },
-  { id: 'partnership', icon: '🏢', label: 'For Property Owners',  desc: 'Learn how StayOS can help grow and streamline your property business.' },
-  { id: 'other',       icon: '👥', label: 'For Agencies',         desc: 'Partner with StayOS and manage multiple properties with ease.' },
+const CATEGORIES: { id: string; icon: LucideIcon; label: string; desc: string }[] = [
+  { id: 'sales',       icon: Mail,      label: 'General Enquiries',    desc: 'Questions about StayOS, our platform, or how we can help you.' },
+  { id: 'support',     icon: Headphones,   label: 'Customer Support',     desc: 'Get help with bookings, accounts, payments and more.' },
+  { id: 'partnership', icon: Building2, label: 'For Property Owners',  desc: 'Learn how StayOS can help grow and streamline your property business.' },
+  { id: 'other',       icon: Users,     label: 'For Agencies',         desc: 'Partner with StayOS and manage multiple properties with ease.' },
 ];
 
 const OFFICES = [
@@ -101,12 +105,12 @@ export default function ContactPage(): React.ReactElement {
           </p>
           <div style={{ display: 'flex', gap: 'var(--space-8)', flexWrap: 'wrap' }}>
             {[
-              { icon: '⚡', label: 'Fast & Friendly Support', sub: 'We typically respond within one business day.' },
-              { icon: '🛡', label: 'Trusted & Secure', sub: 'Your data is protected and never shared.' },
-              { icon: '👥', label: 'Real People, Real Help', sub: 'No bots. Just our dedicated team.' },
+              { icon: Zap,         label: 'Fast & Friendly Support', sub: 'We typically respond within one business day.' },
+              { icon: ShieldCheck, label: 'Trusted & Secure', sub: 'Your data is protected and never shared.' },
+              { icon: Users,       label: 'Real People, Real Help', sub: 'No bots. Just our dedicated team.' },
             ].map((f) => (
               <div key={f.label} style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-3)' }}>
-                <span style={{ fontSize: 'var(--text-lg)', marginTop: '2px' }}>{f.icon}</span>
+                <span style={{ marginTop: '2px' }}><f.icon size={20} aria-hidden="true" /></span>
                 <div>
                   <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-semibold)', marginBottom: '2px' }}>{f.label}</div>
                   <div style={{ fontSize: 'var(--text-xs)', opacity: 0.8 }}>{f.sub}</div>
@@ -120,7 +124,7 @@ export default function ContactPage(): React.ReactElement {
       {/* ── Main content grid ────────────────────────────────────────────── */}
       <section data-section>
         <div data-container>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr 1fr', gap: 'var(--space-12)', alignItems: 'flex-start' }}>
+          <div data-cols-3-uneven style={{ gap: 'var(--space-12)', alignItems: 'flex-start' }}>
 
             {/* Category selector */}
             <div>
@@ -141,25 +145,25 @@ export default function ContactPage(): React.ReactElement {
                       cursor: 'pointer', textAlign: 'left', transition: 'all var(--transition-fast)',
                     }}
                   >
-                    <span style={{ fontSize: 'var(--text-xl)', flexShrink: 0, width: '40px', height: '40px', background: 'var(--color-surface-muted)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{cat.icon}</span>
+                    <span style={{ color: 'var(--color-primary)', flexShrink: 0, width: '40px', height: '40px', background: 'var(--color-surface-muted)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><cat.icon size={20} aria-hidden="true" /></span>
                     <div>
                       <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-semibold)', color: 'var(--color-text-primary)', marginBottom: '4px' }}>{cat.label}</div>
                       <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', lineHeight: 'var(--leading-relaxed)' }}>{cat.desc}</div>
                     </div>
-                    <span style={{ marginLeft: 'auto', color: 'var(--color-text-muted)', flexShrink: 0 }}>›</span>
+                    <ChevronRight size={16} aria-hidden="true" style={{ marginLeft: 'auto', color: 'var(--color-text-muted)', flexShrink: 0 }} />
                   </button>
                 ))}
               </div>
             </div>
 
             {/* Contact form */}
-            <div>
+            <div id="email">
               <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-2)' }}>Send us a message</h2>
               <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-6)' }}>Fill in the form and we&apos;ll get back to you.</p>
 
               {submitted ? (
                 <div data-card-padded style={{ textAlign: 'center', padding: 'var(--space-12)' }}>
-                  <div style={{ fontSize: 'var(--text-4xl)', marginBottom: 'var(--space-4)' }}>✅</div>
+                  <div style={{ marginBottom: 'var(--space-4)', color: 'var(--color-success)', display: 'flex', justifyContent: 'center' }}><CheckCircle2 size={44} /></div>
                   <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-2)' }}>Message sent!</h3>
                   <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
                     Thank you for reaching out. We&apos;ll get back to you within one business day.
@@ -196,7 +200,7 @@ export default function ContactPage(): React.ReactElement {
                     By submitting this form, you agree to our <a href="/legal/privacy" data-link>Privacy Policy</a>.
                   </p>
                   <button type="submit" disabled={submitting} data-btn-primary data-btn-full>
-                    {submitting ? 'Sending…' : 'Send message ✉️'}
+                    {submitting ? 'Sending…' : <>Send message <Mail size={16} aria-hidden="true" /></>}
                   </button>
                 </form>
               )}
@@ -207,13 +211,13 @@ export default function ContactPage(): React.ReactElement {
               <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-6)' }}>Other ways to reach us</h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
                 {[
-                  { icon: '📞', label: 'Call Us', value: '+27 10 123 4567', sub: 'Mon – Fri, 08:00 – 17:00 SAST' },
-                  { icon: '✉️', label: 'Email Us', value: 'hello@stayos.co.za', sub: 'We aim to respond within 1 business day' },
-                  { icon: '💬', label: 'Live Chat', value: 'Available on our website', sub: 'Mon – Fri, 08:00 – 17:00 SAST' },
-                  { icon: '💬', label: 'WhatsApp', value: '+27 82 123 4567', sub: 'Quick support on the go' },
+                  { icon: Phone,          label: 'Call Us', value: '+27 10 123 4567', sub: 'Mon – Fri, 08:00 – 17:00 SAST' },
+                  { icon: Mail,           label: 'Email Us', value: 'hello@stayos.co.za', sub: 'We aim to respond within 1 business day' },
+                  { icon: MessageSquare,  label: 'Live Chat', value: 'Available on our website', sub: 'Mon – Fri, 08:00 – 17:00 SAST' },
+                  { icon: MessageSquare,  label: 'WhatsApp', value: '+27 82 123 4567', sub: 'Quick support on the go' },
                 ].map((c) => (
                   <div key={c.label} style={{ display: 'flex', gap: 'var(--space-4)', alignItems: 'flex-start' }}>
-                    <span style={{ fontSize: 'var(--text-xl)', width: '40px', height: '40px', background: 'var(--color-primary-light)', borderRadius: 'var(--radius-full)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{c.icon}</span>
+                    <span style={{ color: 'var(--color-primary)', width: '40px', height: '40px', background: 'var(--color-primary-light)', borderRadius: 'var(--radius-full)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><c.icon size={20} aria-hidden="true" /></span>
                     <div>
                       <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-semibold)', color: 'var(--color-primary)' }}>{c.label}</div>
                       <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-bold)', margin: '2px 0' }}>{c.value}</div>
@@ -231,13 +235,13 @@ export default function ContactPage(): React.ReactElement {
       <div data-container>
         <div data-support-callout>
           <div data-support-callout-text>
-            <span data-support-callout-icon aria-hidden="true">📖</span>
+            <span data-support-callout-icon aria-hidden="true"><BookOpen size={20} /></span>
             <div>
               <strong>Looking for help fast?</strong>
               <p>Visit our Help Centre for guides, FAQs and troubleshooting.</p>
             </div>
           </div>
-          <a href="/help" data-btn-secondary>Go to Help Centre →</a>
+          <a href="/help" data-btn-secondary>Go to Help Centre <ArrowRight size={14} aria-hidden="true" /></a>
         </div>
       </div>
 
@@ -261,7 +265,7 @@ export default function ContactPage(): React.ReactElement {
                   <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', whiteSpace: 'pre-line', lineHeight: 'var(--leading-relaxed)', marginBottom: 'var(--space-4)' }}>{o.address}</div>
                   <a href={`https://maps.google.com/?q=${encodeURIComponent(o.address)}`} target="_blank" rel="noopener noreferrer"
                     style={{ fontSize: 'var(--text-sm)', color: 'var(--color-primary)', fontWeight: 'var(--font-medium)', display: 'flex', alignItems: 'center', gap: 'var(--space-1)', textDecoration: 'none' }}>
-                    📍 View on map
+                    <MapPin size={14} aria-hidden="true" /> View on map
                   </a>
                 </div>
               </div>
@@ -273,13 +277,13 @@ export default function ContactPage(): React.ReactElement {
       {/* ── FAQ accordion ────────────────────────────────────────────────── */}
       <section data-section style={{ background: 'var(--color-surface)', paddingTop: 'var(--space-10)', paddingBottom: 'var(--space-16)' }}>
         <div data-container>
-          <h2 data-section-heading style={{ marginBottom: 'var(--space-8)' }}>Frequently asked questions</h2>
+          <h2 id="faq" data-section-heading style={{ marginBottom: 'var(--space-8)' }}>Frequently asked questions</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--space-3)' }}>
             {FAQS.map((faq, i) => (
               <div key={i} data-card-padded onClick={() => setOpenFaq(openFaq === i ? null : i)} style={{ cursor: 'pointer' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-2)' }}>
                   <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-medium)' }}>{faq.q}</span>
-                  <span style={{ color: 'var(--color-text-muted)', flexShrink: 0, transition: 'transform 200ms', transform: openFaq === i ? 'rotate(90deg)' : 'none' }}>›</span>
+                  <ChevronRight size={16} aria-hidden="true" style={{ color: 'var(--color-text-muted)', flexShrink: 0, transition: 'transform 200ms', transform: openFaq === i ? 'rotate(90deg)' : 'none' }} />
                 </div>
                 {openFaq === i && (
                   <p style={{ marginTop: 'var(--space-3)', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', lineHeight: 'var(--leading-relaxed)' }}>
@@ -290,20 +294,20 @@ export default function ContactPage(): React.ReactElement {
             ))}
           </div>
           <div style={{ textAlign: 'center', marginTop: 'var(--space-8)' }}>
-            <a href="/help/faqs" data-section-link>View all FAQs →</a>
+            <a href="/help/faqs" data-section-link>View all FAQs <ArrowRight size={14} aria-hidden="true" /></a>
           </div>
         </div>
       </section>
 
       {/* ── Final CTA ────────────────────────────────────────────────────── */}
       <div style={{ background: 'var(--color-primary)', color: 'white', padding: 'var(--space-12) var(--page-padding-x)', textAlign: 'center' }}>
-        <div style={{ fontSize: 'var(--text-3xl)', marginBottom: 'var(--space-4)' }}>✉️</div>
+        <div style={{ marginBottom: 'var(--space-4)', display: 'flex', justifyContent: 'center' }}><Mail size={36} aria-hidden="true" /></div>
         <h2 style={{ fontSize: 'var(--text-2xl)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-2)' }}>Still need help?</h2>
         <p style={{ opacity: 0.85, marginBottom: 'var(--space-6)', fontSize: 'var(--text-base)' }}>
           Our team is here for you. Let&apos;s find the best solution for your needs.
         </p>
         <button type="button" style={{ padding: 'var(--space-3) var(--space-8)', background: 'white', color: 'var(--color-primary)', borderRadius: 'var(--radius-md)', fontWeight: 'var(--font-semibold)', fontSize: 'var(--text-sm)', cursor: 'pointer', border: 'none' }}>
-          Contact our team →
+          Contact our team <ArrowRight size={14} aria-hidden="true" style={{ marginLeft: 4, verticalAlign: 'middle' }} />
         </button>
       </div>
 
