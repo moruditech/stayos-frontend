@@ -1,24 +1,29 @@
 import React from 'react';
+import {
+  Calendar, Hotel, RefreshCcw, Users, CreditCard, Sparkles, BarChart3, Landmark,
+  ClipboardList, BedDouble, Receipt, PencilLine, TrendingUp, GraduationCap, ArrowRight,
+  type LucideIcon,
+} from 'lucide-react';
 import { PublicHeader, PublicFooter } from '@/components/PublicLayout';
 
-const HOSPITALITY_FEATURES = [
-  { icon:'📅', title:'Booking management',          desc:'Direct bookings with real-time availability, conflict detection and automated confirmations.' },
-  { icon:'🏨', title:'Room & rate management',       desc:'Manage room types, pricing rules, promotions and seasonal rates from one dashboard.' },
-  { icon:'🔄', title:'Channel manager & iCal sync', desc:'Sync your calendar with Airbnb, Booking.com and other OTAs to prevent double bookings.' },
-  { icon:'👥', title:'Guest management',             desc:'Guest profiles, check-in/out, digital keys, ID verification and communication tools.' },
-  { icon:'💳', title:'Payments & invoicing',         desc:'Accept PayFast, Ozow and Stripe. Automated invoicing and folio management.' },
-  { icon:'🧹', title:'Housekeeping & maintenance',   desc:'Task boards, staff schedules, work orders and real-time status updates.' },
-  { icon:'📊', title:'Reports & analytics',          desc:'Occupancy, revenue, ADR, booking source analysis and financial reporting.' },
-  { icon:'🏛', title:'Agency mandates',              desc:'Owner portal with mandate management for properties run by agencies.' },
+const HOSPITALITY_FEATURES: { icon: LucideIcon; title: string; desc: string }[] = [
+  { icon: Calendar,   title:'Booking management',          desc:'Direct bookings with real-time availability, conflict detection and automated confirmations.' },
+  { icon: Hotel,      title:'Room & rate management',       desc:'Manage room types, pricing rules, promotions and seasonal rates from one dashboard.' },
+  { icon: RefreshCcw, title:'Channel manager & iCal sync', desc:'Sync your calendar with Airbnb, Booking.com and other OTAs to prevent double bookings.' },
+  { icon: Users,      title:'Guest management',             desc:'Guest profiles, check-in/out, digital keys, ID verification and communication tools.' },
+  { icon: CreditCard, title:'Payments & invoicing',         desc:'Accept PayFast, Ozow and Stripe. Automated invoicing and folio management.' },
+  { icon: Sparkles,   title:'Housekeeping & maintenance',   desc:'Task boards, staff schedules, work orders and real-time status updates.' },
+  { icon: BarChart3,  title:'Reports & analytics',          desc:'Occupancy, revenue, ADR, booking source analysis and financial reporting.' },
+  { icon: Landmark,   title:'Agency mandates',              desc:'Owner portal with mandate management for properties run by agencies.' },
 ];
 
-const STUDENT_FEATURES = [
-  { icon:'📋', title:'Online applications',       desc:'Customisable application forms with document uploads, closing dates and automated status notifications.' },
-  { icon:'🛏', title:'Room & bed management',     desc:'Manage capacity, bed types, room assignments and occupancy at the granular level.' },
-  { icon:'🧾', title:'Student billing',           desc:'Invoicing with line items for tuition, accommodation, laundry and admin fees. NSFAS and bursary support.' },
-  { icon:'📝', title:'Digital leases',            desc:'Issue, sign and store lease agreements digitally. Every access logged for compliance.' },
-  { icon:'📈', title:'Reporting',                  desc:'Financial, occupancy and student status reporting for management and compliance.' },
-  { icon:'🎓', title:'Multi-provider support',     desc:'Built for universities, private providers and mixed portfolios.' },
+const STUDENT_FEATURES: { icon: LucideIcon; title: string; desc: string }[] = [
+  { icon: ClipboardList, title:'Online applications',       desc:'Customisable application forms with document uploads, closing dates and automated status notifications.' },
+  { icon: BedDouble,     title:'Room & bed management',     desc:'Manage capacity, bed types, room assignments and occupancy at the granular level.' },
+  { icon: Receipt,       title:'Student billing',           desc:'Invoicing with line items for tuition, accommodation, laundry and admin fees. NSFAS and bursary support.' },
+  { icon: PencilLine,    title:'Digital leases',            desc:'Issue, sign and store lease agreements digitally. Every access logged for compliance.' },
+  { icon: TrendingUp,    title:'Reporting',                  desc:'Financial, occupancy and student status reporting for management and compliance.' },
+  { icon: GraduationCap, title:'Multi-provider support',     desc:'Built for universities, private providers and mixed portfolios.' },
 ];
 
 export default function ServicesPage(): React.ReactElement {
@@ -52,7 +57,7 @@ export default function ServicesPage(): React.ReactElement {
       {/* Hospitality */}
       <section id="hospitality" data-section>
         <div data-container>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'var(--space-12)', alignItems:'center', marginBottom:'var(--space-12)' }}>
+          <div data-cols-2-lg style={{ gap:'var(--space-12)', alignItems:'center', marginBottom:'var(--space-12)' }}>
             <div>
               <span data-section-label>FOR HOSPITALITY OPERATORS</span>
               <h2 data-section-heading>More bookings, less admin.</h2>
@@ -60,7 +65,7 @@ export default function ServicesPage(): React.ReactElement {
                 Direct bookings, real-time availability, automated payments and staff coordination — all in one platform built for South African hospitality businesses.
               </p>
               <div style={{ display:'flex', gap:'var(--space-4)', marginTop:'var(--space-8)', flexWrap:'wrap' }}>
-                <a href="/signup/property" data-btn-primary>List your property →</a>
+                <a href="/signup/property" data-btn-primary>List your property <ArrowRight size={16} aria-hidden="true" /></a>
                 <a href="/pricing" data-btn-secondary>View pricing</a>
               </div>
             </div>
@@ -77,7 +82,7 @@ export default function ServicesPage(): React.ReactElement {
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(260px, 1fr))', gap:'var(--space-5)' }}>
             {HOSPITALITY_FEATURES.map((f) => (
               <div key={f.title} data-card-padded>
-                <div style={{ fontSize:'var(--text-2xl)', marginBottom:'var(--space-3)' }}>{f.icon}</div>
+                <div style={{ fontSize:'var(--text-2xl)', marginBottom:'var(--space-3)', color:'var(--color-primary)' }}><f.icon size={28} /></div>
                 <h3 style={{ fontSize:'var(--text-base)', fontWeight:'var(--font-bold)', marginBottom:'var(--space-2)' }}>{f.title}</h3>
                 <p style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', lineHeight:'var(--leading-relaxed)' }}>{f.desc}</p>
               </div>
@@ -89,7 +94,7 @@ export default function ServicesPage(): React.ReactElement {
       {/* Student housing */}
       <section id="student" data-section style={{ background:'var(--color-surface)' }}>
         <div data-container>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'var(--space-12)', alignItems:'center', marginBottom:'var(--space-12)' }}>
+          <div data-cols-2-lg style={{ gap:'var(--space-12)', alignItems:'center', marginBottom:'var(--space-12)' }}>
             <div style={{ aspectRatio:'4/3', background:'var(--color-surface-muted)', borderRadius:'var(--radius-xl)', overflow:'hidden' }}>
               {/* /images/public/services-student-detail.jpg */}
               <img
@@ -106,7 +111,7 @@ export default function ServicesPage(): React.ReactElement {
                 Manage applications, leases, billing and occupancy for student accommodation — with tools for self-paying students, NSFAS and bursary recipients.
               </p>
               <div style={{ display:'flex', gap:'var(--space-4)', marginTop:'var(--space-8)', flexWrap:'wrap' }}>
-                <a href="/signup/property" data-btn-primary>Get started →</a>
+                <a href="/signup/property" data-btn-primary>Get started <ArrowRight size={16} aria-hidden="true" /></a>
                 <a href="/contact" data-btn-secondary>Talk to sales</a>
               </div>
             </div>
@@ -114,7 +119,7 @@ export default function ServicesPage(): React.ReactElement {
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(260px, 1fr))', gap:'var(--space-5)' }}>
             {STUDENT_FEATURES.map((f) => (
               <div key={f.title} data-card-padded>
-                <div style={{ fontSize:'var(--text-2xl)', marginBottom:'var(--space-3)' }}>{f.icon}</div>
+                <div style={{ fontSize:'var(--text-2xl)', marginBottom:'var(--space-3)', color:'var(--color-primary)' }}><f.icon size={28} /></div>
                 <h3 style={{ fontSize:'var(--text-base)', fontWeight:'var(--font-bold)', marginBottom:'var(--space-2)' }}>{f.title}</h3>
                 <p style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', lineHeight:'var(--leading-relaxed)' }}>{f.desc}</p>
               </div>
