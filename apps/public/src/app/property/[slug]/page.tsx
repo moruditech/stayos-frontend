@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
 import { PublicHeader, PublicFooter } from '@/components/PublicLayout';
 import { SkeletonLoader } from '@stayos/ui';
+import { MapPin, Star, Check, BedDouble, Users, ArrowRight, ShieldCheck, Calendar } from 'lucide-react';
 
 interface Props { params: { slug: string } }
 
@@ -85,9 +86,9 @@ export default function PublicPropertyPage({ params }: Props): React.ReactElemen
 
       {/* Photo grid */}
       <div data-container style={{ padding:'var(--space-5) var(--page-padding-x)' }}>
-        <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr', gridTemplateRows:'1fr 1fr', gap:'var(--space-2)', borderRadius:'var(--radius-xl)', overflow:'hidden', maxHeight:480 }}>
+        <div data-cols-gallery style={{ gap:'var(--space-2)', borderRadius:'var(--radius-xl)', overflow:'hidden' }}>
           {[0,1,2,3,4].map((i) => (
-            <div key={i} style={{ gridRow: i===0?'1/3':'auto', background:'var(--color-surface-muted)', overflow:'hidden' }}>
+            <div key={i} style={{ gridRow: i===0?'1/3':'auto', gridColumn: i===0?'1/2':'auto', background:'var(--color-surface-muted)', overflow:'hidden' }}>
               {/* /images/properties/[slug]-[i].jpg */}
               <img src={`/images/properties/${params.slug}-${i}.jpg`} alt=""
                 style={{ width:'100%', height:'100%', objectFit:'cover' }}
@@ -100,7 +101,7 @@ export default function PublicPropertyPage({ params }: Props): React.ReactElemen
 
       {/* Main content */}
       <div data-container style={{ padding:'0 var(--page-padding-x) var(--space-16)' }}>
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 360px', gap:'var(--space-10)', alignItems:'flex-start' }}>
+        <div data-cols-booking style={{ gap:'var(--space-10)', alignItems:'flex-start' }}>
 
           {/* ── Left: property info ───────────────────────────────────── */}
           <div>
@@ -113,10 +114,10 @@ export default function PublicPropertyPage({ params }: Props): React.ReactElemen
                   {p['name'] as string}
                 </h1>
                 <div style={{ display:'flex', gap:'var(--space-5)', fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', flexWrap:'wrap' }}>
-                  <span>📍 {p['city'] as string}, {p['province'] as string ?? 'South Africa'}</span>
+                  <span style={{ display:'flex', alignItems:'center', gap:4 }}><MapPin size={14} aria-hidden="true" /> {p['city'] as string}, {p['province'] as string ?? 'South Africa'}</span>
                   {Boolean(p['rating']) && (
-                    <span style={{ display:'flex', gap:'var(--space-1)', color:'var(--color-text-primary)', fontWeight:'var(--font-semibold)' }}>
-                      ★ {(p['rating'] as number).toFixed(1)}
+                    <span style={{ display:'flex', alignItems:'center', gap:'var(--space-1)', color:'var(--color-text-primary)', fontWeight:'var(--font-semibold)' }}>
+                      <Star size={14} fill="currentColor" aria-hidden="true" /> {(p['rating'] as number).toFixed(1)}
                       <span style={{ color:'var(--color-text-muted)', fontWeight:'normal' }}>({p['reviewCount'] as number ?? 0} reviews)</span>
                     </span>
                   )}
@@ -128,7 +129,7 @@ export default function PublicPropertyPage({ params }: Props): React.ReactElemen
             {Boolean((p['amenities'] as string[])?.length) && (
               <div style={{ display:'flex', flexWrap:'wrap', gap:'var(--space-3)', padding:'var(--space-5)', background:'var(--color-surface)', border:'1px solid var(--color-border)', borderRadius:'var(--radius-lg)', marginBottom:'var(--space-6)' }}>
                 {(p['amenities'] as string[]).map((a) => (
-                  <span key={a} style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', display:'flex', gap:4 }}>✓ {a}</span>
+                  <span key={a} style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', display:'flex', alignItems:'center', gap:4 }}><Check size={14} aria-hidden="true" /> {a}</span>
                 ))}
               </div>
             )}
@@ -165,7 +166,7 @@ export default function PublicPropertyPage({ params }: Props): React.ReactElemen
                     const rate = r['baseRate'] as number ?? 0;
                     return (
                       <div key={r['_id'] as string} data-card>
-                        <div style={{ display:'grid', gridTemplateColumns:'180px 1fr' }}>
+                        <div data-cols-media-sm>
                           <div style={{ background:'var(--color-surface-muted)', overflow:'hidden', minHeight:140 }}>
                             {/* /images/rooms/[roomId]-thumb.jpg */}
                             <img src={`/images/rooms/${r['_id'] as string}-thumb.jpg`} alt={r['name'] as string}
@@ -175,13 +176,13 @@ export default function PublicPropertyPage({ params }: Props): React.ReactElemen
                           <div style={{ padding:'var(--space-4)', display:'flex', flexDirection:'column', gap:'var(--space-2)' }}>
                             <div style={{ fontWeight:'var(--font-bold)', fontSize:'var(--text-base)' }}>{r['name'] as string}</div>
                             <div style={{ fontSize:'var(--text-xs)', color:'var(--color-text-secondary)', display:'flex', gap:'var(--space-4)' }}>
-                              <span>🛏 {r['bedCount'] as number ?? 1} bed{(r['bedCount'] as number)!==1?'s':''}</span>
-                              <span>👤 Up to {r['capacity'] as number ?? 1}</span>
+                              <span style={{ display:'flex', alignItems:'center', gap:4 }}><BedDouble size={14} aria-hidden="true" /> {r['bedCount'] as number ?? 1} bed{(r['bedCount'] as number)!==1?'s':''}</span>
+                              <span style={{ display:'flex', alignItems:'center', gap:4 }}><Users size={14} aria-hidden="true" /> Up to {r['capacity'] as number ?? 1}</span>
                             </div>
                             {Boolean(r['amenities']) && (
                               <div style={{ display:'flex', flexWrap:'wrap', gap:'var(--space-2)' }}>
                                 {((r['amenities'] as string[]) ?? []).slice(0,3).map((a) => (
-                                  <span key={a} style={{ fontSize:'var(--text-xs)', color:'var(--color-text-secondary)' }}>✓ {a}</span>
+                                  <span key={a} style={{ fontSize:'var(--text-xs)', color:'var(--color-text-secondary)', display:'inline-flex', alignItems:'center', gap:4 }}><Check size={12} aria-hidden="true" /> {a}</span>
                                 ))}
                               </div>
                             )}
@@ -224,7 +225,7 @@ export default function PublicPropertyPage({ params }: Props): React.ReactElemen
                       <div key={r['_id'] as string} data-card-padded>
                         <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'var(--space-2)' }}>
                           <span style={{ fontWeight:'var(--font-semibold)', fontSize:'var(--text-sm)' }}>{r['guestName'] as string ?? 'Guest'}</span>
-                          <span style={{ fontSize:'var(--text-sm)', color:'var(--color-text-muted)' }}>★ {r['rating'] as number ?? 5}</span>
+                          <span style={{ fontSize:'var(--text-sm)', color:'var(--color-text-muted)', display:'flex', alignItems:'center', gap:4 }}><Star size={12} fill="currentColor" aria-hidden="true" /> {r['rating'] as number ?? 5}</span>
                         </div>
                         <p style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', lineHeight:'var(--leading-relaxed)' }}>{r['comment'] as string}</p>
                         <div style={{ fontSize:'var(--text-xs)', color:'var(--color-text-muted)', marginTop:'var(--space-2)' }}>
@@ -247,7 +248,7 @@ export default function PublicPropertyPage({ params }: Props): React.ReactElemen
                   No account required. Complete the application form and submit your documents.
                 </p>
                 <a href={`/property/${params.slug}/apply`} data-btn-primary data-btn-full>
-                  Apply now →
+                  Apply now <ArrowRight size={16} aria-hidden="true" />
                 </a>
                 <p style={{ fontSize:'var(--text-xs)', color:'var(--color-text-muted)', marginTop:'var(--space-3)', textAlign:'center' }}>
                   Applications are free to submit
@@ -294,14 +295,15 @@ export default function PublicPropertyPage({ params }: Props): React.ReactElemen
                     </div>
                   </div>
                 )}
-                <a href={bookHref()} data-btn-primary data-btn-full>Book now →</a>
+                <a href={bookHref()} data-btn-primary data-btn-full>Book now <ArrowRight size={16} aria-hidden="true" /></a>
                 <p style={{ fontSize:'var(--text-xs)', color:'var(--color-text-muted)', textAlign:'center', marginTop:'var(--space-3)' }}>
                   You won&apos;t be charged yet
                 </p>
               </>
             )}
-            <div style={{ marginTop:'var(--space-5)', paddingTop:'var(--space-5)', borderTop:'1px solid var(--color-border)', fontSize:'var(--text-xs)', color:'var(--color-text-muted)', textAlign:'center' }}>
-              🛡 Secure & trusted · 📅 Free cancellation on select rooms
+            <div style={{ marginTop:'var(--space-5)', paddingTop:'var(--space-5)', borderTop:'1px solid var(--color-border)', fontSize:'var(--text-xs)', color:'var(--color-text-muted)', display:'flex', alignItems:'center', justifyContent:'center', gap:'var(--space-3)', flexWrap:'wrap' }}>
+              <span style={{ display:'flex', alignItems:'center', gap:4 }}><ShieldCheck size={14} aria-hidden="true" /> Secure &amp; trusted</span>
+              <span style={{ display:'flex', alignItems:'center', gap:4 }}><Calendar size={14} aria-hidden="true" /> Free cancellation on select rooms</span>
             </div>
           </div>
         </div>
