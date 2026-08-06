@@ -34,7 +34,7 @@ export default function BookingFormPage({ params }: Props): React.ReactElement {
     queryFn:  () => api.discovery.getProperty(params.slug),
   });
 
-  const { data: availability, isLoading: availLoading } = useQuery({
+  const { data: availability } = useQuery({
     queryKey: accommodationKeys.availability(params.slug, { checkIn, checkOut }),
     queryFn:  () => api.discovery.getPropertyAvailability(params.slug, { checkIn, checkOut }),
     enabled:  !!(checkIn && checkOut),
