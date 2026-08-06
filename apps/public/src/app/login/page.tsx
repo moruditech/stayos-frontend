@@ -1,16 +1,27 @@
+'use client';
 import React from 'react';
+import { User, Building, Briefcase, Check, Lock, Compass, FileText, MessageCircle, HelpCircle, Send, ArrowRight, type LucideIcon } from 'lucide-react';
+import { PublicHeader, PublicFooter } from '@/components/PublicLayout';
 
 // The portal picker exists ONLY for genuinely ambiguous entry points:
 // the site's header "Log in" link, or someone arriving with no prior context.
 //
-// It is NOT part of the booking flow (→ my.stayos.co.za/login direct) or the
+// It is NOT part of the booking flow (goes to my.stayos.co.za/login direct) or the
 // application flow (no login required). Document 09 §4/§5 is explicit on this.
-//
-// This is a server component — no client-side logic needed.
 
-const PORTALS = [
+const PORTALS: {
+  id: string;
+  icon: LucideIcon;
+  label: string;
+  description: string;
+  features: string[];
+  cta: string;
+  href: string;
+  domain: string;
+}[] = [
   {
     id: 'customer',
+    icon: User,
     label: 'Guest & Customer',
     description: 'Book accommodation, manage reservations, payments, applications, leases and loyalty.',
     features: [
@@ -25,6 +36,7 @@ const PORTALS = [
   },
   {
     id: 'property',
+    icon: Building,
     label: 'Property Operations',
     description:
       'Manage bookings, rooms, housekeeping, maintenance, staff and daily operations.',
@@ -40,6 +52,7 @@ const PORTALS = [
   },
   {
     id: 'agency',
+    icon: Briefcase,
     label: 'Agency Portal',
     description:
       'Manage your property portfolio, mandates, agency staff and statements.',
@@ -53,26 +66,12 @@ const PORTALS = [
     href: 'https://agency.stayos.co.za/login',
     domain: 'agency.stayos.co.za/login',
   },
-] as const;
+];
 
 export default function LoginPickerPage(): React.ReactElement {
   return (
     <div data-login-picker-page>
-      {/* Header */}
-      <header data-public-header>
-        <a href="/" data-logo>
-          <span data-logo-text>StayOS</span>
-        </a>
-        <nav>
-          <a href="/services">Services</a>
-          <a href="/pricing">Pricing</a>
-          <a href="/search">Search</a>
-          <a href="/about">About</a>
-          <a href="/contact">Contact</a>
-        </nav>
-        {/* No Log in button on the Log in page */}
-        <a href="/signup/property" data-btn-primary>List your property</a>
-      </header>
+      <PublicHeader activePage="/login" />
 
       {/* Hero */}
       <section data-picker-hero>
@@ -88,22 +87,22 @@ export default function LoginPickerPage(): React.ReactElement {
       <section data-portal-cards aria-label="Select your portal">
         {PORTALS.map((portal) => (
           <article key={portal.id} data-portal-card data-portal={portal.id}>
-            <div data-portal-card-icon aria-hidden="true" />
+            <div data-portal-card-icon aria-hidden="true"><portal.icon size={24} /></div>
             <h2 data-portal-card-label>{portal.label}</h2>
             <p data-portal-card-description>{portal.description}</p>
             <ul data-portal-card-features>
               {portal.features.map((f) => (
                 <li key={f} data-portal-card-feature>
-                  <span data-check-icon aria-hidden="true" />
+                  <span data-check-icon aria-hidden="true"><Check size={16} /></span>
                   {f}
                 </li>
               ))}
             </ul>
             <a href={portal.href} data-btn-primary data-btn-full data-portal-cta>
-              {portal.cta} →
+              {portal.cta} <ArrowRight size={16} aria-hidden="true" />
             </a>
             <div data-portal-domain>
-              <span data-lock-icon aria-hidden="true" />
+              <span data-lock-icon aria-hidden="true"><Lock size={13} /></span>
               {portal.domain}
             </div>
           </article>
@@ -113,7 +112,7 @@ export default function LoginPickerPage(): React.ReactElement {
       {/* Contextual help — booking and application don't need this page */}
       <section data-picker-help>
         <div data-picker-help-item>
-          <span data-help-icon aria-hidden="true" />
+          <span data-help-icon aria-hidden="true"><Compass size={18} /></span>
           <div>
             <h3>Looking to book accommodation?</h3>
             <p>
@@ -125,7 +124,7 @@ export default function LoginPickerPage(): React.ReactElement {
           </div>
         </div>
         <div data-picker-help-item>
-          <span data-help-icon aria-hidden="true" />
+          <span data-help-icon aria-hidden="true"><FileText size={18} /></span>
           <div>
             <h3>Applying for student accommodation?</h3>
             <p>
@@ -141,44 +140,13 @@ export default function LoginPickerPage(): React.ReactElement {
       <section data-picker-support>
         <h2>Need help?</h2>
         <div data-support-links>
-          <a href="/contact" data-support-link>Contact Support →</a>
-          <a href="/contact#faq" data-support-link>View FAQs →</a>
-          <a href="/contact#email" data-support-link>Send us an Email →</a>
+          <a href="/contact" data-support-link><MessageCircle size={16} aria-hidden="true" /> Contact Support <ArrowRight size={14} aria-hidden="true" /></a>
+          <a href="/contact#faq" data-support-link><HelpCircle size={16} aria-hidden="true" /> View FAQs <ArrowRight size={14} aria-hidden="true" /></a>
+          <a href="/contact#email" data-support-link><Send size={16} aria-hidden="true" /> Send us an Email <ArrowRight size={14} aria-hidden="true" /></a>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer data-public-footer>
-        <div data-footer-brand>
-          <a href="/" data-logo>StayOS</a>
-          <p>Built for hospitality. Designed for people.</p>
-        </div>
-        <nav data-footer-links aria-label="Footer navigation">
-          <div data-footer-col>
-            <strong>Product</strong>
-            <a href="/services">Services</a>
-            <a href="/pricing">Pricing</a>
-            <a href="/search">Search properties</a>
-          </div>
-          <div data-footer-col>
-            <strong>Company</strong>
-            <a href="/about">About</a>
-            <a href="/contact">Contact</a>
-          </div>
-          <div data-footer-col>
-            <strong>For Operators</strong>
-            <a href="/signup/property">List your property</a>
-            <a href="https://app.stayos.co.za/login">Property login</a>
-            <a href="https://agency.stayos.co.za/login">Agency login</a>
-          </div>
-          <div data-footer-col>
-            <strong>Legal</strong>
-            <a href="/legal/privacy">Privacy Policy</a>
-            <a href="/legal/terms">Terms of Service</a>
-          </div>
-        </nav>
-        <p data-footer-copyright>© 2026 StayOS. All rights reserved.</p>
-      </footer>
+      <PublicFooter />
     </div>
   );
 }
