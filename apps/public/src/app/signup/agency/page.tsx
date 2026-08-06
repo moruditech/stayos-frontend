@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { InlineError } from '@stayos/ui';
+import { Landmark, ClipboardList, Users, Wallet, KeyRound, BarChart3, ArrowRight, type LucideIcon } from 'lucide-react';
 import { PublicHeader, PublicFooter } from '@/components/PublicLayout';
 
 // Agency registration redirects to the Agency Portal's own onboarding flow.
@@ -21,13 +22,13 @@ const agencySignupSchema = z.object({
 });
 type AgencySignupInput = z.infer<typeof agencySignupSchema>;
 
-const AGENCY_BENEFITS = [
-  { icon:'🏛', text:'Centralised portfolio management across all your properties' },
-  { icon:'📋', text:'Full mandate management — request, accept, terminate' },
-  { icon:'👥', text:'Agency staff management with role-based access per property' },
-  { icon:'💰', text:'Statements, commissions and billing split tracking' },
-  { icon:'🔑', text:'Enter any managed property as native staff with one click' },
-  { icon:'📊', text:'Portfolio analytics and cross-property reporting' },
+const AGENCY_BENEFITS: { icon: LucideIcon; text: string }[] = [
+  { icon: Landmark,     text:'Centralised portfolio management across all your properties' },
+  { icon: ClipboardList, text:'Full mandate management — request, accept, terminate' },
+  { icon: Users,        text:'Agency staff management with role-based access per property' },
+  { icon: Wallet,       text:'Statements, commissions and billing split tracking' },
+  { icon: KeyRound,     text:'Enter any managed property as native staff with one click' },
+  { icon: BarChart3,    text:'Portfolio analytics and cross-property reporting' },
 ];
 
 const PORTFOLIO_OPTIONS = [
@@ -86,7 +87,7 @@ export default function AgencySignupPage(): React.ReactElement {
       </section>
 
       <div data-container style={{ padding:'var(--space-12) var(--page-padding-x)' }}>
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1.5fr', gap:'var(--space-12)', alignItems:'flex-start' }}>
+        <div data-cols-uneven style={{ gap:'var(--space-12)', alignItems:'flex-start' }}>
 
           {/* Benefits */}
           <div>
@@ -96,7 +97,7 @@ export default function AgencySignupPage(): React.ReactElement {
             <div style={{ display:'flex', flexDirection:'column', gap:'var(--space-4)', marginBottom:'var(--space-8)' }}>
               {AGENCY_BENEFITS.map((b) => (
                 <div key={b.text} style={{ display:'flex', alignItems:'center', gap:'var(--space-4)' }}>
-                  <span style={{ fontSize:'var(--text-xl)', width:40, height:40, background:'var(--color-primary-light)', borderRadius:'var(--radius-md)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>{b.icon}</span>
+                  <span style={{ color:'var(--color-primary)', width:40, height:40, background:'var(--color-primary-light)', borderRadius:'var(--radius-md)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}><b.icon size={20} /></span>
                   <span style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)' }}>{b.text}</span>
                 </div>
               ))}
@@ -104,7 +105,7 @@ export default function AgencySignupPage(): React.ReactElement {
             <div data-card-padded style={{ background:'var(--color-surface-muted)' }}>
               <p style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', lineHeight:'var(--leading-relaxed)' }}>
                 <strong>Questions?</strong> Our team is ready to help you get started.{' '}
-                <a href="/contact?subject=agency" data-link>Talk to sales →</a>
+                <a href="/contact?subject=agency" data-link>Talk to sales <ArrowRight size={12} aria-hidden="true" /></a>
               </p>
             </div>
           </div>
@@ -116,7 +117,7 @@ export default function AgencySignupPage(): React.ReactElement {
             </h2>
             <form onSubmit={form.handleSubmit((v) => void handleSubmit(v))} noValidate
               style={{ display:'flex', flexDirection:'column', gap:'var(--space-4)' }}>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'var(--space-4)' }}>
+              <div data-cols-2 style={{ gap:'var(--space-4)' }}>
                 <div data-form-group>
                   <label htmlFor="ag-fn">First name *</label>
                   <input id="ag-fn" type="text" autoComplete="given-name" {...form.register('firstName')} />
@@ -172,11 +173,11 @@ export default function AgencySignupPage(): React.ReactElement {
               <InlineError message={form.formState.errors.agreeTerms?.message} />
               {formError && <span role="alert" data-form-error>{formError}</span>}
               <button type="submit" disabled={submitting} data-btn-primary data-btn-full>
-                {submitting ? 'Setting up your account…' : 'Create agency account →'}
+                {submitting ? 'Setting up your account…' : <>Create agency account <ArrowRight size={16} aria-hidden="true" /></>}
               </button>
               <p style={{ fontSize:'var(--text-xs)', color:'var(--color-text-muted)', textAlign:'center' }}>
                 Already have an account?{' '}
-                <a href="https://agency.stayos.co.za/login" data-link>Sign in →</a>
+                <a href="https://agency.stayos.co.za/login" data-link>Sign in <ArrowRight size={12} aria-hidden="true" /></a>
               </p>
             </form>
           </div>
