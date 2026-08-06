@@ -1,5 +1,4 @@
 import React from 'react';
-import { Play, Users, GraduationCap, Building2, Landmark, Globe, User, Settings, Check, ChevronDown, Home as HomeIcon, ArrowRight, type LucideIcon } from 'lucide-react';
 import { PublicHeader, PublicFooter } from '@/components/PublicLayout';
 
 export const metadata = {
@@ -16,24 +15,24 @@ const STATS = [
   { value: '99.9%',   label: 'Platform Uptime',       sub: 'Reliability you can trust' },
 ];
 
-const AUDIENCE: { icon: LucideIcon; title: string; desc: string; points: string[] }[] = [
+const AUDIENCE = [
   {
-    icon: Users, title: 'Guests',
+    icon: '👥', title: 'Guests',
     desc: 'Find and book hotels, guesthouses and rentals with confidence.',
     points: ['Best rates', 'Secure bookings', 'Loyalty rewards', '24/7 support'],
   },
   {
-    icon: GraduationCap, title: 'Students',
+    icon: '🎓', title: 'Students',
     desc: 'Apply, manage and pay for accommodation with ease.',
     points: ['Easy applications', 'Transparent fees', 'Digital leases', 'Payment plans'],
   },
   {
-    icon: Building2, title: 'Property Owners',
+    icon: '🏢', title: 'Property Owners',
     desc: 'Run your property smarter and grow your business.',
     points: ['More bookings', 'Streamlined operations', 'Powerful insights', 'Lower costs'],
   },
   {
-    icon: Landmark, title: 'Agencies',
+    icon: '🏛', title: 'Agencies',
     desc: 'Manage multiple properties and drive performance.',
     points: ['Centralised portfolio', 'Mandate management', 'Staff management', 'Clear statements'],
   },
@@ -84,7 +83,7 @@ export default function AboutPage(): React.ReactElement {
           <div style={{ display: 'flex', gap: 'var(--space-4)', flexWrap: 'wrap' }}>
             <a href="/search" data-btn-primary>Explore our platform</a>
             <button type="button" style={{ padding: 'var(--space-3) var(--space-6)', background: 'rgba(255,255,255,0.15)', border: '1.5px solid rgba(255,255,255,0.4)', borderRadius: 'var(--radius-md)', color: 'white', fontSize: 'var(--text-sm)', fontWeight: 'var(--font-medium)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-              <Play size={14} fill="currentColor" aria-hidden="true" /> Watch overview
+              ▶ Watch overview
             </button>
           </div>
         </div>
@@ -95,7 +94,7 @@ export default function AboutPage(): React.ReactElement {
         <div data-container>
           <span data-section-label>OUR STORY</span>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 'var(--space-12)', alignItems: 'center' }}>
-            <div data-cols-2 style={{ gap: 'var(--space-8)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-8)' }}>
               <div>
                 <h2 data-section-heading>Solving real challenges. Together.</h2>
                 <p style={{ fontSize: 'var(--text-base)', color: 'var(--color-text-secondary)', lineHeight: 'var(--leading-relaxed)', marginBottom: 'var(--space-4)' }}>
@@ -126,14 +125,14 @@ export default function AboutPage(): React.ReactElement {
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 'var(--space-6)', textAlign: 'center' }}>
             {[
-              { icon: Globe,     title: 'Public Website',     desc: 'Discover properties, compare options and find the perfect stay or student accommodation.' },
-              { icon: User,      title: 'Customer Portal',    desc: 'Guests and students book, apply, pay, manage stays, loyalty and support.' },
-              { icon: Building2, title: 'Property Portal',    desc: 'Property teams manage bookings, operations, staff, finances and reports.' },
-              { icon: Landmark,  title: 'Agency Portal',      desc: 'Agencies manage multiple properties, mandates, billing and staff.' },
-              { icon: Settings,  title: 'Platform Admin',    desc: 'StayOS platform operations, vetting, support, billing and insights.' },
+              { icon: '🌐', title: 'Public Website',     desc: 'Discover properties, compare options and find the perfect stay or student accommodation.' },
+              { icon: '👤', title: 'Customer Portal',    desc: 'Guests and students book, apply, pay, manage stays, loyalty and support.' },
+              { icon: '🏢', title: 'Property Portal',    desc: 'Property teams manage bookings, operations, staff, finances and reports.' },
+              { icon: '🏛', title: 'Agency Portal',      desc: 'Agencies manage multiple properties, mandates, billing and staff.' },
+              { icon: '⚙️', title: 'Platform Admin',    desc: 'StayOS platform operations, vetting, support, billing and insights.' },
             ].map((p) => (
               <div key={p.title} data-card-padded style={{ textAlign: 'center' }}>
-                <div style={{ marginBottom: 'var(--space-3)', color: 'var(--color-primary)', display: 'flex', justifyContent: 'center' }}><p.icon size={30} /></div>
+                <div style={{ fontSize: 'var(--text-3xl)', marginBottom: 'var(--space-3)' }}>{p.icon}</div>
                 <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-2)' }}>{p.title}</div>
                 <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', lineHeight: 'var(--leading-relaxed)' }}>{p.desc}</div>
               </div>
@@ -151,13 +150,13 @@ export default function AboutPage(): React.ReactElement {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 'var(--space-6)' }}>
             {AUDIENCE.map((a) => (
               <div key={a.title} data-card-padded>
-                <div style={{ marginBottom: 'var(--space-4)', color: 'var(--color-primary)' }}><a.icon size={30} /></div>
+                <div style={{ fontSize: 'var(--text-3xl)', marginBottom: 'var(--space-4)' }}>{a.icon}</div>
                 <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-2)' }}>{a.title}</h3>
                 <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-4)', lineHeight: 'var(--leading-relaxed)' }}>{a.desc}</p>
                 <ul style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
                   {a.points.map((pt) => (
                     <li key={pt} style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', display: 'flex', gap: 'var(--space-2)' }}>
-                      <Check size={15} aria-hidden="true" style={{ color: 'var(--color-primary)', flexShrink: 0 }} />{pt}
+                      <span style={{ color: 'var(--color-primary)', fontWeight: 'var(--font-bold)' }}>✓</span>{pt}
                     </li>
                   ))}
                 </ul>
@@ -169,7 +168,7 @@ export default function AboutPage(): React.ReactElement {
 
       {/* ── Stats ─────────────────────────────────────────────────────────── */}
       <div data-stats-band>
-        <div data-stats-grid data-cols="3" style={{ maxWidth: 'var(--content-max-width)', margin: '0 auto' }}>
+        <div data-stats-grid style={{ maxWidth: 'var(--content-max-width)', margin: '0 auto', gridTemplateColumns: 'repeat(3, 1fr)' }}>
           {STATS.map((s) => (
             <div key={s.label} data-stat-item style={{ flexDirection: 'column', gap: 'var(--space-1)', textAlign: 'center' }}>
               <strong style={{ fontSize: 'var(--text-3xl)', fontWeight: 'var(--font-bold)' }}>{s.value}</strong>
@@ -183,7 +182,7 @@ export default function AboutPage(): React.ReactElement {
       {/* ── South Africa section ──────────────────────────────────────────── */}
       <section data-section style={{ background: 'var(--color-surface)' }}>
         <div data-container>
-          <div data-cols-2-lg style={{ gap: 'var(--space-12)', alignItems: 'center' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-12)', alignItems: 'center' }}>
             <div>
               <span data-section-label>BUILT IN SOUTH AFRICA</span>
               <h2 data-section-heading>For South Africa. By South Africans.</h2>
@@ -198,7 +197,7 @@ export default function AboutPage(): React.ReactElement {
                   'Compliant with South African laws and POPIA',
                 ].map((pt) => (
                   <li key={pt} style={{ display: 'flex', gap: 'var(--space-3)', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
-                    <Check size={15} aria-hidden="true" style={{ color: 'var(--color-primary)', flexShrink: 0 }} />{pt}
+                    <span style={{ color: 'var(--color-primary)', fontWeight: 'var(--font-bold)', flexShrink: 0 }}>✓</span>{pt}
                   </li>
                 ))}
               </ul>
@@ -207,7 +206,7 @@ export default function AboutPage(): React.ReactElement {
               <p style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--font-bold)', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: 'var(--space-6)' }}>OUR JOURNEY</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
                 {JOURNEY.map((j) => (
-                  <div key={j.year} style={{ display: 'grid', gridTemplateColumns: '52px 1fr', gap: 'var(--space-4)', alignItems: 'flex-start' }}>
+                  <div key={j.year} style={{ display: 'grid', gridTemplateColumns: '60px 1fr', gap: 'var(--space-4)', alignItems: 'flex-start' }}>
                     <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-bold)', color: 'var(--color-primary)', paddingTop: '2px' }}>{j.year}</div>
                     <div>
                       <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-semibold)', marginBottom: '2px' }}>{j.label}</div>
@@ -229,7 +228,7 @@ export default function AboutPage(): React.ReactElement {
             {FAQS.map((faq) => (
               <details key={faq.q} data-card-padded style={{ cursor: 'pointer' }}>
                 <summary style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-medium)', listStyle: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-2)' }}>
-                  {faq.q} <ChevronDown size={16} aria-hidden="true" style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+                  {faq.q} <span style={{ color: 'var(--color-text-muted)', flexShrink: 0 }}>↓</span>
                 </summary>
                 <p style={{ marginTop: 'var(--space-3)', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', lineHeight: 'var(--leading-relaxed)' }}>
                   {faq.a}
@@ -249,14 +248,14 @@ export default function AboutPage(): React.ReactElement {
           Join thousands of property owners, agencies, guests and students who trust StayOS every day.
         </p>
         <div style={{ display: 'flex', gap: 'var(--space-4)', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <a href="/search" style={{ padding: 'var(--space-3) var(--space-6)', background: 'white', color: 'var(--color-primary)', borderRadius: 'var(--radius-md)', fontWeight: 'var(--font-semibold)', fontSize: 'var(--text-sm)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-            <HomeIcon size={16} aria-hidden="true" /> Explore Properties
+          <a href="/search" style={{ padding: 'var(--space-3) var(--space-6)', background: 'white', color: 'var(--color-primary)', borderRadius: 'var(--radius-md)', fontWeight: 'var(--font-semibold)', fontSize: 'var(--text-sm)', textDecoration: 'none' }}>
+            🏠 Explore Properties
           </a>
-          <a href="/signup/property" style={{ padding: 'var(--space-3) var(--space-6)', background: 'rgba(255,255,255,0.15)', color: 'white', border: '1.5px solid rgba(255,255,255,0.4)', borderRadius: 'var(--radius-md)', fontWeight: 'var(--font-semibold)', fontSize: 'var(--text-sm)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-            <Building2 size={16} aria-hidden="true" /> For Property Owners
+          <a href="/signup/property" style={{ padding: 'var(--space-3) var(--space-6)', background: 'rgba(255,255,255,0.15)', color: 'white', border: '1.5px solid rgba(255,255,255,0.4)', borderRadius: 'var(--radius-md)', fontWeight: 'var(--font-semibold)', fontSize: 'var(--text-sm)', textDecoration: 'none' }}>
+            🏢 For Property Owners
           </a>
-          <a href="/contact" style={{ padding: 'var(--space-3) var(--space-6)', background: 'rgba(255,255,255,0.15)', color: 'white', border: '1.5px solid rgba(255,255,255,0.4)', borderRadius: 'var(--radius-md)', fontWeight: 'var(--font-semibold)', fontSize: 'var(--text-sm)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-            <Users size={16} aria-hidden="true" /> Contact Sales
+          <a href="/contact" style={{ padding: 'var(--space-3) var(--space-6)', background: 'rgba(255,255,255,0.15)', color: 'white', border: '1.5px solid rgba(255,255,255,0.4)', borderRadius: 'var(--radius-md)', fontWeight: 'var(--font-semibold)', fontSize: 'var(--text-sm)', textDecoration: 'none' }}>
+            👥 Contact Sales
           </a>
         </div>
       </div>
