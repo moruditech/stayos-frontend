@@ -46,6 +46,7 @@ export default function ApplicationFormPage({ params }: Props): React.ReactEleme
   const isClosed    = closingDate && closingDate < new Date();
   const requiredDocs= (ft['requiredDocuments'] as string[]) ?? [];
   const propertyName = ft['propertyName'] as string;
+  const terms = ft['terms'] as string | undefined;
 
   async function handleSubmit(e: React.FormEvent): Promise<void> {
     e.preventDefault();
@@ -166,11 +167,11 @@ export default function ApplicationFormPage({ params }: Props): React.ReactEleme
           )}
 
           {/* Terms acceptance */}
-          {ft['terms'] && (
+          {terms && (
             <div data-card-padded style={{ background: 'var(--color-surface-muted)' }}>
               <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-3)' }}>Terms and conditions</h3>
               <div style={{ maxHeight: '160px', overflowY: 'auto', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', lineHeight: 'var(--leading-relaxed)', marginBottom: 'var(--space-4)', padding: 'var(--space-3)', background: 'white', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
-                {ft['terms'] as string}
+                {terms}
               </div>
               <label data-checkbox-label>
                 <input type="checkbox" checked={termsAccepted} onChange={(e) => setTerms(e.target.checked)} />
