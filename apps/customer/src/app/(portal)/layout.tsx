@@ -5,7 +5,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useSession, useSessionContext, performLogout, useSessionLoading } from '@stayos/auth';
 import { SocketProvider } from '@stayos/ui';
 import { api } from '@stayos/api-client';
-import type { ApiError } from '@stayos/api-client';
 
 const SOCKET_URL = process.env['NEXT_PUBLIC_SOCKET_URL'] ?? 'http://localhost:3000';
 const STUDENT_ROLES = new Set(['student_self_paying', 'student_bursary']);
@@ -48,7 +47,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
     if (!session) return;
     api.notifications.getUnreadCount()
       .then((r) => setUnreadCount(r.count))
-      .catch((_e: ApiError) => {});
+      .catch(() => {});
   }, [session]);
 
   // Escape to close
