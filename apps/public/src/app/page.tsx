@@ -1,17 +1,31 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import {
+  LayoutGrid,
+  GraduationCap,
+  Hotel,
+  Home as HomeIcon,
+  Building2,
+  Users,
+  ShieldCheck,
+  MapPin,
+  Star,
+  Calendar,
+  ArrowRight,
+  type LucideIcon,
+} from 'lucide-react';
 import { PublicHeader, PublicFooter } from '@/components/PublicLayout';
 
 // ── Search tab type ───────────────────────────────────────────────────────────
 type SearchTab = 'all' | 'student' | 'hotels' | 'guesthouses' | 'rentals';
 
-const SEARCH_TABS: { id: SearchTab; label: string; icon: string }[] = [
-  { id: 'all',         label: 'All',             icon: '⊞' },
-  { id: 'student',     label: 'Student Housing',  icon: '🎓' },
-  { id: 'hotels',      label: 'Hotels',           icon: '🏨' },
-  { id: 'guesthouses', label: 'Guesthouses',      icon: '🏡' },
-  { id: 'rentals',     label: 'Rentals',          icon: '🏢' },
+const SEARCH_TABS: { id: SearchTab; label: string; icon: LucideIcon }[] = [
+  { id: 'all',         label: 'All',             icon: LayoutGrid },
+  { id: 'student',     label: 'Student Housing',  icon: GraduationCap },
+  { id: 'hotels',      label: 'Hotels',           icon: Hotel },
+  { id: 'guesthouses', label: 'Guesthouses',      icon: HomeIcon },
+  { id: 'rentals',     label: 'Rentals',          icon: Building2 },
 ];
 
 const PLANS = [
@@ -53,26 +67,26 @@ export default function HomePage(): React.ReactElement {
             operators run their business smarter, every day.
           </p>
           <div data-hero-actions>
-            <a href="/search" data-btn-primary>Find a place to stay →</a>
-            <a href="/signup/property" data-btn-secondary>List your property 🏢</a>
+            <a href="/search" data-btn-primary>Find a place to stay <ArrowRight size={16} aria-hidden="true" /></a>
+            <a href="/signup/property" data-btn-secondary><Building2 size={16} aria-hidden="true" /> List your property</a>
           </div>
           <div data-hero-stats>
             <div data-hero-stat>
-              <span data-hero-stat-icon aria-hidden="true">🏢</span>
+              <span data-hero-stat-icon aria-hidden="true"><Building2 size={22} /></span>
               <div data-hero-stat-text>
                 <strong>2,000+</strong>
                 <small>Verified properties</small>
               </div>
             </div>
             <div data-hero-stat>
-              <span data-hero-stat-icon aria-hidden="true">👥</span>
+              <span data-hero-stat-icon aria-hidden="true"><Users size={22} /></span>
               <div data-hero-stat-text>
                 <strong>10,000+</strong>
                 <small>Happy guests</small>
               </div>
             </div>
             <div data-hero-stat>
-              <span data-hero-stat-icon aria-hidden="true">🛡</span>
+              <span data-hero-stat-icon aria-hidden="true"><ShieldCheck size={22} /></span>
               <div data-hero-stat-text>
                 <strong>Secure &amp; trusted</strong>
                 <small>Always</small>
@@ -82,16 +96,18 @@ export default function HomePage(): React.ReactElement {
         </div>
 
         <div data-hero-right>
-          {/* Hero background image — /images/public/hero-bg.jpg */}
-          <img
-            data-hero-image
-            src="/images/public/hero-bg.jpg"
-            alt="Luxury accommodation"
-            loading="eager"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-          />
+          <div data-hero-image-wrap>
+            {/* Hero background image — /images/public/hero-bg.jpg */}
+            <img
+              data-hero-image
+              src="/images/public/hero-bg.jpg"
+              alt="Luxury accommodation"
+              loading="eager"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+          </div>
 
-          {/* Floating search widget */}
+          {/* Search widget — static card on mobile, floating overlay on desktop */}
           <div data-hero-search>
             <div data-hero-search-title>Find your next stay</div>
             <div data-hero-search-tabs>
@@ -103,17 +119,18 @@ export default function HomePage(): React.ReactElement {
                   data-active={searchTab === t.id ? '' : undefined}
                   onClick={() => setSearchTab(t.id)}
                 >
-                  <span>{t.icon}</span>
+                  <span><t.icon size={20} aria-hidden="true" /></span>
                   <span>{t.label}</span>
                 </button>
               ))}
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-              <div data-form-group>
+              <div data-form-group data-input-with-icon>
+                <MapPin size={16} aria-hidden="true" data-input-icon />
                 <input
                   type="text"
-                  placeholder="📍 Where are you going?"
+                  placeholder="Where are you going?"
                   value={destination}
                   onChange={(e) => setDest(e.target.value)}
                 />
@@ -143,7 +160,7 @@ export default function HomePage(): React.ReactElement {
                 </select>
               </div>
               <button type="button" data-btn-primary data-btn-full onClick={handleSearch}>
-                Search properties →
+                Search properties <ArrowRight size={16} aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -170,7 +187,7 @@ export default function HomePage(): React.ReactElement {
             {/* Student housing */}
             <div data-service-card>
               <div data-service-card-body>
-                <div data-service-icon aria-hidden="true">🎓</div>
+                <div data-service-icon aria-hidden="true"><GraduationCap size={26} /></div>
                 <h3 data-service-card-name>Student Housing Operators</h3>
                 <p data-service-card-desc>
                   Manage varsity accommodation, applications, occupancies and billing
@@ -183,7 +200,7 @@ export default function HomePage(): React.ReactElement {
                   <li data-service-card-feature>Built for universities and private providers</li>
                 </ul>
                 <a href="/services#student" data-service-card-link>
-                  Explore student housing solutions →
+                  Explore student housing solutions <ArrowRight size={14} aria-hidden="true" />
                 </a>
               </div>
               <div data-service-card-image>
@@ -196,7 +213,7 @@ export default function HomePage(): React.ReactElement {
             {/* Hospitality */}
             <div data-service-card>
               <div data-service-card-body>
-                <div data-service-icon aria-hidden="true">🏨</div>
+                <div data-service-icon aria-hidden="true"><Hotel size={26} /></div>
                 <h3 data-service-card-name>Hospitality Operators</h3>
                 <p data-service-card-desc>
                   For hotels, guesthouses and rentals that want more bookings and
@@ -209,7 +226,7 @@ export default function HomePage(): React.ReactElement {
                   <li data-service-card-feature>Insights to grow your business</li>
                 </ul>
                 <a href="/services#hospitality" data-service-card-link>
-                  Explore hospitality solutions →
+                  Explore hospitality solutions <ArrowRight size={14} aria-hidden="true" />
                 </a>
               </div>
               <div data-service-card-image>
@@ -226,13 +243,13 @@ export default function HomePage(): React.ReactElement {
       <div data-stats-band>
         <div data-stats-grid>
           {[
-            { icon: '⭐', value: '4.8/5',   label: 'Average guest rating' },
-            { icon: '📅', value: '25,000+', label: 'Stays booked' },
-            { icon: '🏢', value: '3,000+',  label: 'Properties on the platform' },
-            { icon: '🛡', value: '99.9%',   label: 'Uptime you can count on' },
+            { icon: Star, value: '4.8/5',   label: 'Average guest rating' },
+            { icon: Calendar, value: '25,000+', label: 'Stays booked' },
+            { icon: Building2, value: '3,000+',  label: 'Properties on the platform' },
+            { icon: ShieldCheck, value: '99.9%',   label: 'Uptime you can count on' },
           ].map((s) => (
             <div key={s.label} data-stat-item>
-              <span data-stat-icon aria-hidden="true">{s.icon}</span>
+              <span data-stat-icon aria-hidden="true"><s.icon size={24} /></span>
               <div data-stat-text>
                 <strong>{s.value}</strong>
                 <span>{s.label}</span>
@@ -246,14 +263,14 @@ export default function HomePage(): React.ReactElement {
       <section data-section>
         <div data-container>
           <span data-section-label>FAIR PRICING, REAL VALUE</span>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 'var(--space-12)', alignItems: 'start' }}>
+          <div data-cols-uneven style={{ gap: 'var(--space-12)', alignItems: 'start' }}>
             <div>
               <h2 data-section-heading>Plans that grow with your business</h2>
               <p data-section-intro style={{ fontSize: 'var(--text-base)' }}>
                 Choose the plan that fits you today, with the flexibility to scale tomorrow.
               </p>
               <a href="/pricing" data-section-link style={{ marginTop: 'var(--space-4)', display: 'inline-flex' }}>
-                View pricing plans →
+                View pricing plans <ArrowRight size={14} aria-hidden="true" />
               </a>
             </div>
             <div data-pricing-grid>
@@ -270,7 +287,7 @@ export default function HomePage(): React.ReactElement {
                   <a href="/pricing" data-btn-primary={plan.featured ? '' : undefined}
                     data-btn-secondary={!plan.featured ? '' : undefined}
                     style={{ width: '100%', justifyContent: 'center' }}>
-                    {plan.name === 'Enterprise' ? "Let's talk" : 'Get started →'}
+                    {plan.name === 'Enterprise' ? "Let's talk" : <>Get started <ArrowRight size={14} aria-hidden="true" /></>}
                   </a>
                 </div>
               ))}
@@ -293,8 +310,8 @@ export default function HomePage(): React.ReactElement {
             Join thousands of operators and guests who trust StayOS.
           </p>
           <div data-cta-actions>
-            <a href="/signup/property" data-btn-primary>List your property 🏢</a>
-            <a href="/search" data-btn-secondary>Find a place to stay →</a>
+            <a href="/signup/property" data-btn-primary><Building2 size={16} aria-hidden="true" /> List your property</a>
+            <a href="/search" data-btn-secondary>Find a place to stay <ArrowRight size={16} aria-hidden="true" /></a>
           </div>
         </div>
       </div>
