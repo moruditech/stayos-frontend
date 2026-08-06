@@ -4,6 +4,7 @@ import React, { useState, Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { api } from '@stayos/api-client';
+import { MapPin, Map, ArrowRight, Search as SearchIcon, Star, Check } from 'lucide-react';
 import { PublicHeader, PublicFooter } from '@/components/PublicLayout';
 
 const CUSTOMER_PORTAL = process.env['NEXT_PUBLIC_CUSTOMER_PORTAL_URL'] ?? 'https://my.stayos.co.za';
@@ -63,10 +64,10 @@ function SearchContent(): React.ReactElement {
       {/* Search bar */}
       <section style={{ background:'var(--color-surface)', borderBottom:'1px solid var(--color-border)', padding:'var(--space-5) var(--page-padding-x)' }}>
         <form onSubmit={handleSearch} style={{ maxWidth:'var(--content-max-width)', margin:'0 auto' }}>
-          <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr auto', gap:'var(--space-3)', alignItems:'flex-end' }}>
+          <div data-cols-search-bar style={{ gap:'var(--space-3)', alignItems:'flex-end' }}>
             <div data-form-group>
               <label htmlFor="sc">Destination</label>
-              <input id="sc" type="text" placeholder="📍 City or property name" value={city} onChange={(e) => setCity(e.target.value)} />
+              <input id="sc" type="text" placeholder="City or property name" value={city} onChange={(e) => setCity(e.target.value)} />
             </div>
             <div data-form-group>
               <label htmlFor="sci">Check-in</label>
@@ -76,13 +77,13 @@ function SearchContent(): React.ReactElement {
               <label htmlFor="sco">Check-out</label>
               <input id="sco" type="date" value={checkOut} min={checkIn||new Date().toISOString().split('T')[0]} onChange={(e) => setCheckOut(e.target.value)} />
             </div>
-            <button type="submit" data-btn-primary>Search →</button>
+            <button type="submit" data-btn-primary>Search <ArrowRight size={16} aria-hidden="true" /></button>
           </div>
         </form>
       </section>
 
       <div data-container style={{ paddingTop:'var(--space-8)', paddingBottom:'var(--space-16)' }}>
-        <div style={{ display:'grid', gridTemplateColumns:'220px 1fr', gap:'var(--space-8)', alignItems:'flex-start' }}>
+        <div data-cols-sidebar style={{ gap:'var(--space-8)', alignItems:'flex-start' }}>
 
           {/* Sidebar */}
           <aside style={{ position:'sticky', top:80, display:'flex', flexDirection:'column', gap:'var(--space-6)' }}>
@@ -127,7 +128,7 @@ function SearchContent(): React.ReactElement {
               <span style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)' }}>
                 {isLoading ? 'Searching…' : <><strong>{properties.length}</strong> properties found{city ? ` in ${city}` : ''}</>}
               </span>
-              <a href="#" style={{ fontSize:'var(--text-sm)', color:'var(--color-primary)', fontWeight:'var(--font-medium)' }}>🗺 Map view</a>
+              <a href="#" style={{ fontSize:'var(--text-sm)', color:'var(--color-primary)', fontWeight:'var(--font-medium)', display:'inline-flex', alignItems:'center', gap:'var(--space-1)' }}><Map size={16} aria-hidden="true" /> Map view</a>
             </div>
 
             {isLoading ? (
@@ -136,7 +137,7 @@ function SearchContent(): React.ReactElement {
               </div>
             ) : properties.length===0 ? (
               <div style={{ textAlign:'center', padding:'var(--space-20)', background:'var(--color-surface)', borderRadius:'var(--radius-xl)', border:'1px solid var(--color-border)' }}>
-                <div style={{ fontSize:'var(--text-5xl)', marginBottom:'var(--space-4)' }}>🔍</div>
+                <div style={{ marginBottom:'var(--space-4)', color:'var(--color-text-muted)', display:'flex', justifyContent:'center' }}><SearchIcon size={48} /></div>
                 <h3 style={{ fontSize:'var(--text-xl)', fontWeight:'var(--font-bold)', marginBottom:'var(--space-2)' }}>No properties found</h3>
                 <p style={{ color:'var(--color-text-secondary)' }}>Try a different location or adjust your filters.</p>
               </div>
@@ -147,7 +148,7 @@ function SearchContent(): React.ReactElement {
                   const isStudent  = (p['type'] as string)==='student_housing';
                   const rate       = p['baseRate'] as number ?? 0;
                   return (
-                    <div key={p['_id'] as string} data-card style={{ display:'grid', gridTemplateColumns:'280px 1fr' }}>
+                    <div key={p['_id'] as string} data-card data-cols-media-md>
                       <div style={{ position:'relative', background:'var(--color-surface-muted)', overflow:'hidden', minHeight:200 }}>
                         <img src={`/images/properties/${p['slug'] as string}-main.jpg`} alt={p['name'] as string}
                           style={{ width:'100%', height:'100%', objectFit:'cover' }} loading="lazy"
@@ -158,12 +159,12 @@ function SearchContent(): React.ReactElement {
                       <div style={{ padding:'var(--space-5)', display:'flex', flexDirection:'column', gap:'var(--space-3)' }}>
                         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
                           <h3 style={{ fontSize:'var(--text-lg)', fontWeight:'var(--font-bold)', lineHeight:'var(--leading-snug)' }}>{p['name'] as string}</h3>
-                          {Boolean(p['rating']) && <span style={{ display:'flex', gap:4, fontSize:'var(--text-sm)', fontWeight:'var(--font-bold)', flexShrink:0 }}>★ {(p['rating'] as number).toFixed(1)} <span style={{ color:'var(--color-text-muted)', fontWeight:'normal' }}>({p['reviewCount'] as number ?? 0})</span></span>}
+                          {Boolean(p['rating']) && <span style={{ display:'flex', alignItems:'center', gap:4, fontSize:'var(--text-sm)', fontWeight:'var(--font-bold)', flexShrink:0 }}><Star size={14} fill="currentColor" aria-hidden="true" /> {(p['rating'] as number).toFixed(1)} <span style={{ color:'var(--color-text-muted)', fontWeight:'normal' }}>({p['reviewCount'] as number ?? 0})</span></span>}
                         </div>
-                        <div style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)' }}>📍 {p['city'] as string}{p['distanceFromCentre'] ? ` · ${p['distanceFromCentre'] as string} km from centre` : ''}</div>
+                        <div style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', display:'flex', alignItems:'center', gap:4 }}><MapPin size={14} aria-hidden="true" /> {p['city'] as string}{p['distanceFromCentre'] ? ` · ${p['distanceFromCentre'] as string} km from centre` : ''}</div>
                         <div style={{ display:'flex', flexWrap:'wrap', gap:'var(--space-3)' }}>
                           {((p['amenities'] as string[]) ?? []).slice(0,4).map((a) => (
-                            <span key={a} style={{ fontSize:'var(--text-xs)', color:'var(--color-text-secondary)', display:'flex', gap:4 }}>✓ {a}</span>
+                            <span key={a} style={{ fontSize:'var(--text-xs)', color:'var(--color-text-secondary)', display:'flex', alignItems:'center', gap:4 }}><Check size={12} aria-hidden="true" /> {a}</span>
                           ))}
                         </div>
                         {Boolean(p['freeCancellation']) && <span data-property-tag="free_cancellation">Free cancellation</span>}
