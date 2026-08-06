@@ -1,4 +1,61 @@
-import React from 'react';
+'use client';
+import React, { useEffect, useState } from 'react';
+import {
+  Home,
+  Building2,
+  Tag,
+  Search,
+  Info,
+  Mail,
+  Menu,
+  X,
+  User,
+  Building,
+  Briefcase,
+  ArrowRight,
+  Lock,
+  MessageCircle,
+  HelpCircle,
+  Send,
+  Facebook,
+  Instagram,
+  Linkedin,
+  Youtube,
+} from 'lucide-react';
+
+// ── Shared nav / portal data ────────────────────────────────────────────────
+
+const NAV_LINKS = [
+  { label: 'Services', path: '/services', icon: Building2 },
+  { label: 'Pricing', path: '/pricing', icon: Tag },
+  { label: 'Search', path: '/search', icon: Search },
+  { label: 'About', path: '/about', icon: Info },
+  { label: 'Contact', path: '/contact', icon: Mail },
+];
+
+const PORTALS = [
+  {
+    id: 'customer',
+    icon: User,
+    label: 'Guest & Customer Portal',
+    description: 'Book, manage and track your stays and loyalty.',
+    href: 'https://my.stayos.co.za/login',
+  },
+  {
+    id: 'property',
+    icon: Building,
+    label: 'Property Operations Portal',
+    description: 'Manage bookings, staff, maintenance and more.',
+    href: 'https://app.stayos.co.za/login',
+  },
+  {
+    id: 'agency',
+    icon: Briefcase,
+    label: 'Agency Portal',
+    description: 'Manage properties, mandates, staff and statements.',
+    href: 'https://agency.stayos.co.za/login',
+  },
+];
 
 // ── Public Header ─────────────────────────────────────────────────────────────
 
@@ -7,13 +64,22 @@ interface PublicHeaderProps {
 }
 
 export function PublicHeader({ activePage }: PublicHeaderProps): React.ReactElement {
-  const navLinks = [
-    { label: 'Services', path: '/services' },
-    { label: 'Pricing',  path: '/pricing' },
-    { label: 'Search',   path: '/search' },
-    { label: 'About',    path: '/about' },
-    { label: 'Contact',  path: '/contact' },
-  ];
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Lock page scroll while the mobile drawer is open, and allow Escape to close it.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    function onKeyDown(e: KeyboardEvent): void {
+      if (e.key === 'Escape') setMenuOpen(false);
+    }
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [menuOpen]);
 
   return (
     <header data-public-header>
@@ -25,7 +91,7 @@ export function PublicHeader({ activePage }: PublicHeaderProps): React.ReactElem
       </a>
 
       <nav data-public-nav aria-label="Main navigation">
-        {navLinks.map((link) => (
+        {NAV_LINKS.map((link) => (
           <a
             key={link.path}
             href={link.path}
@@ -37,8 +103,98 @@ export function PublicHeader({ activePage }: PublicHeaderProps): React.ReactElem
       </nav>
 
       <div data-public-header-actions>
-        <a href="/login" data-btn-secondary>Log in</a>
-        <a href="/signup/property" data-btn-primary>List your property</a>
+        <a href="/login" data-btn-secondary data-header-login>Log in</a>
+        <a href="/signup/property" data-btn-primary data-header-list>List your property</a>
+        <button
+          type="button"
+          data-menu-toggle
+          aria-label="Open menu"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen(true)}
+        >
+          <Menu size={22} aria-hidden="true" />
+        </button>
+      </div>
+
+      {/* ── Mobile drawer ─────────────────────────────────────────────────── */}
+      <div data-mobile-menu-overlay data-open={menuOpen ? '' : undefined} onClick={() => setMenuOpen(false)}>
+        <div
+          data-mobile-menu-panel
+          role="dialog"
+          aria-modal="true"
+          aria-label="Site menu"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div data-mobile-menu-header>
+            <span data-logo-wordmark>
+              Stay<span data-logo-accent>OS</span>
+            </span>
+            <button type="button" aria-label="Close menu" data-menu-close onClick={() => setMenuOpen(false)}>
+              <X size={22} aria-hidden="true" />
+            </button>
+          </div>
+          <p data-mobile-menu-tagline>Built for hospitality. Designed for people.</p>
+
+          <nav data-mobile-menu-nav aria-label="Main navigation">
+            <a href="/" data-mobile-menu-link data-active={activePage === '/' ? '' : undefined}>
+              <Home size={18} aria-hidden="true" /> Home
+            </a>
+            {NAV_LINKS.map((link) => (
+              <a
+                key={link.path}
+                href={link.path}
+                data-mobile-menu-link
+                data-active={activePage === link.path ? '' : undefined}
+              >
+                <link.icon size={18} aria-hidden="true" /> {link.label}
+              </a>
+            ))}
+          </nav>
+
+          <span data-mobile-menu-label>Portals</span>
+          <div data-mobile-menu-portals>
+            {PORTALS.map((portal) => (
+              <a key={portal.id} href={portal.href} data-mobile-menu-portal>
+                <span data-mobile-menu-portal-icon aria-hidden="true">
+                  <portal.icon size={18} />
+                </span>
+                <span data-mobile-menu-portal-text>
+                  <strong>{portal.label}</strong>
+                  <span>{portal.description}</span>
+                </span>
+                <ArrowRight size={16} aria-hidden="true" data-mobile-menu-portal-arrow />
+              </a>
+            ))}
+          </div>
+
+          <div data-mobile-menu-actions>
+            <a href="/login" data-btn-primary data-btn-full>
+              <Lock size={16} aria-hidden="true" /> Log in
+            </a>
+            <a href="/signup/property" data-btn-secondary data-btn-full>
+              <Building2 size={16} aria-hidden="true" /> List your property
+            </a>
+          </div>
+
+          <div data-mobile-menu-support>
+            <a href="/contact" data-mobile-menu-support-link>
+              <MessageCircle size={16} aria-hidden="true" /> Contact Support <ArrowRight size={14} aria-hidden="true" />
+            </a>
+            <a href="/contact#faq" data-mobile-menu-support-link>
+              <HelpCircle size={16} aria-hidden="true" /> View FAQs <ArrowRight size={14} aria-hidden="true" />
+            </a>
+            <a href="/contact#email" data-mobile-menu-support-link>
+              <Send size={16} aria-hidden="true" /> Send us an Email <ArrowRight size={14} aria-hidden="true" />
+            </a>
+          </div>
+
+          <div data-mobile-menu-social>
+            <a href="#" aria-label="Facebook"><Facebook size={16} aria-hidden="true" /></a>
+            <a href="#" aria-label="Instagram"><Instagram size={16} aria-hidden="true" /></a>
+            <a href="#" aria-label="LinkedIn"><Linkedin size={16} aria-hidden="true" /></a>
+            <a href="#" aria-label="YouTube"><Youtube size={16} aria-hidden="true" /></a>
+          </div>
+        </div>
       </div>
     </header>
   );
@@ -61,10 +217,10 @@ export function PublicFooter(): React.ReactElement {
           </a>
           <p>Built for hospitality. Designed for people.</p>
           <div data-footer-social>
-            <a href="#" aria-label="Facebook">f</a>
-            <a href="#" aria-label="Instagram">ig</a>
-            <a href="#" aria-label="LinkedIn">in</a>
-            <a href="#" aria-label="YouTube">yt</a>
+            <a href="#" aria-label="Facebook"><Facebook size={16} aria-hidden="true" /></a>
+            <a href="#" aria-label="Instagram"><Instagram size={16} aria-hidden="true" /></a>
+            <a href="#" aria-label="LinkedIn"><Linkedin size={16} aria-hidden="true" /></a>
+            <a href="#" aria-label="YouTube"><Youtube size={16} aria-hidden="true" /></a>
           </div>
         </div>
 
