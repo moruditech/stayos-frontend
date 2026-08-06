@@ -6,6 +6,10 @@ import { z } from 'zod';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
 import { InlineError } from '@stayos/ui';
+import {
+  Calendar, CreditCard, Sparkles, BarChart3, RefreshCcw, Users, CheckCircle2, Check,
+  ArrowRight, ArrowLeft, Gift, type LucideIcon,
+} from 'lucide-react';
 import { PublicHeader, PublicFooter } from '@/components/PublicLayout';
 
 // Tenant.type is intentionally kept as a free text select pending the backend
@@ -34,13 +38,13 @@ const PROPERTY_TYPES = [
   { value:'student_housing',label:'Student Housing / Residence' },
 ];
 
-const PLAN_FEATURES = [
-  { icon:'📅', text:'Direct bookings & availability calendar' },
-  { icon:'💳', text:'Integrated payments (PayFast, Ozow, Stripe)' },
-  { icon:'🧹', text:'Housekeeping & maintenance modules' },
-  { icon:'📊', text:'Reports and performance analytics' },
-  { icon:'🔄', text:'Channel sync with Airbnb & Booking.com' },
-  { icon:'👥', text:'Staff management & role permissions' },
+const PLAN_FEATURES: { icon: LucideIcon; text: string }[] = [
+  { icon: Calendar,   text:'Direct bookings & availability calendar' },
+  { icon: CreditCard, text:'Integrated payments (PayFast, Ozow, Stripe)' },
+  { icon: Sparkles,   text:'Housekeeping & maintenance modules' },
+  { icon: BarChart3,  text:'Reports and performance analytics' },
+  { icon: RefreshCcw, text:'Channel sync with Airbnb & Booking.com' },
+  { icon: Users,      text:'Staff management & role permissions' },
 ];
 
 export default function PropertySignupPage(): React.ReactElement {
@@ -83,13 +87,13 @@ export default function PropertySignupPage(): React.ReactElement {
         <PublicHeader />
         <div style={{ minHeight:'60vh', display:'flex', alignItems:'center', justifyContent:'center', padding:'var(--space-12) var(--page-padding-x)' }}>
           <div style={{ maxWidth:480, textAlign:'center' }}>
-            <div style={{ fontSize:'var(--text-5xl)', marginBottom:'var(--space-5)' }}>✅</div>
+            <div style={{ marginBottom:'var(--space-5)', color:'var(--color-success)', display:'flex', justifyContent:'center' }}><CheckCircle2 size={56} /></div>
             <h1 style={{ fontSize:'var(--text-2xl)', fontWeight:'var(--font-bold)', marginBottom:'var(--space-3)' }}>Account created!</h1>
             <p style={{ color:'var(--color-text-secondary)', marginBottom:'var(--space-6)', lineHeight:'var(--leading-relaxed)' }}>
               We&apos;ve sent a verification email. Once verified, sign in to the Owner Portal to complete your property setup.
             </p>
             <a href="https://owners.stayos.co.za/login" data-btn-primary style={{ display:'inline-flex' }}>
-              Go to Owner Portal →
+              Go to Owner Portal <ArrowRight size={16} aria-hidden="true" />
             </a>
           </div>
         </div>
@@ -113,7 +117,7 @@ export default function PropertySignupPage(): React.ReactElement {
       </section>
 
       <div data-container style={{ padding:'var(--space-12) var(--page-padding-x)' }}>
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1.5fr', gap:'var(--space-12)', alignItems:'flex-start' }}>
+        <div data-cols-uneven style={{ gap:'var(--space-12)', alignItems:'flex-start' }}>
 
           {/* Left — benefits */}
           <div>
@@ -123,14 +127,14 @@ export default function PropertySignupPage(): React.ReactElement {
             <div style={{ display:'flex', flexDirection:'column', gap:'var(--space-4)', marginBottom:'var(--space-8)' }}>
               {PLAN_FEATURES.map((f) => (
                 <div key={f.text} style={{ display:'flex', alignItems:'center', gap:'var(--space-4)' }}>
-                  <span style={{ fontSize:'var(--text-xl)', width:40, height:40, background:'var(--color-primary-light)', borderRadius:'var(--radius-md)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>{f.icon}</span>
+                  <span style={{ color:'var(--color-primary)', width:40, height:40, background:'var(--color-primary-light)', borderRadius:'var(--radius-md)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}><f.icon size={20} /></span>
                   <span style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)' }}>{f.text}</span>
                 </div>
               ))}
             </div>
             <div data-card-padded style={{ background:'var(--color-primary-light)' }}>
-              <p style={{ fontSize:'var(--text-sm)', color:'var(--color-primary)', fontWeight:'var(--font-medium)' }}>
-                🎁 Start with a <strong>14-day free trial</strong> — no credit card required.
+              <p style={{ fontSize:'var(--text-sm)', color:'var(--color-primary)', fontWeight:'var(--font-medium)', display:'flex', alignItems:'center', gap:'var(--space-2)' }}>
+                <Gift size={16} aria-hidden="true" /> Start with a <strong>14-day free trial</strong> — no credit card required.
               </p>
             </div>
           </div>
@@ -142,7 +146,7 @@ export default function PropertySignupPage(): React.ReactElement {
               {[1,2].map((s) => (
                 <React.Fragment key={s}>
                   <div style={{ width:28, height:28, borderRadius:'50%', background: s<=step ? 'var(--color-primary)' : 'var(--color-surface-muted)', color: s<=step ? 'white' : 'var(--color-text-muted)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'var(--text-xs)', fontWeight:'var(--font-bold)' }}>
-                    {s<step ? '✓' : s}
+                    {s<step ? <Check size={14} aria-hidden="true" /> : s}
                   </div>
                   <span style={{ fontSize:'var(--text-sm)', color: s===step ? 'var(--color-text-primary)' : 'var(--color-text-muted)', fontWeight: s===step ? 'var(--font-semibold)' : 'normal' }}>
                     {s===1 ? 'Your details' : 'Property details'}
@@ -156,7 +160,7 @@ export default function PropertySignupPage(): React.ReactElement {
               {/* Step 1 — account details */}
               {step === 1 && (
                 <div style={{ display:'flex', flexDirection:'column', gap:'var(--space-4)' }}>
-                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'var(--space-4)' }}>
+                  <div data-cols-2 style={{ gap:'var(--space-4)' }}>
                     <div data-form-group>
                       <label htmlFor="os-fn">First name *</label>
                       <input id="os-fn" type="text" autoComplete="given-name" {...form.register('firstName')} />
@@ -193,11 +197,11 @@ export default function PropertySignupPage(): React.ReactElement {
                   {formError && <span role="alert" data-form-error>{formError}</span>}
                   <button type="button" data-btn-primary data-btn-full
                     onClick={() => void form.trigger(['firstName','lastName','email','password']).then((ok) => { if (ok) setStep(2); })}>
-                    Continue →
+                    Continue <ArrowRight size={16} aria-hidden="true" />
                   </button>
                   <p style={{ fontSize:'var(--text-xs)', color:'var(--color-text-muted)', textAlign:'center' }}>
                     Already have an account?{' '}
-                    <a href="https://owners.stayos.co.za/login" data-link>Sign in →</a>
+                    <a href="https://owners.stayos.co.za/login" data-link>Sign in <ArrowRight size={12} aria-hidden="true" /></a>
                   </p>
                 </div>
               )}
@@ -240,7 +244,7 @@ export default function PropertySignupPage(): React.ReactElement {
                   <InlineError message={form.formState.errors.agreeTerms?.message} />
                   {formError && <span role="alert" data-form-error>{formError}</span>}
                   <div style={{ display:'flex', gap:'var(--space-3)' }}>
-                    <button type="button" data-btn-ghost onClick={() => setStep(1)}>← Back</button>
+                    <button type="button" data-btn-ghost onClick={() => setStep(1)} style={{ display:'inline-flex', alignItems:'center', gap:'var(--space-1)' }}><ArrowLeft size={16} aria-hidden="true" /> Back</button>
                     <button type="submit" disabled={submitting} data-btn-primary style={{ flex:1 }}>
                       {submitting ? 'Creating account…' : 'Create account & list property'}
                     </button>
