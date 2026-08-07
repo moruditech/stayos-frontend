@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -14,6 +14,14 @@ import { InlineError, applyServerErrors, MfaStep } from '@stayos/ui';
 type Tab = 'signin' | 'register';
 
 export default function LoginPage(): React.ReactElement {
+  return (
+    <Suspense fallback={null}>
+      <LoginPageInner />
+    </Suspense>
+  );
+}
+
+function LoginPageInner(): React.ReactElement {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setSession } = useSessionContext();
