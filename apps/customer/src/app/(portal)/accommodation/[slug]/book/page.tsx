@@ -60,8 +60,8 @@ export default function BookingFormPage({ params }: Props): React.ReactElement {
     mutationFn: (input: PublicBookingInput) => api.bookings.createPublic(input),
     onSuccess: (booking) => {
       qc.invalidateQueries({ queryKey: bookingKeys.list() });
-      const b = booking as Record<string, unknown>;
-      router.push(`/bookings/${b['_id'] as string}`);
+      const b = booking;
+      router.push(`/bookings/${b._id}`);
     },
     onError: (err: ApiError) => {
       if (err.code === 'VALIDATION_ERROR') {
