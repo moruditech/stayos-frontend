@@ -244,6 +244,8 @@ export default function ReviewsPage(): React.ReactElement {
             const ratings = r['ratings'] as Record<string,number> | undefined;
             const status  = (r['status'] as string) ?? 'pending';
             const date    = new Date(r['createdAt'] as string).toLocaleDateString('en-ZA', { day:'numeric', month:'long', year:'numeric' });
+            const title   = r['title'] as string | undefined;
+            const reply   = r['reply'] as string | undefined;
             return (
               <div key={r['_id'] as string} data-card-padded>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'var(--space-3)', flexWrap:'wrap', gap:'var(--space-2)' }}>
@@ -264,9 +266,9 @@ export default function ReviewsPage(): React.ReactElement {
                   </div>
                 </div>
 
-                {r['title'] && (
+                {title && (
                   <div style={{ fontWeight:'var(--font-semibold)', fontSize:'var(--text-sm)', marginBottom:'var(--space-2)' }}>
-                    {r['title'] as string}
+                    {title}
                   </div>
                 )}
 
@@ -286,13 +288,13 @@ export default function ReviewsPage(): React.ReactElement {
                 )}
 
                 {/* Property response */}
-                {r['reply'] && (
+                {reply && (
                   <div style={{ marginTop:'var(--space-4)', padding:'var(--space-4)', background:'var(--color-surface-muted)', borderRadius:'var(--radius-md)', borderLeft:'3px solid var(--color-primary)' }}>
                     <div style={{ fontSize:'var(--text-xs)', fontWeight:'var(--font-semibold)', color:'var(--color-primary)', marginBottom:'var(--space-2)' }}>
                       Response from the property
                     </div>
                     <p style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', lineHeight:'var(--leading-relaxed)' }}>
-                      {r['reply'] as string}
+                      {reply}
                     </p>
                   </div>
                 )}
