@@ -57,8 +57,13 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
     return () => document.removeEventListener('keydown', onKey);
   }, [closeSidebar]);
 
+  // Redirect unauthenticated visitors to /login once the session check settles
+  useEffect(() => {
+    if (!isLoading && !session) router.replace('/login');
+  }, [isLoading, session, router]);
+
   if (isLoading) return <div style={{ minHeight: '100dvh', background: 'var(--color-bg)' }} />;
-  if (!session) return <></>;
+  if (!session) return <div style={{ minHeight: '100dvh', background: 'var(--color-bg)' }} />;
 
   const isStudent   = STUDENT_ROLES.has(session.role);
   const firstLetter = session.userId[0]?.toUpperCase() ?? 'G';
