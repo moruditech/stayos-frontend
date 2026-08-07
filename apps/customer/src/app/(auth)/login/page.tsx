@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { useSessionContext, useSessionLoading } from '@stayos/auth';
+import { useSessionContext } from '@stayos/auth';
 import { loginSchema, registerSchema } from '@stayos/validators';
 import type { LoginInput, RegisterInput } from '@stayos/validators';
 import { InlineError, applyServerErrors, MfaStep } from '@stayos/ui';
@@ -25,7 +25,6 @@ function LoginPageInner(): React.ReactElement {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setSession } = useSessionContext();
-  const isLoading = useSessionLoading();
 
   const [tab, setTab] = useState<Tab>('signin');
   const [showPassword, setShowPassword] = useState(false);
@@ -90,8 +89,6 @@ function LoginPageInner(): React.ReactElement {
       setSubmitting(false);
     }
   }
-
-  if (isLoading) return <></>;
 
   // ── MFA step ──────────────────────────────────────────────────────────────
   if (mfaState) {
