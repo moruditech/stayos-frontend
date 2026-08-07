@@ -190,6 +190,9 @@ function PropertySearchCard({ property: p }: { property: Record<string, unknown>
   const rating = p['rating'] as number | undefined;
   const reviews = p['reviewCount'] as number | undefined;
   const rate = p['baseRate'] as number | undefined;
+  const discountPercent = p['discountPercent'] as number | undefined;
+  const freeCancellation = p['freeCancellation'] as boolean | undefined;
+  const breakfastIncluded = p['breakfastIncluded'] as boolean | undefined;
 
   return (
     <a href={`/accommodation/${p['slug'] as string}`} data-property-card data-property-list-item
@@ -201,8 +204,8 @@ function PropertySearchCard({ property: p }: { property: Record<string, unknown>
           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
         <span data-property-type-badge>{(p['type'] as string)?.replace(/_/g, ' ')}</span>
         <button type="button" data-property-card-wishlist aria-label="Save" onClick={(e) => e.preventDefault()}>♡</button>
-        {p['discountPercent'] && (
-          <span data-property-card-discount>{p['discountPercent'] as number}% OFF</span>
+        {discountPercent && (
+          <span data-property-card-discount>{discountPercent}% OFF</span>
         )}
       </div>
       <div data-property-card-body>
@@ -220,10 +223,10 @@ function PropertySearchCard({ property: p }: { property: Record<string, unknown>
             <span key={a} data-amenity-tag>📶 {a}</span>
           ))}
         </div>
-        {p['freeCancellation'] && (
+        {freeCancellation && (
           <span data-property-tag="free_cancellation">Free cancellation</span>
         )}
-        {p['breakfastIncluded'] && (
+        {breakfastIncluded && (
           <span data-property-tag="breakfast">Breakfast included</span>
         )}
         <div data-property-card-pricing>
