@@ -48,6 +48,8 @@ export default function BookingDetailPage({ params }: Props): React.ReactElement
   const checkOut    = new Date(b['checkOut'] as string);
   const nights      = Math.ceil((checkOut.getTime() - checkIn.getTime()) / 86400000);
   const daysUntil   = Math.ceil((checkIn.getTime() - Date.now()) / 86400000);
+  const depositPaid = b['depositPaid'] as boolean | undefined;
+  const digitalKey  = b['digitalKey'] as string | undefined;
   const isUpcoming  = status === 'confirmed' && daysUntil > 0;
   const isPendingConfirm = status === 'pending_confirmation';
   // OTA import with incomplete guest details
@@ -164,7 +166,7 @@ export default function BookingDetailPage({ params }: Props): React.ReactElement
               <span>R{(b['totalAmount'] as number ?? 0).toLocaleString()}</span>
             </div>
           </div>
-          {b['depositPaid'] && (
+          {depositPaid && (
             <div style={{ marginTop: 'var(--space-4)', padding: 'var(--space-3)', background: 'var(--color-success-bg)', borderRadius: 'var(--radius-md)', fontSize: 'var(--text-sm)', color: 'var(--color-success)', fontWeight: 'var(--font-medium)' }}>
               ✓ Deposit paid: R{(b['depositAmount'] as number ?? 0).toLocaleString()}
             </div>
@@ -180,14 +182,14 @@ export default function BookingDetailPage({ params }: Props): React.ReactElement
         </div>
 
         {/* Digital key / self-check-in */}
-        {b['digitalKey'] && (
+        {digitalKey && (
           <div data-card-padded style={{ borderColor: 'var(--color-primary)' }}>
             <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-3)' }}>🔑 Digital key &amp; self check-in</h3>
             <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-4)' }}>
               Your digital key is ready. Use it to access the property on your check-in date.
             </p>
             <div style={{ padding: 'var(--space-4)', background: 'var(--color-primary)', color: 'white', borderRadius: 'var(--radius-lg)', textAlign: 'center', fontFamily: 'monospace', fontSize: 'var(--text-2xl)', fontWeight: 'var(--font-bold)', letterSpacing: '0.3em', marginBottom: 'var(--space-4)' }}>
-              {b['digitalKey'] as string}
+              {digitalKey}
             </div>
             <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
               Valid from {fmt(checkIn)} until {fmt(checkOut)}
