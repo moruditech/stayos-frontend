@@ -43,6 +43,8 @@ export default function PropertyDetailPage({ params }: Props): React.ReactElemen
   const isStudent = (p['type'] as string) === 'student_housing';
   const roomList  = (rooms as Record<string, unknown>[] | undefined) ?? [];
   const reviewList = (reviews as Record<string, unknown>[] | undefined) ?? [];
+  const rating = p['rating'] as number | undefined;
+  const description = p['description'] as string | undefined;
 
   // CTA per TAD 09 §4 / TAD 10 §3:
   // student_housing → "Apply now" → /accommodation/[slug]/apply (no login required)
@@ -86,9 +88,9 @@ export default function PropertyDetailPage({ params }: Props): React.ReactElemen
               </h1>
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', marginTop: 'var(--space-2)', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
                 <span>📍 {p['city'] as string}, {p['province'] as string}</span>
-                {p['rating'] && (
+                {rating && (
                   <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', color: 'var(--color-text-primary)', fontWeight: 'var(--font-semibold)' }}>
-                    ★ {(p['rating'] as number).toFixed(1)}
+                    ★ {rating.toFixed(1)}
                     <span style={{ color: 'var(--color-text-muted)', fontWeight: 'var(--font-normal)' }}>
                       ({p['reviewCount'] as number ?? 0} reviews)
                     </span>
@@ -109,11 +111,11 @@ export default function PropertyDetailPage({ params }: Props): React.ReactElemen
           )}
 
           {/* Description */}
-          {p['description'] && (
+          {description && (
             <div style={{ marginBottom: 'var(--space-6)' }}>
               <h2 style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-3)' }}>About this property</h2>
               <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', lineHeight: 'var(--leading-relaxed)' }}>
-                {p['description'] as string}
+                {description}
               </p>
             </div>
           )}
