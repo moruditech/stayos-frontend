@@ -42,6 +42,7 @@ export default function WishlistPage(): React.ReactElement {
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:'var(--space-5)' }}>
           {all.map((item) => {
             const p = item as Record<string,unknown>;
+            const rating = p['rating'] as number | undefined;
             return (
               <div key={p['_id'] as string} data-property-card>
                 <div data-property-card-image>
@@ -61,7 +62,7 @@ export default function WishlistPage(): React.ReactElement {
                     <a href={`/accommodation/${p['slug'] as string}`} data-property-card-name style={{ textDecoration:'none' }}>
                       {p['name'] as string}
                     </a>
-                    {p['rating'] && <span data-property-card-rating>★ {(p['rating'] as number).toFixed(1)}</span>}
+                    {rating && <span data-property-card-rating>★ {rating.toFixed(1)}</span>}
                   </div>
                   <div data-property-card-location>📍 {p['city'] as string}</div>
                   <div data-property-card-pricing>
