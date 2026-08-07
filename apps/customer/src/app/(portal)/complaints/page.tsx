@@ -210,6 +210,8 @@ export default function ComplaintsPage(): React.ReactElement {
             const c       = item as Record<string,unknown>;
             const status  = c['status'] as string;
             const created = new Date(c['createdAt'] as string).toLocaleDateString('en-ZA', { day:'numeric', month:'short', year:'numeric' });
+            const propertyName = c['propertyName'] as string | undefined;
+            const resolution = c['resolution'] as string | undefined;
             return (
               <div key={c['_id'] as string} data-card-padded style={{ display:'grid', gridTemplateColumns:'1fr auto', gap:'var(--space-4)', alignItems:'flex-start' }}>
                 <div>
@@ -219,11 +221,11 @@ export default function ComplaintsPage(): React.ReactElement {
                   <div style={{ fontSize:'var(--text-xs)', color:'var(--color-text-secondary)', display:'flex', gap:'var(--space-4)', flexWrap:'wrap' }}>
                     <span>{CATEGORY_LABELS[(c['category'] as string)] ?? c['category'] as string}</span>
                     <span>{created}</span>
-                    {c['propertyName'] && <span>{c['propertyName'] as string}</span>}
+                    {propertyName && <span>{propertyName}</span>}
                   </div>
-                  {c['resolution'] && (
+                  {resolution && (
                     <div style={{ marginTop:'var(--space-3)', padding:'var(--space-3)', background:'var(--color-success-bg)', borderRadius:'var(--radius-md)', fontSize:'var(--text-xs)', color:'var(--color-success)' }}>
-                      <strong>Resolution:</strong> {c['resolution'] as string}
+                      <strong>Resolution:</strong> {resolution}
                     </div>
                   )}
                 </div>
