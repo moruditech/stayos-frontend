@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
@@ -7,6 +7,14 @@ import type { ApiError } from '@stayos/api-client';
 // GET /auth/verify/:token — the token arrives as a query param from the
 // emailed verification link. The backend verifies it and activates the account.
 export default function VerifyEmailPage(): React.ReactElement {
+  return (
+    <Suspense fallback={null}>
+      <VerifyEmailPageInner />
+    </Suspense>
+  );
+}
+
+function VerifyEmailPageInner(): React.ReactElement {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
