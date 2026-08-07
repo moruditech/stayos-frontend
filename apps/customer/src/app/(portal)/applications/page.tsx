@@ -100,6 +100,8 @@ function ApplicationCard({ application: app }: { application: Record<string, unk
   const appliedDate = new Date(app['createdAt'] as string).toLocaleDateString('en-ZA', {
     day: '2-digit', month: 'short', year: 'numeric',
   });
+  const academicYear = app['academicYear'] as string | undefined;
+  const moveInDate = app['moveInDate'] as string | undefined;
 
   return (
     <a href={`/applications/${app['_id'] as string}`} data-application-card style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -123,11 +125,11 @@ function ApplicationCard({ application: app }: { application: Record<string, unk
           {(app['type'] as string)?.replace(/_/g, ' ') ?? 'Application'}
         </div>
         <div data-application-card-meta>Applied on {appliedDate}</div>
-        {app['academicYear'] && (
-          <div data-application-card-meta>Academic Year: {app['academicYear'] as string}</div>
+        {academicYear && (
+          <div data-application-card-meta>Academic Year: {academicYear}</div>
         )}
-        {app['moveInDate'] && (
-          <div data-application-card-meta>Move-in: {new Date(app['moveInDate'] as string).toLocaleDateString('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+        {moveInDate && (
+          <div data-application-card-meta>Move-in: {new Date(moveInDate).toLocaleDateString('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
         )}
         <div data-application-card-footer>
           <div data-application-card-id>Application ID: {(app['applicationId'] as string) ?? '—'}</div>
