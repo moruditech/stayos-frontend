@@ -112,10 +112,16 @@ export function SessionProvider({
   }, []);
 
   // ── POST /auth/refresh ────────────────────────────────────────────────────
+  // Races against a timeout so a slow/asleep backend (e.g. free-tier cold
+  // start) can't hold the app on a blank screen indefinitely — after 8s we
+  // give up and treat it as unauthenticated, same as any other failure.
   const doRefresh = useCallback(async (): Promise<string | null> => {
     try {
       const { api } = await import('@stayos/api-client');
-      const { accessToken } = await api.auth.refresh();
+      const timeout = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('refresh timed out')), 8000);
+      });
+      const { accessToken } = await Promise.race([api.auth.refresh(), timeout]);
       return accessToken;
     } catch {
       return null;
