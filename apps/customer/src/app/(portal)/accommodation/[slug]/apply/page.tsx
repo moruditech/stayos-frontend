@@ -43,7 +43,7 @@ export default function ApplicationFormPage({ params }: Props): React.ReactEleme
 
   const fields      = (ft['fields'] as Record<string, unknown>[]) ?? [];
   const closingDate = ft['closingDate'] ? new Date(ft['closingDate'] as string) : null;
-  const isClosed    = closingDate && closingDate < new Date();
+  const isClosed    = !!(closingDate && closingDate < new Date());
   const requiredDocs= (ft['requiredDocuments'] as string[]) ?? [];
   const propertyName = ft['propertyName'] as string;
   const terms = ft['terms'] as string | undefined;
