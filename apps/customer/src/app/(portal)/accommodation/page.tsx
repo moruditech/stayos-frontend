@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 import { api } from '@stayos/api-client';
-import { SkeletonLoader, EmptyState } from '@stayos/ui';
+import { SkeletonLoader, EmptyState, Icons } from '@stayos/ui';
 import { accommodationKeys } from '@/lib/query-keys';
 
 type CategoryTab = 'all' | 'hotels' | 'guesthouses' | 'apartments' | 'student';
@@ -59,13 +59,13 @@ export default function AccommodationPage(): React.ReactElement {
       {city ? (
         <div data-search-summary onClick={() => setEditingSearch(true)}>
           <div data-search-summary-text>
-            <span data-search-summary-location>📍 {city}</span>
+            <span data-search-summary-location><Icons.MapPin size={14} /> {city}</span>
             <span data-search-summary-dates>
               {checkIn && checkOut ? `${checkIn} – ${checkOut} · ` : ''}2 Guests, 1 Room
             </span>
           </div>
-          <span style={{ color: 'var(--color-primary)', fontSize: 'var(--text-sm)', fontWeight: 'var(--font-medium)' }}>
-            Edit ✏
+          <span style={{ color: 'var(--color-primary)', fontSize: 'var(--text-sm)', fontWeight: 'var(--font-medium)', display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+            Edit <Icons.Pencil size={14} />
           </span>
         </div>
       ) : null}
@@ -92,9 +92,9 @@ export default function AccommodationPage(): React.ReactElement {
                 onChange={(e) => setCheckOut(e.target.value)} />
             </div>
           </div>
-          <button type="button" data-btn-primary data-btn-full style={{ marginTop: 'var(--space-4)' }}
+          <button type="button" data-btn-primary data-btn-full style={{ marginTop: 'var(--space-4)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}
             onClick={() => setEditingSearch(false)}>
-            Search accommodation 🔍
+            Search accommodation <Icons.Search size={18} />
           </button>
         </div>
       )}
@@ -112,20 +112,20 @@ export default function AccommodationPage(): React.ReactElement {
 
       {/* Filter + sort row */}
       <div data-filter-bar style={{ marginBottom: 0 }}>
-        <button type="button" data-filter-chip>
-          🎛 Filters {properties.length > 0 ? '1' : ''}
+        <button type="button" data-filter-chip style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+          <Icons.SlidersHorizontal size={14} /> Filters {properties.length > 0 ? '1' : ''}
         </button>
         <button type="button" data-filter-chip>
-          Sort ↓
+          Sort <Icons.ChevronDown size={14} style={{ display: 'inline', verticalAlign: '-2px' }} />
         </button>
         <button type="button" data-filter-chip>
-          Price ↓
+          Price <Icons.ChevronDown size={14} style={{ display: 'inline', verticalAlign: '-2px' }} />
         </button>
         <button type="button" data-filter-chip>
-          Property type ↓
+          Property type <Icons.ChevronDown size={14} style={{ display: 'inline', verticalAlign: '-2px' }} />
         </button>
         <button type="button" data-filter-chip>
-          Amenities ↓
+          Amenities <Icons.ChevronDown size={14} style={{ display: 'inline', verticalAlign: '-2px' }} />
         </button>
       </div>
 
@@ -134,7 +134,9 @@ export default function AccommodationPage(): React.ReactElement {
         <span data-results-count>
           <strong>{properties.length}</strong> properties found
         </span>
-        <a href="/accommodation?mapview=true" data-section-link>🗺 Map view</a>
+        <a href="/accommodation?mapview=true" data-section-link style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+          <Icons.Map size={14} /> Map view
+        </a>
       </div>
 
       {/* Results */}
@@ -154,13 +156,15 @@ export default function AccommodationPage(): React.ReactElement {
       {/* Member CTA */}
       <div data-support-callout style={{ marginTop: 'var(--space-6)' }}>
         <div data-support-callout-text>
-          <span data-support-callout-icon aria-hidden="true">🏷️</span>
+          <span data-support-callout-icon aria-hidden="true"><Icons.Tag size={20} /></span>
           <div>
             <strong>Unlock member rates</strong>
             <p>Sign in to access exclusive deals and save more on your next stay.</p>
           </div>
         </div>
-        <a href="/login" data-btn-primary>Sign in / Register</a>
+        <a href="/login" data-btn-primary style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <Icons.User size={16} /> Sign in / Register
+        </a>
       </div>
 
       {/* Explore by category */}
@@ -170,14 +174,14 @@ export default function AccommodationPage(): React.ReactElement {
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 'var(--space-3)' }}>
         {[
-          { label: 'Beachfront',     icon: '🏖', type: 'beachfront' },
-          { label: 'Pet Friendly',   icon: '🐕', type: 'pet_friendly' },
-          { label: 'Family Friendly',icon: '👨‍👩‍👧‍👦',type: 'family' },
-          { label: 'Business Stay',  icon: '💼', type: 'business' },
+          { label: 'Beachfront',      icon: Icons.Palmtree, type: 'beachfront' },
+          { label: 'Pet Friendly',    icon: Icons.PawPrint, type: 'pet_friendly' },
+          { label: 'Family Friendly', icon: Icons.Users,    type: 'family' },
+          { label: 'Business Stay',   icon: Icons.Briefcase,type: 'business' },
         ].map((c) => (
           <a key={c.label} href={`/accommodation?amenity=${c.type}`} data-card
             style={{ padding: 'var(--space-4)', textAlign: 'center', textDecoration: 'none', cursor: 'pointer' }}>
-            <div style={{ fontSize: 'var(--text-3xl)', marginBottom: 'var(--space-2)' }}>{c.icon}</div>
+            <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--color-primary)', marginBottom: 'var(--space-2)' }}><c.icon size={28} /></div>
             <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-medium)' }}>{c.label}</div>
           </a>
         ))}
@@ -203,7 +207,7 @@ function PropertySearchCard({ property: p }: { property: Record<string, unknown>
           loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
         <span data-property-type-badge>{(p['type'] as string)?.replace(/_/g, ' ')}</span>
-        <button type="button" data-property-card-wishlist aria-label="Save" onClick={(e) => e.preventDefault()}>♡</button>
+        <button type="button" data-property-card-wishlist aria-label="Save" onClick={(e) => e.preventDefault()}><Icons.Heart size={16} /></button>
         {discountPercent && (
           <span data-property-card-discount>{discountPercent}% OFF</span>
         )}
@@ -212,15 +216,15 @@ function PropertySearchCard({ property: p }: { property: Record<string, unknown>
         <div data-property-card-header>
           <span data-property-card-name>{p['name'] as string}</span>
           {rating && (
-            <span data-property-card-rating>★ {rating.toFixed(1)} ({reviews})</span>
+            <span data-property-card-rating><Icons.Star size={14} fill="currentColor" /> {rating.toFixed(1)} ({reviews})</span>
           )}
         </div>
         <div data-property-card-location>
-          📍 {p['city'] as string} · {p['distanceFromCentre'] as string ?? '—'} km from centre
+          <Icons.MapPin size={14} /> {p['city'] as string} · {p['distanceFromCentre'] as string ?? '—'} km from centre
         </div>
         <div data-property-card-amenities>
           {((p['amenities'] as string[]) ?? []).slice(0, 3).map((a) => (
-            <span key={a} data-amenity-tag>📶 {a}</span>
+            <span key={a} data-amenity-tag><Icons.Wifi size={12} /> {a}</span>
           ))}
         </div>
         {freeCancellation && (
