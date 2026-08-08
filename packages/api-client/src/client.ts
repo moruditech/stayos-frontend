@@ -56,6 +56,26 @@ async function ensureFreshToken(): Promise<void> {
   return refreshPromise;
 }
 
+// ── Inline JWT expiry check (no @stayos/auth import — circular dep) ───────────
+// Reads the `exp` claim directly from the base64-encoded payload segment.
+// bufferSeconds: treat as expired this many seconds before actual expiry so
+// the in-flight request lands before the token actually turns stale.
+function isTokenNearExpiry(token: string, bufferSeconds = 120): boolean {
+  try {
+    const payloadB64 = token.split('.')[1];
+    if (!payloadB64) return true;
+    // atob is available in every browser and in Node 16+ (which Next.js 14
+    // requires). No polyfill needed.
+    const payload = JSON.parse(atob(payloadB64)) as { exp?: number };
+    if (typeof payload.exp !== 'number') return true;
+    return payload.exp < Math.floor(Date.now() / 1000) + bufferSeconds;
+  } catch {
+    // If we can't decode the token, treat it as near-expiry so the
+    // 401-retry cycle gets a chance to recover.
+    return true;
+  }
+}
+
 // ── Error codes that must never trigger a retry ───────────────────────────────
 // TOKEN_REVOKED and TOKEN_INVALID mean the token is dead by server decision,
 // not by clock — retrying wastes a round trip. TOKEN_EXPIRED and NO_TOKEN
@@ -83,12 +103,33 @@ async function requestEnvelope<T>(
     params?: Record<string, string | number | boolean | undefined> | undefined;
     signal?: AbortSignal | undefined;
     isRetry?: boolean;
+    /**
+     * When true, skips the proactive near-expiry refresh check entirely.
+     * Used by api.auth.refresh() itself to prevent a deadlock: if the
+     * refresh call went through ensureFreshToken(), it would await the
+     * refreshPromise that was already started by the outer request —
+     * which is waiting for the refresh call to complete. Neither side
+     * can proceed. skipRefreshCheck breaks the cycle.
+     */
+    skipRefreshCheck?: boolean;
   } = {}
 ): Promise<ApiResponse<T>> {
-  const { body, params, signal, isRetry = false } = options;
+  const { body, params, signal, isRetry = false, skipRefreshCheck = false } = options;
 
-  // Step 1 — refresh before request if near expiry (Document 02 §5)
-  if (!isRetry) {
+  // Step 1 — proactively refresh only when the token is actually near expiry
+  // (Document 02 §5, Document 04 §3). Calling this unconditionally on every
+  // request caused a deadlock: the refresh endpoint itself goes through
+  // requestEnvelope, hits ensureFreshToken(), finds refreshPromise already
+  // set, and awaits it — but refreshPromise is waiting for the refresh call
+  // to complete. The 8-second doRefresh timeout was the only exit, producing
+  // the observed "login → portal → logged out 8s later" symptom.
+  const currentToken = getAccessToken?.();
+  const shouldPreflightRefresh =
+    !isRetry &&
+    !skipRefreshCheck &&
+    (!currentToken || isTokenNearExpiry(currentToken));
+
+  if (shouldPreflightRefresh) {
     await ensureFreshToken();
   }
 
@@ -150,6 +191,7 @@ async function request<T>(
     params?: Record<string, string | number | boolean | undefined> | undefined;
     signal?: AbortSignal | undefined;
     isRetry?: boolean;
+    skipRefreshCheck?: boolean;
   } = {}
 ): Promise<T> {
   const envelope = await requestEnvelope<T>(method, path, options);
@@ -198,7 +240,7 @@ export const client = {
   post<T>(
     path: string,
     body?: unknown,
-    options?: { signal?: AbortSignal | undefined }
+    options?: { signal?: AbortSignal | undefined; skipRefreshCheck?: boolean }
   ): Promise<T> {
     return request<T>('POST', path, { body, ...options });
   },
