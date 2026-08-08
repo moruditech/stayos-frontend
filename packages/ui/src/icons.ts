@@ -103,6 +103,30 @@ export {
   Zap,
   ArrowUpDown,
   SlidersHorizontal,
+
+  // Customer Portal additions
+  GraduationCap,
+  Heart,
+  User,
+  Headphones,
+  Wifi,
+  ParkingSquare,
+  Coffee,
+  Dumbbell,
+  PawPrint,
+  LayoutGrid,
+  Bed,
+  Crown,
+  Award,
+  Share2,
+  Link2,
+  Globe,
+  Smartphone,
+  MessageSquareText,
+  Gem,
+  Medal,
+  Map,
+  Palmtree,
 } from 'lucide-react';
 
 export type { LucideIcon, LucideProps } from 'lucide-react';
