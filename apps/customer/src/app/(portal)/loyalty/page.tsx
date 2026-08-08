@@ -3,20 +3,20 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
-import { SkeletonLoader } from '@stayos/ui';
+import { SkeletonLoader, Icons } from '@stayos/ui';
 import { loyaltyKeys } from '@/lib/query-keys';
 
 const TIERS = [
-  { id: 'silver',   label: 'Silver',   range: '0 – 3,999 QP',   color: '#9CA3AF', icon: '🥈' },
-  { id: 'gold',     label: 'Gold',     range: '4,000 – 9,999 QP', color: '#F59E0B', icon: '🥇' },
-  { id: 'platinum', label: 'Platinum', range: '10,000+ QP',      color: '#8B5CF6', icon: '💎' },
+  { id: 'silver',   label: 'Silver',   range: '0 – 3,999 QP',     color: '#9CA3AF', icon: Icons.Medal },
+  { id: 'gold',     label: 'Gold',     range: '4,000 – 9,999 QP', color: '#F59E0B', icon: Icons.Award },
+  { id: 'platinum', label: 'Platinum', range: '10,000+ QP',       color: '#8B5CF6', icon: Icons.Gem },
 ];
 
 const EARN_WAYS = [
-  { icon: '🛏', label: 'Stay',             detail: '10 QP',  sub: 'Per R100 spent' },
-  { icon: '⭐', label: 'Write review',     detail: '50 QP',  sub: 'Per review' },
-  { icon: '👤', label: 'Refer a friend',   detail: '200 QP', sub: 'Per referral' },
-  { icon: '✅', label: 'Complete profile', detail: '50 QP',  sub: 'Once off' },
+  { icon: Icons.Bed,         label: 'Stay',             detail: '10 QP',  sub: 'Per R100 spent' },
+  { icon: Icons.Star,        label: 'Write review',     detail: '50 QP',  sub: 'Per review' },
+  { icon: Icons.Users,       label: 'Refer a friend',   detail: '200 QP', sub: 'Per referral' },
+  { icon: Icons.CheckCircle2,label: 'Complete profile', detail: '50 QP',  sub: 'Once off' },
 ];
 
 export default function LoyaltyPage(): React.ReactElement {
@@ -56,7 +56,7 @@ export default function LoyaltyPage(): React.ReactElement {
           <div data-loyalty-label>Q Points balance</div>
           <div data-loyalty-balance>
             {points.toLocaleString()}
-            <span style={{ fontSize: 'var(--text-2xl)' }}>⭐</span>
+            <Icons.Star size={22} style={{ marginLeft: 'var(--space-2)', color: 'var(--color-warning)' }} />
           </div>
           <div data-loyalty-tier>
             {currentTier.label} Member
@@ -67,7 +67,7 @@ export default function LoyaltyPage(): React.ReactElement {
           </div>
         </div>
         <div data-loyalty-badge>
-          <div data-loyalty-badge-icon aria-hidden="true">{currentTier.icon}</div>
+          <div data-loyalty-badge-icon aria-hidden="true"><currentTier.icon size={26} /></div>
           <div data-loyalty-badge-tier>{currentTier.label} Member</div>
           <button type="button" data-loyalty-badge-btn>View benefits</button>
         </div>
@@ -82,7 +82,7 @@ export default function LoyaltyPage(): React.ReactElement {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--space-4)' }}>
           {EARN_WAYS.map((w) => (
             <div key={w.label} style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-3)' }}>
-              <span style={{ fontSize: 'var(--text-2xl)', width: '40px', height: '40px', background: 'var(--color-surface-muted)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{w.icon}</span>
+              <span style={{ width: '40px', height: '40px', background: 'var(--color-surface-muted)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--color-primary)' }}><w.icon size={20} /></span>
               <div>
                 <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-medium)' }}>{w.label}</div>
                 <div style={{ fontSize: 'var(--text-base)', fontWeight: 'var(--font-bold)', color: 'var(--color-primary)' }}>{w.detail}</div>
@@ -133,8 +133,8 @@ export default function LoyaltyPage(): React.ReactElement {
           <p style={{ padding: 'var(--space-5) 0', color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)' }}>No activity yet.</p>
         ) : hist.slice(0, 4).map((h) => (
           <div key={h['_id'] as string} data-transaction-item>
-            <span data-transaction-icon style={{ background: 'var(--color-primary-light)' }}>
-              {(h['type'] as string) === 'earned' ? '🛏' : '🎁'}
+            <span data-transaction-icon style={{ background: 'var(--color-primary-light)', color: 'var(--color-primary)' }}>
+              {(h['type'] as string) === 'earned' ? <Icons.Bed size={16} /> : <Icons.Gift size={16} />}
             </span>
             <div data-transaction-info>
               <div data-transaction-name>{(h['description'] as string) ?? '—'}</div>
@@ -154,13 +154,15 @@ export default function LoyaltyPage(): React.ReactElement {
       {/* Referral callout */}
       <div data-support-callout style={{ background: 'var(--color-primary-light)', borderColor: 'var(--color-primary)', marginBottom: 'var(--space-6)' }}>
         <div data-support-callout-text>
-          <span style={{ fontSize: 'var(--text-3xl)' }}>🎁</span>
+          <span style={{ color: 'var(--color-primary)' }}><Icons.Gift size={32} /></span>
           <div>
             <strong>Invite friends &amp; earn more</strong>
             <p>You both get 200 Q Points when they complete their first stay.</p>
           </div>
         </div>
-        <button type="button" data-btn-secondary>Invite friends ↗</button>
+        <button type="button" data-btn-secondary style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          Invite friends <Icons.Share2 size={16} />
+        </button>
       </div>
 
       {/* Tier overview */}
@@ -173,7 +175,7 @@ export default function LoyaltyPage(): React.ReactElement {
           const isCurrent = t.id === tier.toLowerCase();
           return (
             <div key={t.id} data-card-padded style={{ textAlign: 'center', borderColor: isCurrent ? 'var(--color-primary)' : undefined }}>
-              <div style={{ fontSize: 'var(--text-2xl)', marginBottom: 'var(--space-2)' }}>{t.icon}</div>
+              <div style={{ display: 'flex', justifyContent: 'center', color: t.color, marginBottom: 'var(--space-2)' }}><t.icon size={26} /></div>
               <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-bold)' }}>{t.label}</div>
               <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', margin: 'var(--space-1) 0' }}>{t.range}</div>
               {isCurrent ? (
