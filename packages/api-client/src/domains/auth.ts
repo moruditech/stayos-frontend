@@ -22,7 +22,10 @@ export const authApi = {
   login: (input: LoginInput) =>
     client.post<LoginResponse>('/auth/login', input),
 
-  refresh: () => client.post<RefreshResponse>('/auth/refresh'),
+  // skipRefreshCheck: true — the refresh endpoint must never trigger
+  // ensureFreshToken() on itself. See client.ts skipRefreshCheck for the
+  // full explanation of why this would otherwise cause a deadlock.
+  refresh: () => client.post<RefreshResponse>('/auth/refresh', undefined, { skipRefreshCheck: true }),
 
   logout: () => client.post<void>('/auth/logout'),
 
