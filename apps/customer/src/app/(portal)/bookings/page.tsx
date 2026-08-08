@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
-import { SkeletonLoader, EmptyState } from '@stayos/ui';
+import { SkeletonLoader, EmptyState, Icons } from '@stayos/ui';
 import { bookingKeys } from '@/lib/query-keys';
 
 type Tab = 'upcoming' | 'past' | 'cancelled' | 'all';
@@ -64,13 +64,15 @@ export default function BookingsPage(): React.ReactElement {
       {tab === 'upcoming' && filtered.length > 0 && (
         <div data-support-callout style={{ marginTop: 'var(--space-6)' }}>
           <div data-support-callout-text>
-            <span data-support-callout-icon aria-hidden="true">📅</span>
+            <span data-support-callout-icon aria-hidden="true"><Icons.Calendar size={20} /></span>
             <div>
               <strong>Need to make changes?</strong>
               <p>You can modify or cancel your booking before check-in.</p>
             </div>
           </div>
-          <a href="/bookings" data-btn-secondary>Manage booking →</a>
+          <a href="/bookings" data-btn-secondary style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            Manage booking <Icons.ArrowRight size={16} />
+          </a>
         </div>
       )}
 
@@ -79,14 +81,14 @@ export default function BookingsPage(): React.ReactElement {
       </div>
       <div data-quick-actions>
         {[
-          { label: 'Modify booking',   icon: '📝', path: '/bookings' },
-          { label: 'Cancel booking',   icon: '✕',  path: '/bookings' },
-          { label: 'Get invoice',      icon: '🧾', path: '/invoices' },
-          { label: 'Contact property', icon: '💬', path: '/support' },
-          { label: 'Add to calendar',  icon: '📅', path: '/bookings' },
+          { label: 'Modify booking',   icon: Icons.CalendarClock, tint: 'success', path: '/bookings' },
+          { label: 'Cancel booking',   icon: Icons.X,             tint: 'warning', path: '/bookings' },
+          { label: 'Get invoice',      icon: Icons.FileText,      tint: 'info',    path: '/invoices' },
+          { label: 'Contact property', icon: Icons.MessageCircle, tint: 'purple',  path: '/support' },
+          { label: 'Add to calendar',  icon: Icons.Calendar,      tint: 'success', path: '/bookings' },
         ].map((a) => (
           <a key={a.label} href={a.path} data-quick-action>
-            <span data-quick-action-icon aria-hidden="true">{a.icon}</span>
+            <span data-quick-action-icon data-tint={a.tint} aria-hidden="true"><a.icon size={20} /></span>
             <span>{a.label}</span>
           </a>
         ))}
@@ -94,13 +96,15 @@ export default function BookingsPage(): React.ReactElement {
 
       <div data-support-callout style={{ marginTop: 'var(--space-6)', borderColor: 'var(--color-accent)' }}>
         <div data-support-callout-text>
-          <span data-support-callout-icon style={{ background: 'var(--color-accent-light)' }} aria-hidden="true">👑</span>
+          <span data-support-callout-icon style={{ background: 'var(--color-accent-light)', color: 'var(--color-accent)' }} aria-hidden="true"><Icons.Crown size={20} /></span>
           <div>
             <strong style={{ color: 'var(--color-accent)' }}>Member benefit</strong>
             <p>As a Silver Member, you get free cancellation on most stays.</p>
           </div>
         </div>
-        <a href="/loyalty" data-btn-secondary>View benefits →</a>
+        <a href="/loyalty" data-btn-secondary style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          View benefits <Icons.ArrowRight size={16} />
+        </a>
       </div>
     </div>
   );
@@ -131,17 +135,17 @@ function BookingCard({ booking }: { booking: Record<string, unknown> }): React.R
       <div data-booking-card-body>
         <div data-booking-card-name>
           {(booking['propertyName'] as string) ?? 'Property'}
-          <span style={{ color: 'var(--color-text-muted)' }}>⋯</span>
+          <Icons.ChevronRight size={16} style={{ color: 'var(--color-text-muted)' }} />
         </div>
-        <div data-booking-card-meta><span>📍</span>{(booking['propertyCity'] as string) ?? '—'}</div>
+        <div data-booking-card-meta><Icons.MapPin size={14} />{(booking['propertyCity'] as string) ?? '—'}</div>
         <div data-booking-card-meta>
-          <span>📅</span>
+          <Icons.Calendar size={14} />
           {checkIn.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })}
           {' – '}
           {checkOut.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })}
           {' · '}{(booking['guests'] as number) ?? 1} Adult{(booking['guests'] as number) !== 1 ? 's' : ''}
         </div>
-        <div data-booking-card-meta><span>🛏</span>{(booking['roomType'] as string) ?? '—'}</div>
+        <div data-booking-card-meta><Icons.Bed size={14} />{(booking['roomType'] as string) ?? '—'}</div>
         <div data-booking-card-meta style={{ fontFamily: 'monospace', fontSize: 'var(--text-xs)' }}>
           Booking #{(booking['confirmationNumber'] as string) ?? '—'}
         </div>
