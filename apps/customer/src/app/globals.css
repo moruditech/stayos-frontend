@@ -35,6 +35,8 @@
   --color-error-bg:       #FDECEA;
   --color-info:           #1E5FA8;
   --color-info-bg:        #EBF2FB;
+  --color-purple:         #7C4DBF;
+  --color-purple-bg:      #F0EBF9;
 
   /* Typography */
   --font-sans:   'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
