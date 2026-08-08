@@ -3,15 +3,15 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
-import { SkeletonLoader, EmptyState } from '@stayos/ui';
+import { SkeletonLoader, EmptyState, Icons } from '@stayos/ui';
 import { applicationKeys } from '@/lib/query-keys';
 
 type Tab = 'all' | 'student' | 'long_term' | 'other';
 const TABS = [
-  { id: 'all' as Tab,       label: 'All',            icon: '⊞' },
-  { id: 'student' as Tab,   label: 'Student Housing', icon: '🎓' },
-  { id: 'long_term' as Tab, label: 'Long Term',       icon: '🏢' },
-  { id: 'other' as Tab,     label: 'Other',           icon: '◎' },
+  { id: 'all' as Tab,       label: 'All',            icon: Icons.LayoutGrid },
+  { id: 'student' as Tab,   label: 'Student Housing', icon: Icons.GraduationCap },
+  { id: 'long_term' as Tab, label: 'Long Term',       icon: Icons.Building2 },
+  { id: 'other' as Tab,     label: 'Other',           icon: Icons.Circle },
 ];
 
 export default function ApplicationsPage(): React.ReactElement {
@@ -36,7 +36,7 @@ export default function ApplicationsPage(): React.ReactElement {
         {TABS.map((t) => (
           <button key={t.id} type="button" role="tab" aria-selected={tab === t.id}
             data-filter-tab data-active={tab === t.id ? '' : undefined} onClick={() => setTab(t.id)}>
-            <span aria-hidden="true">{t.icon}</span>{t.label}
+            <span aria-hidden="true"><t.icon size={16} /></span>{t.label}
           </button>
         ))}
       </div>
@@ -44,7 +44,7 @@ export default function ApplicationsPage(): React.ReactElement {
       {/* Callout */}
       <div data-card-padded style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-5)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
-          <span style={{ fontSize: 'var(--text-2xl)' }}>📋</span>
+          <span style={{ color: 'var(--color-primary)' }} aria-hidden="true"><Icons.ClipboardList size={26} /></span>
           <div>
             <strong style={{ fontSize: 'var(--text-sm)' }}>Everything in one place</strong>
             <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>
@@ -52,8 +52,8 @@ export default function ApplicationsPage(): React.ReactElement {
             </p>
           </div>
         </div>
-        <a href="/accommodation" data-btn-secondary style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
-          New application +
+        <a href="/accommodation" data-btn-secondary style={{ whiteSpace: 'nowrap', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          New application <Icons.Plus size={16} />
         </a>
       </div>
 
@@ -66,8 +66,8 @@ export default function ApplicationsPage(): React.ReactElement {
             <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
               Applications ({filtered.length})
             </span>
-            <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
-              Sort by: Newest ↓
+            <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+              Sort by: Newest <Icons.ChevronDown size={14} />
             </span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
@@ -78,13 +78,15 @@ export default function ApplicationsPage(): React.ReactElement {
 
       <div data-support-callout style={{ marginTop: 'var(--space-6)' }}>
         <div data-support-callout-text>
-          <span data-support-callout-icon aria-hidden="true">🎧</span>
+          <span data-support-callout-icon aria-hidden="true"><Icons.Headphones size={20} /></span>
           <div>
             <strong>Need help with your application?</strong>
             <p>Our support team is here to help you with any questions.</p>
           </div>
         </div>
-        <a href="/support" data-btn-secondary>Contact support →</a>
+        <a href="/support" data-btn-secondary style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          Contact support <Icons.ArrowRight size={16} />
+        </a>
       </div>
     </div>
   );
