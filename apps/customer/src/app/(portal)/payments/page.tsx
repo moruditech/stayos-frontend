@@ -3,7 +3,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
-import { SkeletonLoader } from '@stayos/ui';
+import { SkeletonLoader, Icons, type LucideIcon } from '@stayos/ui';
 import { paymentKeys } from '@/lib/query-keys';
 
 export default function PaymentsPage(): React.ReactElement {
@@ -37,11 +37,13 @@ export default function PaymentsPage(): React.ReactElement {
             <h2>Payment overview</h2>
             <p>Your account summary</p>
           </div>
-          <a href="/invoices" data-section-link>📄 View statements →</a>
+          <a href="/invoices" data-section-link style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+            <Icons.FileText size={14} /> View statements <Icons.ChevronRight size={14} />
+          </a>
         </div>
         <div data-payment-stats>
           <div data-payment-stat>
-            <div data-payment-stat-label>Booking balance ℹ</div>
+            <div data-payment-stat-label>Booking balance <Icons.Info size={12} style={{ display: "inline", verticalAlign: "-1px" }} /></div>
             <div data-payment-stat-value data-overdue={balance > 0 ? '' : undefined}>
               R{balance.toLocaleString()}
             </div>
@@ -51,13 +53,13 @@ export default function PaymentsPage(): React.ReactElement {
             )}
           </div>
           <div data-payment-stat>
-            <div data-payment-stat-label>Paid this year ℹ</div>
+            <div data-payment-stat-label>Paid this year <Icons.Info size={12} style={{ display: "inline", verticalAlign: "-1px" }} /></div>
             <div data-payment-stat-value>R{paidYear.toLocaleString()}</div>
             <div data-payment-stat-sub>{paidCount} payment{paidCount !== 1 ? 's' : ''}</div>
             <button type="button" data-payment-stat-action>View history</button>
           </div>
           <div data-payment-stat>
-            <div data-payment-stat-label>Refunds ℹ</div>
+            <div data-payment-stat-label>Refunds <Icons.Info size={12} style={{ display: "inline", verticalAlign: "-1px" }} /></div>
             <div data-payment-stat-value data-positive={refunded > 0 ? '' : undefined}>
               R{refunded.toLocaleString()}
             </div>
@@ -73,13 +75,13 @@ export default function PaymentsPage(): React.ReactElement {
       </div>
       <div data-quick-actions>
         {[
-          { label: 'Make a payment',    icon: '💳', path: '/payments/new' },
-          { label: 'View invoices',     icon: '🧾', path: '/invoices' },
-          { label: 'Payment history',   icon: '🔄', path: '/payments' },
-          { label: 'Saved cards',       icon: '🪪', path: '/payments/methods' },
+          { label: 'Make a payment',    icon: Icons.CreditCard, tint: 'success', path: '/payments/new' },
+          { label: 'View invoices',     icon: Icons.FileText,   tint: 'warning', path: '/invoices' },
+          { label: 'Payment history',   icon: Icons.RefreshCcw, tint: 'purple',  path: '/payments' },
+          { label: 'Saved cards',       icon: Icons.Wallet,     tint: 'info',    path: '/payments/methods' },
         ].map((a) => (
           <a key={a.label} href={a.path} data-quick-action>
-            <span data-quick-action-icon aria-hidden="true">{a.icon}</span>
+            <span data-quick-action-icon data-tint={a.tint} aria-hidden="true"><a.icon size={20} /></span>
             <span>{a.label}</span>
           </a>
         ))}
@@ -108,40 +110,43 @@ export default function PaymentsPage(): React.ReactElement {
       </div>
       <div data-card-padded>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-          <PaymentMethodPlaceholder icon="💳" name="Mastercard ···· 4242" sub="Expires 12/27" isDefault />
-          <PaymentMethodPlaceholder icon="💳" name="Visa ···· 8431" sub="Expires 09/26" />
-          <PaymentMethodPlaceholder icon="🏦" name="FNB Checking Account" sub="···· 6789" />
+          <PaymentMethodPlaceholder icon={Icons.CreditCard} name="Mastercard ···· 4242" sub="Expires 12/27" isDefault />
+          <PaymentMethodPlaceholder icon={Icons.CreditCard} name="Visa ···· 8431" sub="Expires 09/26" />
+          <PaymentMethodPlaceholder icon={Icons.Landmark} name="FNB Checking Account" sub="···· 6789" />
         </div>
         <button type="button" data-btn-ghost data-btn-full
           style={{ marginTop: 'var(--space-4)', justifyContent: 'flex-start', gap: 'var(--space-3)' }}>
-          <span aria-hidden="true">➕</span> Add payment method
+          <Icons.Plus size={16} aria-hidden="true" /> Add payment method
         </button>
       </div>
 
       {/* Support callout */}
       <div data-support-callout style={{ marginTop: 'var(--space-6)' }}>
         <div data-support-callout-text>
-          <span data-support-callout-icon aria-hidden="true">🎧</span>
+          <span data-support-callout-icon aria-hidden="true"><Icons.Headphones size={20} /></span>
           <div>
             <strong>Need help with a payment?</strong>
             <p>Our support team is here to help you with any payment related issues.</p>
           </div>
         </div>
-        <a href="/support" data-btn-secondary>Contact support →</a>
+        <a href="/support" data-btn-secondary style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          Contact support <Icons.ArrowRight size={16} />
+        </a>
       </div>
     </div>
   );
 }
 
-const ICONS: Record<string, string> = { paid: '🏢', refunded: '🔄', due: '🧾' };
+const STATUS_ICON_MAP: Record<string, LucideIcon> = { paid: Icons.Building2, refunded: Icons.RefreshCcw, due: Icons.FileText };
 
 function TransactionItem({ payment: p }: { payment: Record<string, unknown> }): React.ReactElement {
   const status = p['status'] as string;
   const date   = new Date(p['createdAt'] as string).toLocaleDateString('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' });
+  const StatusIcon = STATUS_ICON_MAP[status] ?? Icons.CreditCard;
   return (
     <a href={`/payments/${p['_id'] as string}`} data-transaction-item style={{ textDecoration: 'none' }}>
-      <span data-transaction-icon style={{ background: status === 'refunded' ? 'var(--color-success-bg)' : 'var(--color-surface-muted)' }}>
-        {ICONS[status] ?? '💳'}
+      <span data-transaction-icon style={{ background: status === 'refunded' ? 'var(--color-success-bg)' : 'var(--color-surface-muted)', color: status === 'refunded' ? 'var(--color-success)' : 'var(--color-text-secondary)' }}>
+        <StatusIcon size={16} />
       </span>
       <div data-transaction-info>
         <div data-transaction-name>{(p['description'] as string) ?? 'Payment'}</div>
@@ -162,17 +167,17 @@ function TransactionItem({ payment: p }: { payment: Record<string, unknown> }): 
             : status.charAt(0).toUpperCase() + status.slice(1)}
         </div>
       </div>
-      <span aria-hidden="true" style={{ color: 'var(--color-text-muted)' }}>›</span>
+      <Icons.ChevronRight size={16} aria-hidden="true" style={{ color: 'var(--color-text-muted)' }} />
     </a>
   );
 }
 
-function PaymentMethodPlaceholder({ icon, name, sub, isDefault }: {
-  icon: string; name: string; sub: string; isDefault?: boolean;
+function PaymentMethodPlaceholder({ icon: Icon, name, sub, isDefault }: {
+  icon: LucideIcon; name: string; sub: string; isDefault?: boolean;
 }): React.ReactElement {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
-      <span style={{ fontSize: 'var(--text-2xl)', width: '40px', textAlign: 'center' }}>{icon}</span>
+      <span style={{ width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-secondary)' }}><Icon size={22} /></span>
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-semibold)' }}>{name}</div>
         <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{sub}</div>
@@ -180,7 +185,7 @@ function PaymentMethodPlaceholder({ icon, name, sub, isDefault }: {
       {isDefault && (
         <span data-status-badge data-status="confirmed" style={{ fontSize: 'var(--text-xs)' }}>Default</span>
       )}
-      <button type="button" style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-lg)' }}>⋯</button>
+      <button type="button" style={{ color: 'var(--color-text-muted)', display: 'flex' }} aria-label="More options"><Icons.MoreHorizontal size={18} /></button>
     </div>
   );
 }
