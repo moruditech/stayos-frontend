@@ -95,6 +95,27 @@ const BASE_URL = (import.meta as unknown as Record<string, unknown>)['env']
   ? (import.meta as unknown as { env: Record<string, string> }).env['VITE_API_URL']
   : process?.env?.['NEXT_PUBLIC_API_URL'] ?? '';
 
+// When BASE_URL is empty (Next.js proxy mode — NEXT_PUBLIC_API_URL unset,
+// /api/v1/* proxied by next.config.js rewrites), the path is relative.
+// new URL('/api/v1/path') without a second argument throws TypeError in the
+// browser. Providing window.location.origin as the base resolves it to the
+// frontend's own origin, which the rewrite forwards to the real backend.
+// When BASE_URL is a full URL (Vite portals or Next.js with an explicit
+// NEXT_PUBLIC_API_URL), the first arg is already absolute and the base is
+// ignored by the URL constructor.
+function buildApiUrl(path: string): URL {
+  if (BASE_URL) {
+    return new URL(`${BASE_URL}/api/v1${path}`);
+  }
+  // API calls with access tokens are client-side only — no server-side token
+  // exists during SSR, so this branch is never reached from a Next.js server
+  // render. window.location.origin is always defined here.
+  const origin = typeof window !== 'undefined'
+    ? window.location.origin
+    : 'http://localhost:3000';
+  return new URL(`/api/v1${path}`, origin);
+}
+
 async function requestEnvelope<T>(
   method: string,
   path: string,
@@ -134,7 +155,7 @@ async function requestEnvelope<T>(
   }
 
   // Step 2 — build URL with query string
-  const url = new URL(`${BASE_URL}/api/v1${path}`);
+  const url = buildApiUrl(path);
   if (params) {
     for (const [k, v] of Object.entries(params)) {
       if (v !== undefined) url.searchParams.set(k, String(v));
