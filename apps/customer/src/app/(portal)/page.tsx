@@ -5,8 +5,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
-import { SkeletonLoader, EmptyState } from '@stayos/ui';
-import { bookingKeys, loyaltyKeys, accommodationKeys } from '@/lib/query-keys';
+import { SkeletonLoader, EmptyState, Icons } from '@stayos/ui';
+import { bookingKeys, loyaltyKeys, accommodationKeys, profileKeys } from '@/lib/query-keys';
 
 // ── Search widget state ───────────────────────────────────────────────────
 type SearchTab = 'stays' | 'student';
@@ -39,6 +39,13 @@ export default function DashboardPage(): React.ReactElement {
     queryFn:  () => api.discovery.getFeatured(),
   });
 
+  // Profile — for the "Welcome back, {name}" greeting
+  const { data: profile } = useQuery({
+    queryKey: profileKeys.me(),
+    queryFn:  () => api.customer.getMe(),
+    enabled:  !!session,
+  });
+
   const upcomingBooking = (bookings as Record<string, unknown>[] | undefined)
     ?.find((b) => (b['status'] as string) === 'confirmed');
 
@@ -50,14 +57,14 @@ export default function DashboardPage(): React.ReactElement {
     router.push(`/accommodation?${params.toString()}`);
   }
 
-  const firstName = ''; // Would come from customer profile — fetched separately
+  const firstName = (profile as Record<string, unknown> | undefined)?.['firstName'] as string ?? '';
 
   const quickActions = [
-    { label: 'My bookings',  icon: '📅', path: '/bookings' },
-    { label: 'Make payment', icon: '💳', path: '/payments' },
-    { label: 'My invoices',  icon: '🧾', path: '/invoices' },
-    { label: 'Saved places', icon: '❤️', path: '/wishlist' },
-    { label: 'Support',      icon: '🎧', path: '/support' },
+    { label: 'My bookings',  icon: Icons.Calendar,   tint: 'success', path: '/bookings' },
+    { label: 'Make payment', icon: Icons.CreditCard, tint: 'info',    path: '/payments' },
+    { label: 'My invoices',  icon: Icons.FileText,   tint: 'warning', path: '/invoices' },
+    { label: 'Saved places', icon: Icons.Heart,      tint: 'purple',  path: '/wishlist' },
+    { label: 'Support',      icon: Icons.Headphones, tint: undefined, path: '/support' },
   ];
 
   return (
@@ -154,7 +161,7 @@ export default function DashboardPage(): React.ReactElement {
       <div data-quick-actions>
         {quickActions.map((a) => (
           <a key={a.label} href={a.path} data-quick-action>
-            <span data-quick-action-icon aria-hidden="true">{a.icon}</span>
+            <span data-quick-action-icon data-tint={a.tint} aria-hidden="true"><a.icon size={20} /></span>
             <span>{a.label}</span>
           </a>
         ))}
@@ -188,7 +195,7 @@ export default function DashboardPage(): React.ReactElement {
               <div data-loyalty-label>Q Points balance</div>
               <div data-loyalty-balance>
                 {((loyalty as Record<string, unknown>)['points'] as number ?? 0).toLocaleString()}
-                <span style={{ fontSize: 'var(--text-2xl)' }}>⭐</span>
+                <Icons.Star size={22} style={{ marginLeft: 'var(--space-2)', color: 'var(--color-warning)' }} />
               </div>
               <div data-loyalty-tier>
                 {(loyalty as Record<string, unknown>)['tier'] as string ?? 'Member'} •{' '}
@@ -204,7 +211,7 @@ export default function DashboardPage(): React.ReactElement {
               </div>
             </div>
             <div data-loyalty-badge>
-              <div data-loyalty-badge-icon aria-hidden="true">🏅</div>
+              <div data-loyalty-badge-icon aria-hidden="true"><Icons.Medal size={22} /></div>
               <div data-loyalty-badge-tier>
                 {(loyalty as Record<string, unknown>)['tier'] as string ?? 'Member'}
               </div>
@@ -241,7 +248,7 @@ export default function DashboardPage(): React.ReactElement {
         style={{ marginTop: 'var(--space-6)', background: 'var(--color-primary-light)' }}
       >
         <div data-support-callout-text>
-          <span data-support-callout-icon aria-hidden="true">🏷️</span>
+          <span data-support-callout-icon aria-hidden="true"><Icons.Tag size={20} /></span>
           <div>
             <strong>Exclusive member deals</strong>
             <p>Unlock special rates and save more on your next stay.</p>
@@ -293,11 +300,11 @@ function UpcomingBookingCard({ booking }: { booking: Record<string, unknown> }):
           <span style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-lg)' }}>›</span>
         </div>
         <div data-booking-card-meta>
-          <span>📍</span>
+          <Icons.MapPin size={14} />
           {(booking['propertyCity'] as string) ?? '—'}
         </div>
         <div data-booking-card-meta>
-          📅 Booking #{booking['confirmationNumber'] as string ?? '—'}
+          <Icons.Calendar size={14} /> Booking #{booking['confirmationNumber'] as string ?? '—'}
         </div>
 
         <div data-booking-card-footer>
@@ -334,7 +341,7 @@ function PropertyCard({ property }: { property: Record<string, unknown> }): Reac
           aria-label={`Save ${property['name'] as string}`}
           onClick={(e) => e.preventDefault()}
         >
-          ♡
+          <Icons.Heart size={16} />
         </button>
       </div>
       <div data-property-card-body>
@@ -342,12 +349,12 @@ function PropertyCard({ property }: { property: Record<string, unknown> }): Reac
           <span data-property-card-name>{property['name'] as string}</span>
           {(property['rating'] as number) ? (
             <span data-property-card-rating>
-              ★ {(property['rating'] as number).toFixed(1)}
+              <Icons.Star size={14} fill="currentColor" /> {(property['rating'] as number).toFixed(1)}
             </span>
           ) : null}
         </div>
         <div data-property-card-location>
-          📍 {property['city'] as string ?? '—'}
+          <Icons.MapPin size={14} /> {property['city'] as string ?? '—'}
         </div>
         <div data-property-card-pricing>
           <div>
