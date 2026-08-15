@@ -127,6 +127,12 @@ export {
   Medal,
   Map,
   Palmtree,
+  Lightbulb,
+  BookOpen,
+  PenLine,
+  CalendarCheck2,
+  XCircle,
+  List,
 } from 'lucide-react';
 
 export type { LucideIcon, LucideProps } from 'lucide-react';
