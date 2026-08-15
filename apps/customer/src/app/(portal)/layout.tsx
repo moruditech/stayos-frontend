@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession, useSessionContext, performLogout, useSessionLoading } from '@stayos/auth';
 import { SocketProvider, Icons } from '@stayos/ui';
@@ -36,11 +36,14 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
+  const avatarMenuRef = useRef<HTMLDivElement>(null);
 
   const closeSidebar = useCallback(() => setSidebarOpen(false), []);
+  const closeAvatarMenu = useCallback(() => setAvatarMenuOpen(false), []);
 
   // Close sidebar on route change
-  useEffect(() => { setSidebarOpen(false); }, [pathname]);
+  useEffect(() => { setSidebarOpen(false); setAvatarMenuOpen(false); }, [pathname]);
 
   // Fetch unread count
   useEffect(() => {
@@ -50,12 +53,26 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
       .catch(() => {});
   }, [session]);
 
-  // Escape to close
+  // Escape to close (sidebar or avatar menu, whichever is open)
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeSidebar(); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { closeSidebar(); closeAvatarMenu(); }
+    };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [closeSidebar]);
+  }, [closeSidebar, closeAvatarMenu]);
+
+  // Click outside to close the avatar dropdown
+  useEffect(() => {
+    if (!avatarMenuOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (avatarMenuRef.current && !avatarMenuRef.current.contains(e.target as Node)) {
+        closeAvatarMenu();
+      }
+    };
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, [avatarMenuOpen, closeAvatarMenu]);
 
   // Redirect unauthenticated visitors to /login once the session check settles
   useEffect(() => {
@@ -81,6 +98,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
   async function handleLogout(): Promise<void> {
     clearSession();
     closeSidebar();
+    closeAvatarMenu();
     await performLogout({
       onDisconnect: () => {},
       onNavigate:   () => router.replace('/login'),
@@ -117,9 +135,33 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
                 </span>
               )}
             </a>
-            <a href="/profile" data-avatar-placeholder aria-label="Profile">
-              {firstLetter}
-            </a>
+            <div data-avatar-group ref={avatarMenuRef}>
+              <button
+                type="button"
+                data-avatar-trigger
+                aria-label="Account menu"
+                aria-haspopup="true"
+                aria-expanded={avatarMenuOpen}
+                onClick={() => setAvatarMenuOpen((o) => !o)}
+              >
+                <span data-avatar-placeholder>{firstLetter}</span>
+                <Icons.ChevronDown size={16} aria-hidden="true" data-avatar-chevron />
+              </button>
+              {avatarMenuOpen && (
+                <div data-avatar-menu role="menu">
+                  <button type="button" role="menuitem" data-avatar-menu-item onClick={() => navigate('/profile')}>
+                    <Icons.User size={16} aria-hidden="true" /> Profile
+                  </button>
+                  <button type="button" role="menuitem" data-avatar-menu-item onClick={() => navigate('/settings')}>
+                    <Icons.Settings size={16} aria-hidden="true" /> Settings
+                  </button>
+                  <div data-avatar-menu-divider />
+                  <button type="button" role="menuitem" data-avatar-menu-item data-danger onClick={() => void handleLogout()}>
+                    <Icons.LogOut size={16} aria-hidden="true" /> Sign out
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 

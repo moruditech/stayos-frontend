@@ -7,6 +7,13 @@ import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
 import { SkeletonLoader, EmptyState, Icons } from '@stayos/ui';
 import { bookingKeys, loyaltyKeys, accommodationKeys, profileKeys } from '@/lib/query-keys';
+import { GuestsRoomsField, type GuestsRoomsValue } from '@/components/GuestsRoomsField';
+
+const LOYALTY_TIERS = [
+  { id: 'silver',   label: 'Silver' },
+  { id: 'gold',     label: 'Gold' },
+  { id: 'platinum', label: 'Platinum' },
+];
 
 // ── Search widget state ───────────────────────────────────────────────────
 type SearchTab = 'stays' | 'student';
@@ -18,6 +25,7 @@ export default function DashboardPage(): React.ReactElement {
   const [destination, setDest]  = useState('');
   const [checkIn, setCheckIn]   = useState('');
   const [checkOut, setCheckOut] = useState('');
+  const [guestsRooms, setGuestsRooms] = useState<GuestsRoomsValue>({ guests: 1, rooms: 1 });
 
   // Upcoming bookings
   const { data: bookings, isLoading: bookingsLoading } = useQuery({
@@ -54,6 +62,8 @@ export default function DashboardPage(): React.ReactElement {
     if (destination) params.set('city', destination);
     if (checkIn)     params.set('checkIn', checkIn);
     if (checkOut)    params.set('checkOut', checkOut);
+    params.set('guests', String(guestsRooms.guests));
+    params.set('rooms', String(guestsRooms.rooms));
     router.push(`/accommodation?${params.toString()}`);
   }
 
@@ -63,7 +73,7 @@ export default function DashboardPage(): React.ReactElement {
     { label: 'My bookings',  icon: Icons.Calendar,   tint: 'success', path: '/bookings' },
     { label: 'Make payment', icon: Icons.CreditCard, tint: 'info',    path: '/payments' },
     { label: 'My invoices',  icon: Icons.FileText,   tint: 'warning', path: '/invoices' },
-    { label: 'Saved places', icon: Icons.Heart,      tint: 'purple',  path: '/wishlist' },
+    { label: 'Saved places', icon: Icons.Heart,      tint: 'sand',  path: '/wishlist' },
     { label: 'Support',      icon: Icons.Headphones, tint: undefined, path: '/support' },
   ];
 
@@ -112,33 +122,39 @@ export default function DashboardPage(): React.ReactElement {
         <div data-search-fields>
           <div data-search-field data-search-location>
             <label htmlFor="dest">Where are you going?</label>
-            <input
-              id="dest"
-              type="text"
-              placeholder="City, neighbourhood or property"
-              value={destination}
-              onChange={(e) => setDest(e.target.value)}
-            />
+            <div data-search-location-input>
+              <Icons.MapPin size={16} aria-hidden="true" />
+              <input
+                id="dest"
+                type="text"
+                placeholder="City, neighbourhood or property"
+                value={destination}
+                onChange={(e) => setDest(e.target.value)}
+              />
+            </div>
           </div>
-          <div data-search-field>
-            <label htmlFor="checkin">Check-in</label>
-            <input
-              id="checkin"
-              type="date"
-              value={checkIn}
-              min={new Date().toISOString().split('T')[0]}
-              onChange={(e) => setCheckIn(e.target.value)}
-            />
-          </div>
-          <div data-search-field>
-            <label htmlFor="checkout">Check-out</label>
-            <input
-              id="checkout"
-              type="date"
-              value={checkOut}
-              min={checkIn || new Date().toISOString().split('T')[0]}
-              onChange={(e) => setCheckOut(e.target.value)}
-            />
+          <div data-search-fields-row>
+            <div data-search-field>
+              <label htmlFor="checkin">Check-in</label>
+              <input
+                id="checkin"
+                type="date"
+                value={checkIn}
+                min={new Date().toISOString().split('T')[0]}
+                onChange={(e) => setCheckIn(e.target.value)}
+              />
+            </div>
+            <div data-search-field>
+              <label htmlFor="checkout">Check-out</label>
+              <input
+                id="checkout"
+                type="date"
+                value={checkOut}
+                min={checkIn || new Date().toISOString().split('T')[0]}
+                onChange={(e) => setCheckOut(e.target.value)}
+              />
+            </div>
+            <GuestsRoomsField value={guestsRooms} onChange={setGuestsRooms} />
           </div>
         </div>
 
@@ -147,9 +163,9 @@ export default function DashboardPage(): React.ReactElement {
           data-btn-primary
           data-btn-full
           onClick={handleSearch}
-          style={{ marginTop: 'var(--space-4)' }}
+          style={{ marginTop: 'var(--space-4)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}
         >
-          Search accommodation
+          Search accommodation <Icons.Search size={18} />
         </button>
       </div>
 
@@ -190,32 +206,36 @@ export default function DashboardPage(): React.ReactElement {
       {/* ── Loyalty summary ───────────────────────────────────────────── */}
       {loyalty && (
         <a href="/loyalty" style={{ display: 'block', textDecoration: 'none', margin: 'var(--space-6) 0' }}>
-          <div data-loyalty-hero>
-            <div>
-              <div data-loyalty-label>Q Points balance</div>
-              <div data-loyalty-balance>
-                {((loyalty as Record<string, unknown>)['points'] as number ?? 0).toLocaleString()}
-                <Icons.Star size={22} style={{ marginLeft: 'var(--space-2)', color: 'var(--color-warning)' }} />
-              </div>
-              <div data-loyalty-tier>
-                {(loyalty as Record<string, unknown>)['tier'] as string ?? 'Member'} •{' '}
-                {(loyalty as Record<string, unknown>)['pointsToNextTier'] as number ?? 0} points to next tier
-              </div>
-              <div data-loyalty-progress-bar>
-                <div
-                  data-loyalty-progress-fill
-                  style={{
-                    width: `${Math.min(((loyalty as Record<string, unknown>)['tierProgress'] as number ?? 0), 100)}%`,
-                  }}
-                />
-              </div>
+          <div data-loyalty-summary-card>
+            <Icons.Shield size={140} aria-hidden="true" data-loyalty-watermark />
+            <div data-loyalty-hero-header>
+              <span data-loyalty-member-badge>
+                <Icons.Medal size={14} aria-hidden="true" />
+                {(loyalty as Record<string, unknown>)['tier'] as string ?? 'Member'} Member
+              </span>
+              <span data-loyalty-view-link>View loyalty <Icons.ArrowRight size={14} /></span>
             </div>
-            <div data-loyalty-badge>
-              <div data-loyalty-badge-icon aria-hidden="true"><Icons.Medal size={22} /></div>
-              <div data-loyalty-badge-tier>
-                {(loyalty as Record<string, unknown>)['tier'] as string ?? 'Member'}
-              </div>
-              <button type="button" data-loyalty-badge-btn>View loyalty →</button>
+            <div data-loyalty-label>Q Points balance</div>
+            <div data-loyalty-balance>
+              {((loyalty as Record<string, unknown>)['points'] as number ?? 0).toLocaleString()}
+              <Icons.Star size={22} style={{ marginLeft: 'var(--space-2)', color: 'var(--color-warning)' }} />
+              <span data-loyalty-balance-label>Q Points</span>
+            </div>
+            <div data-loyalty-tier>
+              {(loyalty as Record<string, unknown>)['pointsToNextTier'] as number ?? 0} points to{' '}
+              {(() => {
+                const tierId = ((loyalty as Record<string, unknown>)['tier'] as string ?? 'silver').toLowerCase();
+                const idx = LOYALTY_TIERS.findIndex((t) => t.id === tierId);
+                return LOYALTY_TIERS[idx + 1]?.label ?? 'top tier';
+              })()}
+            </div>
+            <div data-loyalty-progress-bar>
+              <div
+                data-loyalty-progress-fill
+                style={{
+                  width: `${Math.min(((loyalty as Record<string, unknown>)['tierProgress'] as number ?? 0), 100)}%`,
+                }}
+              />
             </div>
           </div>
         </a>
@@ -228,15 +248,11 @@ export default function DashboardPage(): React.ReactElement {
             <span data-section-title>Recommended for you</span>
             <a href="/accommodation" data-section-link>View all →</a>
           </div>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-              gap: 'var(--space-4)',
-            }}
-          >
-            {(featured as Record<string, unknown>[]).slice(0, 3).map((p) => (
-              <PropertyCard key={p['_id'] as string} property={p} />
+          <div data-horizontal-scroll>
+            {(featured as Record<string, unknown>[]).slice(0, 6).map((p) => (
+              <div key={p['_id'] as string} data-horizontal-scroll-item>
+                <PropertyCard property={p} />
+              </div>
             ))}
           </div>
         </>
@@ -245,8 +261,9 @@ export default function DashboardPage(): React.ReactElement {
       {/* Member deals callout */}
       <div
         data-support-callout
-        style={{ marginTop: 'var(--space-6)', background: 'var(--color-primary-light)' }}
+        style={{ marginTop: 'var(--space-6)', background: 'var(--color-primary-light)', position: 'relative', overflow: 'hidden' }}
       >
+        <Icons.Tag size={90} aria-hidden="true" style={{ position: 'absolute', right: '-16px', bottom: '-16px', color: 'var(--color-primary)', opacity: 0.08, pointerEvents: 'none' }} />
         <div data-support-callout-text>
           <span data-support-callout-icon aria-hidden="true"><Icons.Tag size={20} /></span>
           <div>
@@ -254,7 +271,7 @@ export default function DashboardPage(): React.ReactElement {
             <p>Unlock special rates and save more on your next stay.</p>
           </div>
         </div>
-        <a href="/accommodation?deals=true" data-btn-secondary>Explore deals →</a>
+        <a href="/accommodation?deals=true" data-btn-secondary style={{ position: 'relative' }}>Explore deals →</a>
       </div>
     </div>
   );
@@ -272,45 +289,50 @@ function UpcomingBookingCard({ booking }: { booking: Record<string, unknown> }):
   );
 
   return (
-    <a
-      href={`/bookings/${booking['_id'] as string}`}
-      data-booking-card
-      style={{ display: 'grid', marginBottom: 'var(--space-4)', textDecoration: 'none', color: 'inherit' }}
-    >
-      <div data-booking-card-image>
-        {/* Property image — /images/properties/[propertyId].jpg */}
-        <img
-          src={`/images/properties/${booking['tenantId'] as string}.jpg`}
-          alt=""
-          loading="lazy"
-          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-        />
-        <span data-booking-status-badge>
-          <span data-status-badge data-status="confirmed">Confirmed</span>
-        </span>
-        <div data-booking-date-badge>
-          <span data-booking-date-day>{day}</span>
-          <span data-booking-date-month>{month}</span>
-        </div>
-      </div>
-
-      <div data-booking-card-body>
-        <div data-booking-card-name>
-          {(booking['propertyName'] as string) ?? 'Property'}
-          <span style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-lg)' }}>›</span>
-        </div>
-        <div data-booking-card-meta>
-          <Icons.MapPin size={14} />
-          {(booking['propertyCity'] as string) ?? '—'}
-        </div>
-        <div data-booking-card-meta>
-          <Icons.Calendar size={14} /> Booking #{booking['confirmationNumber'] as string ?? '—'}
+    <div data-booking-card style={{ marginBottom: 'var(--space-4)' }}>
+      <a href={`/bookings/${booking['_id'] as string}`} data-booking-card-top>
+        <div data-booking-card-image>
+          {/* Property image — /images/properties/[propertyId].jpg */}
+          <img
+            src={`/images/properties/${booking['tenantId'] as string}.jpg`}
+            alt=""
+            loading="lazy"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+          />
+          <span data-booking-status-badge>
+            <span data-status-badge data-status="confirmed">Confirmed</span>
+          </span>
+          <div data-booking-date-badge>
+            <span data-booking-date-day>{day}</span>
+            <span data-booking-date-month>{month}</span>
+          </div>
         </div>
 
-        <div data-booking-card-footer>
-          {daysUntil > 0 && (
-            <span data-checkin-countdown>Check-in in {daysUntil} day{daysUntil !== 1 ? 's' : ''}</span>
-          )}
+        <div data-booking-card-body>
+          <div data-booking-card-name>
+            {(booking['propertyName'] as string) ?? 'Property'}
+          </div>
+          <div data-booking-card-meta>
+            <Icons.MapPin size={14} />
+            {(booking['propertyCity'] as string) ?? '—'}
+          </div>
+          <div data-booking-card-meta>
+            <Icons.Calendar size={14} /> Booking #{booking['confirmationNumber'] as string ?? '—'}
+          </div>
+        </div>
+      </a>
+
+      <div data-booking-card-footer data-stacked>
+        {daysUntil > 0 && (
+          <span data-checkin-countdown>Check-in in {daysUntil} day{daysUntil !== 1 ? 's' : ''}</span>
+        )}
+        <div data-booking-card-actions>
+          <div data-booking-card-actions-left>
+            <a href={`/bookings/${booking['_id'] as string}`} data-btn-secondary>View booking</a>
+            <button type="button" data-btn-icon-square aria-label="More options">
+              <Icons.MoreHorizontal size={16} />
+            </button>
+          </div>
           <div data-booking-total>
             <div data-booking-total-label>Total</div>
             <div data-booking-total-amount>
@@ -319,7 +341,7 @@ function UpcomingBookingCard({ booking }: { booking: Record<string, unknown> }):
           </div>
         </div>
       </div>
-    </a>
+    </div>
   );
 }
 
@@ -350,6 +372,7 @@ function PropertyCard({ property }: { property: Record<string, unknown> }): Reac
           {(property['rating'] as number) ? (
             <span data-property-card-rating>
               <Icons.Star size={14} fill="currentColor" /> {(property['rating'] as number).toFixed(1)}
+              {(property['reviewCount'] as number) ? ` (${property['reviewCount'] as number})` : ''}
             </span>
           ) : null}
         </div>
