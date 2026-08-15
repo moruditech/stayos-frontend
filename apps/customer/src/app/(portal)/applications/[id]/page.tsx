@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
@@ -15,7 +15,6 @@ const STATUS_STEPS = ['submitted', 'under_review', 'docs_requested', 'approved']
 export default function ApplicationDetailPage({ params }: Props): React.ReactElement {
   const session = useSession();
   const router  = useRouter();
-  const qc      = useQueryClient();
   const { toast } = useToast();
 
   const { data: application, isLoading } = useQuery({
