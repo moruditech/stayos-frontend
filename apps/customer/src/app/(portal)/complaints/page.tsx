@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { SkeletonLoader, EmptyState, StatusBadge, InlineError, useToast } from '@stayos/ui';
+import { SkeletonLoader, EmptyState, StatusBadge, InlineError, useToast, Icons } from '@stayos/ui';
 
 // Matches createComplaintSchema exactly — field names and enum values confirmed
 // against src/modules/complaints/complaints.validation.js
@@ -101,7 +101,7 @@ export default function ComplaintsPage(): React.ReactElement {
       <div data-page>
         <button type="button" onClick={() => setView('list')}
           style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', color:'var(--color-text-secondary)', fontSize:'var(--text-sm)', marginBottom:'var(--space-4)', cursor:'pointer' }}>
-          ← Back to complaints
+          <Icons.ChevronLeft size={16} /> Back to complaints
         </button>
 
         <h1 data-page-title>Submit a complaint</h1>
@@ -195,7 +195,9 @@ export default function ComplaintsPage(): React.ReactElement {
           <h1 data-page-title>Complaints</h1>
           <p data-page-subtitle>Complaints you have submitted about your stays</p>
         </div>
-        <button type="button" data-btn-primary onClick={() => setView('new')}>+ New complaint</button>
+        <button type="button" data-btn-primary onClick={() => setView('new')} style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <Icons.Plus size={16} /> New complaint
+        </button>
       </div>
 
       {isLoading ? <SkeletonLoader rows={4} /> : all.length === 0 ? (
@@ -231,12 +233,11 @@ export default function ComplaintsPage(): React.ReactElement {
                 </div>
                 <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:'var(--space-2)' }}>
                   <StatusBadge status={status} />
-                  {status === 'resolved' || status === 'closed' ? null : (
-                    <button type="button" data-btn-ghost
-                      style={{ fontSize:'var(--text-xs)', padding:'var(--space-1) var(--space-3)' }}
-                      onClick={() => void api.customer.createComplaint({ ...c, escalate: true } as unknown as Record<string,unknown>)}>
+                  {status !== 'resolved' && status !== 'closed' && (
+                    <a href={`/support/new?ref=${c['_id'] as string}`} data-btn-ghost
+                      style={{ fontSize:'var(--text-xs)', padding:'var(--space-1) var(--space-3)' }}>
                       Escalate
-                    </button>
+                    </a>
                   )}
                 </div>
               </div>
@@ -247,7 +248,7 @@ export default function ComplaintsPage(): React.ReactElement {
 
       <div data-support-callout style={{ marginTop:'var(--space-8)' }}>
         <div data-support-callout-text>
-          <span data-support-callout-icon>💬</span>
+          <span data-support-callout-icon><Icons.MessageCircle size={20} /></span>
           <div>
             <strong>Need further assistance?</strong>
             <p>If your complaint is not being resolved, our support team can help.</p>
