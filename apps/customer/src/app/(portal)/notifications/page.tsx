@@ -3,16 +3,16 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
-import { SkeletonLoader, EmptyState } from '@stayos/ui';
+import { SkeletonLoader, EmptyState, Icons, type LucideIcon } from '@stayos/ui';
 import { notificationKeys } from '@/lib/query-keys';
 
-const ICONS: Record<string, string> = {
-  booking:     '📅',
-  payment:     '💳',
-  application: '🎓',
-  loyalty:     '⭐',
-  system:      '🔔',
-  support:     '🎧',
+const NOTIF_ICONS: Record<string, LucideIcon> = {
+  booking:     Icons.Calendar,
+  payment:     Icons.CreditCard,
+  application: Icons.GraduationCap,
+  loyalty:     Icons.Star,
+  system:      Icons.Bell,
+  support:     Icons.Headphones,
 };
 
 export default function NotificationsPage(): React.ReactElement {
@@ -93,6 +93,7 @@ export default function NotificationsPage(): React.ReactElement {
             const date    = new Date(notif['createdAt'] as string);
             const dateStr = date.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' });
             const timeStr = date.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' });
+            const NotifIcon = NOTIF_ICONS[type] ?? Icons.Bell;
             return (
               <div key={notif['_id'] as string}
                 style={{
@@ -103,8 +104,8 @@ export default function NotificationsPage(): React.ReactElement {
                 }}
                 onClick={() => { if (!isRead) markReadMutation.mutate(notif['_id'] as string); }}
               >
-                <div style={{ width: '40px', height: '40px', background: isRead ? 'var(--color-surface-muted)' : 'rgba(27,77,62,0.12)', borderRadius: 'var(--radius-full)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'var(--text-lg)', flexShrink: 0 }}>
-                  {ICONS[type] ?? '🔔'}
+                <div style={{ width: '40px', height: '40px', background: isRead ? 'var(--color-surface-muted)' : 'rgba(27,77,62,0.12)', borderRadius: 'var(--radius-full)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)', flexShrink: 0 }}>
+                  <NotifIcon size={18} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 'var(--text-sm)', fontWeight: isRead ? 'var(--font-normal)' : 'var(--font-semibold)', marginBottom: '4px' }}>
@@ -121,17 +122,17 @@ export default function NotificationsPage(): React.ReactElement {
                   <div style={{ width: '8px', height: '8px', background: 'var(--color-primary)', borderRadius: '50%', flexShrink: 0, marginTop: '6px' }} />
                 )}
                 <button type="button"
-                  style={{ color: 'var(--color-text-muted)', flexShrink: 0, padding: 'var(--space-1)', fontSize: 'var(--text-sm)' }}
+                  style={{ color: 'var(--color-text-muted)', flexShrink: 0, padding: 'var(--space-1)', display: 'flex' }}
                   onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(notif['_id'] as string); }}
-                  aria-label="Delete notification">✕</button>
+                  aria-label="Delete notification"><Icons.X size={16} /></button>
               </div>
             );
           })}
         </div>
       )}
 
-      <a href="/notifications/settings" data-btn-ghost data-btn-full style={{ marginTop: 'var(--space-6)' }}>
-        ⚙ Notification settings
+      <a href="/notifications/settings" data-btn-ghost data-btn-full style={{ marginTop: 'var(--space-6)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}>
+        <Icons.Settings size={16} /> Notification settings
       </a>
     </div>
   );
