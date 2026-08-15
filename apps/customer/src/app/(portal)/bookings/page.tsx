@@ -4,15 +4,15 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
-import { SkeletonLoader, EmptyState, Icons } from '@stayos/ui';
+import { SkeletonLoader, EmptyState, Icons, type LucideIcon } from '@stayos/ui';
 import { bookingKeys } from '@/lib/query-keys';
 
 type Tab = 'upcoming' | 'past' | 'cancelled' | 'all';
-const TABS = [
-  { id: 'upcoming' as Tab,  label: 'Upcoming' },
-  { id: 'past' as Tab,      label: 'Past' },
-  { id: 'cancelled' as Tab, label: 'Cancelled' },
-  { id: 'all' as Tab,       label: 'All' },
+const TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
+  { id: 'upcoming' as Tab,  label: 'Upcoming',  icon: Icons.CalendarCheck2 },
+  { id: 'past' as Tab,      label: 'Past',      icon: Icons.Clock },
+  { id: 'cancelled' as Tab, label: 'Cancelled', icon: Icons.XCircle },
+  { id: 'all' as Tab,       label: 'All',       icon: Icons.List },
 ];
 const STATUS_MAP: Record<Tab, string[]> = {
   upcoming:  ['confirmed', 'pending_confirmation'],
@@ -44,7 +44,7 @@ export default function BookingsPage(): React.ReactElement {
         {TABS.map((t) => (
           <button key={t.id} type="button" role="tab" aria-selected={tab === t.id}
             data-filter-tab data-active={tab === t.id ? '' : undefined} onClick={() => setTab(t.id)}>
-            {t.label}
+            <t.icon size={16} aria-hidden="true" /> {t.label}
             {t.id === 'upcoming' && upcomingCount > 0 && (
               <span data-filter-tab-count>{upcomingCount}</span>
             )}
@@ -84,7 +84,7 @@ export default function BookingsPage(): React.ReactElement {
           { label: 'Modify booking',   icon: Icons.CalendarClock, tint: 'success', path: '/bookings' },
           { label: 'Cancel booking',   icon: Icons.X,             tint: 'warning', path: '/bookings' },
           { label: 'Get invoice',      icon: Icons.FileText,      tint: 'info',    path: '/invoices' },
-          { label: 'Contact property', icon: Icons.MessageCircle, tint: 'purple',  path: '/support' },
+          { label: 'Contact property', icon: Icons.MessageCircle, tint: 'sand',  path: '/support' },
           { label: 'Add to calendar',  icon: Icons.Calendar,      tint: 'success', path: '/bookings' },
         ].map((a) => (
           <a key={a.label} href={a.path} data-quick-action>
@@ -119,46 +119,53 @@ function BookingCard({ booking }: { booking: Record<string, unknown> }): React.R
   const status    = booking['status'] as string;
 
   return (
-    <a href={`/bookings/${booking['_id'] as string}`} data-booking-card style={{ textDecoration: 'none', color: 'inherit' }}>
-      <div data-booking-card-image>
-        {/* Image path: /images/properties/[tenantId]-thumb.jpg */}
-        <img src={`/images/properties/${booking['tenantId'] as string}-thumb.jpg`} alt="" loading="lazy"
-          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-        <span data-booking-status-badge>
-          <span data-status-badge data-status={status}>{status.replace(/_/g, ' ')}</span>
-        </span>
-        <div data-booking-date-badge>
-          <span data-booking-date-day>{day}</span>
-          <span data-booking-date-month>{month}</span>
-        </div>
-      </div>
-      <div data-booking-card-body>
-        <div data-booking-card-name>
-          {(booking['propertyName'] as string) ?? 'Property'}
-          <Icons.ChevronRight size={16} style={{ color: 'var(--color-text-muted)' }} />
-        </div>
-        <div data-booking-card-meta><Icons.MapPin size={14} />{(booking['propertyCity'] as string) ?? '—'}</div>
-        <div data-booking-card-meta>
-          <Icons.Calendar size={14} />
-          {checkIn.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })}
-          {' – '}
-          {checkOut.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })}
-          {' · '}{(booking['guests'] as number) ?? 1} Adult{(booking['guests'] as number) !== 1 ? 's' : ''}
-        </div>
-        <div data-booking-card-meta><Icons.Bed size={14} />{(booking['roomType'] as string) ?? '—'}</div>
-        <div data-booking-card-meta style={{ fontFamily: 'monospace', fontSize: 'var(--text-xs)' }}>
-          Booking #{(booking['confirmationNumber'] as string) ?? '—'}
-        </div>
-        <div data-booking-card-footer>
-          {daysUntil > 0 && status === 'confirmed' && (
-            <span data-checkin-countdown>Check-in in {daysUntil} day{daysUntil !== 1 ? 's' : ''}</span>
-          )}
-          <div data-booking-total>
-            <div data-booking-total-label>Total</div>
-            <div data-booking-total-amount>R{((booking['totalAmount'] as number) ?? 0).toLocaleString()}</div>
+    <div data-booking-card style={{ position: 'relative' }}>
+      <a href={`/bookings/${booking['_id'] as string}`} data-booking-card-top style={{ textDecoration: 'none', color: 'inherit' }}>
+        <div data-booking-card-image>
+          {/* Image path: /images/properties/[tenantId]-thumb.jpg */}
+          <img src={`/images/properties/${booking['tenantId'] as string}-thumb.jpg`} alt="" loading="lazy"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          <span data-booking-status-badge>
+            <span data-status-badge data-status={status}>{status.replace(/_/g, ' ')}</span>
+          </span>
+          <div data-booking-date-badge>
+            <span data-booking-date-day>{day}</span>
+            <span data-booking-date-month>{month}</span>
           </div>
         </div>
+        <div data-booking-card-body>
+          <div data-booking-card-name>
+            {(booking['propertyName'] as string) ?? 'Property'}
+            <Icons.ChevronRight size={16} style={{ color: 'var(--color-text-muted)' }} />
+          </div>
+          <div data-booking-card-meta><Icons.MapPin size={14} />{(booking['propertyCity'] as string) ?? '—'}</div>
+          <div data-booking-card-meta>
+            <Icons.Calendar size={14} />
+            {checkIn.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })}
+            {' – '}
+            {checkOut.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })}
+            {' · '}{(booking['guests'] as number) ?? 1} Adult{(booking['guests'] as number) !== 1 ? 's' : ''}
+          </div>
+          <div data-booking-card-meta><Icons.Bed size={14} />{(booking['roomType'] as string) ?? '—'}</div>
+          <div data-booking-card-meta style={{ fontFamily: 'monospace', fontSize: 'var(--text-xs)' }}>
+            Booking #{(booking['confirmationNumber'] as string) ?? '—'}
+          </div>
+        </div>
+      </a>
+
+      <button type="button" data-btn-icon-square aria-label="More options" data-booking-card-more>
+        <Icons.MoreHorizontal size={16} />
+      </button>
+
+      <div data-booking-card-footer>
+        {daysUntil > 0 && status === 'confirmed' && (
+          <span data-checkin-countdown>Check-in in {daysUntil} day{daysUntil !== 1 ? 's' : ''}</span>
+        )}
+        <div data-booking-total>
+          <div data-booking-total-label>Total</div>
+          <div data-booking-total-amount>R{((booking['totalAmount'] as number) ?? 0).toLocaleString()}</div>
+        </div>
       </div>
-    </a>
+    </div>
   );
 }
