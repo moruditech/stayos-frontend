@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { SkeletonLoader, StatusBadge, DownloadButton, useToast } from '@stayos/ui';
+import { SkeletonLoader, StatusBadge, DownloadButton, useToast, Icons } from '@stayos/ui';
 
 interface Props { params: { id: string } }
 
@@ -41,7 +41,7 @@ export default function InvoiceDetailPage({ params }: Props): React.ReactElement
     <div data-page>
       <button type="button" onClick={() => router.back()}
         style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-4)', cursor: 'pointer' }}>
-        ← Back to invoices
+        <Icons.ChevronLeft size={16} /> Back to invoices
       </button>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--space-3)', marginBottom: 'var(--space-6)' }}>
         <div>
