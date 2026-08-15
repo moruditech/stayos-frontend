@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
-import { SkeletonLoader, EmptyState, Icons } from '@stayos/ui';
+import { SkeletonLoader, EmptyState, Icons, type LucideIcon } from '@stayos/ui';
 import { applicationKeys } from '@/lib/query-keys';
 
 type Tab = 'all' | 'student' | 'long_term' | 'other';
@@ -42,11 +42,13 @@ export default function ApplicationsPage(): React.ReactElement {
       </div>
 
       {/* Callout */}
-      <div data-card-padded style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-5)' }}>
+      <div data-card-padded style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-5)', background: 'var(--color-primary-light)', borderColor: 'transparent' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
-          <span style={{ color: 'var(--color-primary)' }} aria-hidden="true"><Icons.ClipboardList size={26} /></span>
+          <span style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-full)', background: 'var(--color-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)', flexShrink: 0 }} aria-hidden="true">
+            <Icons.FileCheck2 size={22} />
+          </span>
           <div>
-            <strong style={{ fontSize: 'var(--text-sm)' }}>Everything in one place</strong>
+            <strong style={{ fontSize: 'var(--text-sm)', color: 'var(--color-primary)' }}>Everything in one place</strong>
             <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>
               View the status of all your applications and complete any pending requirements.
             </p>
@@ -97,6 +99,12 @@ const STATUS_COLORS: Record<string, string> = {
   rejected: 'cancelled', declined: 'cancelled', in_progress: 'upcoming', withdrawn: 'cancelled',
 };
 
+const TYPE_ICON_MAP: Record<string, LucideIcon> = {
+  student:    Icons.GraduationCap,
+  long_term:  Icons.Building2,
+  other:      Icons.Home,
+};
+
 function ApplicationCard({ application: app }: { application: Record<string, unknown> }): React.ReactElement {
   const status = (app['status'] as string) ?? 'submitted';
   const appliedDate = new Date(app['createdAt'] as string).toLocaleDateString('en-ZA', {
@@ -104,6 +112,9 @@ function ApplicationCard({ application: app }: { application: Record<string, unk
   });
   const academicYear = app['academicYear'] as string | undefined;
   const moveInDate = app['moveInDate'] as string | undefined;
+  const checkInDate = app['checkInDate'] as string | undefined;
+  const category = (app['category'] as string) ?? 'other';
+  const TypeIcon = TYPE_ICON_MAP[category] ?? Icons.Home;
 
   return (
     <a href={`/applications/${app['_id'] as string}`} data-application-card style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -120,24 +131,32 @@ function ApplicationCard({ application: app }: { application: Record<string, unk
       <div data-application-card-body>
         <div data-application-card-name>
           {(app['propertyName'] as string) ?? 'Property'}
-          <span style={{ color: 'var(--color-text-muted)' }}>›</span>
+          <Icons.ChevronRight size={16} style={{ color: 'var(--color-text-muted)' }} />
         </div>
         <div data-application-card-type>
-          <span aria-hidden="true">🎓</span>
+          <TypeIcon size={14} aria-hidden="true" />
           {(app['type'] as string)?.replace(/_/g, ' ') ?? 'Application'}
         </div>
-        <div data-application-card-meta>Applied on {appliedDate}</div>
+        <div data-application-card-meta><Icons.Calendar size={14} aria-hidden="true" /> Applied on {appliedDate}</div>
         {academicYear && (
-          <div data-application-card-meta>Academic Year: {academicYear}</div>
+          <div data-application-card-meta><Icons.User size={14} aria-hidden="true" /> Academic Year: {academicYear}</div>
         )}
         {moveInDate && (
-          <div data-application-card-meta>Move-in: {new Date(moveInDate).toLocaleDateString('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+          <div data-application-card-meta><Icons.User size={14} aria-hidden="true" /> Move-in: {new Date(moveInDate).toLocaleDateString('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+        )}
+        {checkInDate && (
+          <div data-application-card-meta><Icons.User size={14} aria-hidden="true" /> Check-in: {new Date(checkInDate).toLocaleDateString('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
         )}
         <div data-application-card-footer>
           <div data-application-card-id>Application ID: {(app['applicationId'] as string) ?? '—'}</div>
-          <button type="button" data-btn-secondary style={{ padding: 'var(--space-2) var(--space-4)', fontSize: 'var(--text-xs)' }}>
-            View details
-          </button>
+          <div data-application-card-footer-right>
+            <span data-status-badge data-status={STATUS_COLORS[status] ?? 'pending'} style={{ marginBottom: 'var(--space-2)' }}>
+              {status.replace(/_/g, ' ')}
+            </span>
+            <button type="button" data-btn-secondary style={{ padding: 'var(--space-2) var(--space-4)', fontSize: 'var(--text-xs)' }}>
+              View details
+            </button>
+          </div>
         </div>
       </div>
     </a>
