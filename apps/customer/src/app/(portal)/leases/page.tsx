@@ -3,7 +3,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
-import { SkeletonLoader, EmptyState, StatusBadge } from '@stayos/ui';
+import { SkeletonLoader, EmptyState, StatusBadge, Icons } from '@stayos/ui';
 import { leaseKeys } from '@/lib/query-keys';
 
 export default function LeasesPage(): React.ReactElement {
@@ -31,8 +31,11 @@ export default function LeasesPage(): React.ReactElement {
             const isSigned = l['status'] === 'signed';
             return (
               <a key={l['_id'] as string} href={`/leases/${l['_id'] as string}`}
-                data-card-padded style={{ textDecoration: 'none', color: 'inherit', display: 'grid', gridTemplateColumns: '1fr auto', gap: 'var(--space-4)', alignItems: 'center' }}>
-                <div>
+                data-card-padded style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
+                <span style={{ width: 40, height: 40, borderRadius: 'var(--radius-full)', background: isSigned ? 'var(--color-success-bg)' : 'var(--color-warning-bg)', color: isSigned ? 'var(--color-success)' : 'var(--color-warning)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Icons.ClipboardList size={18} />
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 'var(--font-semibold)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-1)' }}>
                     {l['propertyName'] as string} — Lease agreement
                   </div>
@@ -42,12 +45,13 @@ export default function LeasesPage(): React.ReactElement {
                     {end.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </div>
                   {!isSigned && (
-                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-warning)', fontWeight: 'var(--font-semibold)', marginTop: '4px' }}>
-                      ✍ Signature required
+                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-warning)', fontWeight: 'var(--font-semibold)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+                      <Icons.PenLine size={14} /> Signature required
                     </div>
                   )}
                 </div>
                 <StatusBadge status={l['status'] as string} />
+                <Icons.ChevronRight size={16} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
               </a>
             );
           })}
