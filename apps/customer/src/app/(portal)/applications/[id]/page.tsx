@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { SkeletonLoader, useToast, StatusBadge } from '@stayos/ui';
+import { SkeletonLoader, useToast, StatusBadge, Icons } from '@stayos/ui';
 import { applicationKeys } from '@/lib/query-keys';
 
 interface Props { params: { id: string } }
@@ -24,14 +24,11 @@ export default function ApplicationDetailPage({ params }: Props): React.ReactEle
     enabled:  !!session,
   });
 
+  // No withdrawal endpoint exists yet — the button below is disabled rather
+  // than firing a fake mutation that would misleadingly report success.
   const withdrawMutation = useMutation({
-    mutationFn: () => api.customer.getApplication(params.id), // withdrawal endpoint TBD
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: applicationKeys.list() });
-      toast('Application withdrawn.', 'success');
-      router.push('/applications');
-    },
-    onError: (err: ApiError) => toast(err.message ?? 'Failed to withdraw.', 'error'),
+    mutationFn: () => Promise.reject(new Error('Withdrawal is not yet available.')),
+    onError: (err: ApiError) => toast(err.message ?? 'Withdrawal is not yet available.', 'error'),
   });
 
   if (isLoading) return <div data-page><SkeletonLoader rows={5} /></div>;
@@ -46,7 +43,7 @@ export default function ApplicationDetailPage({ params }: Props): React.ReactEle
     <div data-page>
       <button type="button" onClick={() => router.back()}
         style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-4)', cursor: 'pointer' }}>
-        ← Back to applications
+        <Icons.ChevronLeft size={16} /> Back to applications
       </button>
 
       <h1 data-page-title>Application details</h1>
@@ -105,7 +102,7 @@ export default function ApplicationDetailPage({ params }: Props): React.ReactEle
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     color: done ? 'white' : 'transparent', fontSize: 'var(--text-xs)',
                   }}>
-                    {done ? '✓' : ''}
+                    {done ? <Icons.Check size={14} /> : ''}
                   </div>
                   <span style={{ fontSize: '10px', textAlign: 'center', color: done ? 'var(--color-primary)' : 'var(--color-text-muted)', fontWeight: done ? 'var(--font-semibold)' : 'normal', textTransform: 'capitalize' }}>
                     {step.replace(/_/g, ' ')}
@@ -120,11 +117,15 @@ export default function ApplicationDetailPage({ params }: Props): React.ReactEle
       {/* Docs requested action */}
       {status === 'docs_requested' && (
         <div data-card-padded style={{ background: 'var(--color-warning-bg)', borderColor: 'var(--color-warning)' }}>
-          <strong style={{ color: 'var(--color-warning)', fontSize: 'var(--text-sm)' }}>⚠ Documents required</strong>
+          <strong style={{ color: 'var(--color-warning)', fontSize: 'var(--text-sm)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <Icons.AlertTriangle size={16} /> Documents required
+          </strong>
           <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginTop: 'var(--space-2)', marginBottom: 'var(--space-4)' }}>
             The property has requested additional documents. Please upload them to continue.
           </p>
-          <a href={`/documents?ref=${params.id}`} data-btn-primary>Upload documents →</a>
+          <a href={`/documents?ref=${params.id}`} data-btn-primary style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            Upload documents <Icons.ArrowRight size={16} />
+          </a>
         </div>
       )}
 
@@ -146,21 +147,25 @@ export default function ApplicationDetailPage({ params }: Props): React.ReactEle
       {/* Actions */}
       {(status === 'submitted' || status === 'under_review') && (
         <button type="button" data-btn-ghost data-btn-full
-          style={{ color: 'var(--color-error)', marginTop: 'var(--space-4)' }}
+          disabled={withdrawMutation.isPending}
+          style={{ color: 'var(--color-error)', marginTop: 'var(--space-4)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}
           onClick={() => withdrawMutation.mutate()}>
           Withdraw application
+          <span data-badge-soon>Coming soon</span>
         </button>
       )}
 
       <div data-support-callout style={{ marginTop: 'var(--space-5)' }}>
         <div data-support-callout-text>
-          <span data-support-callout-icon>🎧</span>
+          <span data-support-callout-icon><Icons.Headphones size={20} /></span>
           <div>
             <strong>Need help with your application?</strong>
             <p>Our support team is here to help you.</p>
           </div>
         </div>
-        <a href="/support" data-btn-secondary>Contact support →</a>
+        <a href="/support" data-btn-secondary style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          Contact support <Icons.ArrowRight size={16} />
+        </a>
       </div>
     </div>
   );
