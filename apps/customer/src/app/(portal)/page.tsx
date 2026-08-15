@@ -207,7 +207,7 @@ export default function DashboardPage(): React.ReactElement {
       {loyalty && (
         <a href="/loyalty" style={{ display: 'block', textDecoration: 'none', margin: 'var(--space-6) 0' }}>
           <div data-loyalty-summary-card>
-            <Icons.Shield size={140} aria-hidden="true" data-loyalty-watermark />
+            <Icons.ShieldCheck size={140} aria-hidden="true" data-loyalty-watermark />
             <div data-loyalty-hero-header>
               <span data-loyalty-member-badge>
                 <Icons.Medal size={14} aria-hidden="true" />
