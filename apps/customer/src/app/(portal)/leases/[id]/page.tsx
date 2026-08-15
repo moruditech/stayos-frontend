@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { SkeletonLoader, StatusBadge, DownloadButton, useToast } from '@stayos/ui';
+import { SkeletonLoader, StatusBadge, DownloadButton, useToast, Icons } from '@stayos/ui';
 import { leaseKeys } from '@/lib/query-keys';
 
 interface Props { params: { id: string } }
@@ -49,7 +49,7 @@ export default function LeaseDetailPage({ params }: Props): React.ReactElement {
     <div data-page>
       <button type="button" onClick={() => router.back()}
         style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-4)', cursor: 'pointer' }}>
-        ← Back to leases
+        <Icons.ChevronLeft size={16} /> Back to leases
       </button>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--space-3)', marginBottom: 'var(--space-6)' }}>
@@ -80,7 +80,9 @@ export default function LeaseDetailPage({ params }: Props): React.ReactElement {
 
       {needsSign && (
         <div data-card-padded style={{ marginTop: 'var(--space-5)', borderColor: 'var(--color-primary)' }}>
-          <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-2)' }}>✍ Digital signature required</h3>
+          <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-2)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <Icons.PenLine size={18} /> Digital signature required
+          </h3>
           <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-4)' }}>
             Please review the lease document above and sign below to confirm your acceptance.
           </p>
