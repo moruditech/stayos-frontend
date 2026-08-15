@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { api } from '@stayos/api-client';
-import { SkeletonLoader } from '@stayos/ui';
+import { SkeletonLoader, Icons } from '@stayos/ui';
 import { accommodationKeys } from '@/lib/query-keys';
 
 interface Props { params: { slug: string } }
@@ -58,7 +58,7 @@ export default function PropertyDetailPage({ params }: Props): React.ReactElemen
     <div data-search-page>
       <button type="button" onClick={() => router.back()}
         style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-4)', cursor: 'pointer' }}>
-        ← Back to search
+        <Icons.ChevronLeft size={16} /> Back to search
       </button>
 
       {/* Property hero images */}
@@ -87,10 +87,10 @@ export default function PropertyDetailPage({ params }: Props): React.ReactElemen
                 {p['name'] as string}
               </h1>
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', marginTop: 'var(--space-2)', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
-                <span>📍 {p['city'] as string}, {p['province'] as string}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}><Icons.MapPin size={14} /> {p['city'] as string}, {p['province'] as string}</span>
                 {rating && (
                   <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', color: 'var(--color-text-primary)', fontWeight: 'var(--font-semibold)' }}>
-                    ★ {rating.toFixed(1)}
+                    <Icons.Star size={14} fill="currentColor" /> {rating.toFixed(1)}
                     <span style={{ color: 'var(--color-text-muted)', fontWeight: 'var(--font-normal)' }}>
                       ({p['reviewCount'] as number ?? 0} reviews)
                     </span>
@@ -98,14 +98,14 @@ export default function PropertyDetailPage({ params }: Props): React.ReactElemen
                 )}
               </div>
             </div>
-            <button type="button" data-property-card-wishlist style={{ position: 'static', width: '44px', height: '44px', boxShadow: 'var(--shadow-md)' }}>♡</button>
+            <button type="button" data-property-card-wishlist style={{ position: 'static', width: '44px', height: '44px', boxShadow: 'var(--shadow-md)' }}><Icons.Heart size={18} /></button>
           </div>
 
           {/* Amenities */}
           {(p['amenities'] as string[])?.length > 0 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-3)', marginBottom: 'var(--space-6)', padding: 'var(--space-5)', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)' }}>
               {(p['amenities'] as string[]).map((a) => (
-                <span key={a} data-amenity-tag style={{ fontSize: 'var(--text-sm)' }}>✓ {a}</span>
+                <span key={a} data-amenity-tag style={{ fontSize: 'var(--text-sm)', display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}><Icons.Check size={14} /> {a}</span>
               ))}
             </div>
           )}
@@ -139,8 +139,8 @@ export default function PropertyDetailPage({ params }: Props): React.ReactElemen
                       <div style={{ padding: 'var(--space-4)', display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
                         <div style={{ fontWeight: 'var(--font-bold)', fontSize: 'var(--text-base)' }}>{room['name'] as string}</div>
                         <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', display: 'flex', gap: 'var(--space-3)' }}>
-                          <span>🛏 {room['bedCount'] as number ?? 1} bed{(room['bedCount'] as number) !== 1 ? 's' : ''}</span>
-                          <span>👤 Up to {room['capacity'] as number ?? 1} guest{(room['capacity'] as number) !== 1 ? 's' : ''}</span>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}><Icons.Bed size={14} /> {room['bedCount'] as number ?? 1} bed{(room['bedCount'] as number) !== 1 ? 's' : ''}</span>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}><Icons.User size={14} /> Up to {room['capacity'] as number ?? 1} guest{(room['capacity'] as number) !== 1 ? 's' : ''}</span>
                         </div>
                         <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div>
@@ -177,8 +177,8 @@ export default function PropertyDetailPage({ params }: Props): React.ReactElemen
                   <div key={r['_id'] as string} data-card-padded>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
                       <div style={{ fontWeight: 'var(--font-semibold)', fontSize: 'var(--text-sm)' }}>{r['guestName'] as string ?? 'Guest'}</div>
-                      <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>
-                        ★ {r['rating'] as number ?? 5}
+                      <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+                        <Icons.Star size={14} fill="currentColor" /> {r['rating'] as number ?? 5}
                       </div>
                     </div>
                     <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', lineHeight: 'var(--leading-relaxed)' }}>
