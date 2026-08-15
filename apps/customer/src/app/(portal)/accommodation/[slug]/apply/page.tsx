@@ -5,7 +5,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { SkeletonLoader, ConsentGate } from '@stayos/ui';
+import { SkeletonLoader, ConsentGate, Icons } from '@stayos/ui';
 
 interface Props { params: { slug: string } }
 
@@ -76,7 +76,7 @@ export default function ApplicationFormPage({ params }: Props): React.ReactEleme
     return (
       <div data-page>
         <div data-card-padded style={{ textAlign: 'center', padding: 'var(--space-12)' }}>
-          <div style={{ fontSize: 'var(--text-5xl)', marginBottom: 'var(--space-5)' }}>✅</div>
+          <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--color-success)', marginBottom: 'var(--space-5)' }}><Icons.CheckCircle2 size={56} /></div>
           <h1 style={{ fontSize: 'var(--text-2xl)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-3)' }}>
             Application submitted!
           </h1>
@@ -117,8 +117,8 @@ export default function ApplicationFormPage({ params }: Props): React.ReactEleme
 
       {closingDate && !isClosed && (
         <div data-card-padded style={{ background: 'var(--color-warning-bg)', borderColor: 'var(--color-warning)', marginBottom: 'var(--space-5)' }}>
-          <strong style={{ color: 'var(--color-warning)', fontSize: 'var(--text-sm)' }}>
-            📅 Closing date: {closingDate.toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })}
+          <strong style={{ color: 'var(--color-warning)', fontSize: 'var(--text-sm)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <Icons.Calendar size={16} /> Closing date: {closingDate.toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })}
           </strong>
         </div>
       )}
@@ -126,8 +126,8 @@ export default function ApplicationFormPage({ params }: Props): React.ReactEleme
       {/* Account hint for unauthenticated applicants */}
       {!session && (
         <div data-card-padded style={{ background: 'var(--color-primary-light)', marginBottom: 'var(--space-5)' }}>
-          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-primary)' }}>
-            💡 Already have an account?{' '}
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <Icons.Lightbulb size={16} /> Already have an account?{' '}
             <a href={`/login?redirect=/accommodation/${params.slug}/apply`} data-link>Sign in</a>{' '}
             to pre-fill your details.
           </p>
@@ -156,7 +156,7 @@ export default function ApplicationFormPage({ params }: Props): React.ReactEleme
               <ul style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
                 {requiredDocs.map((doc) => (
                   <li key={doc} style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', display: 'flex', gap: 'var(--space-2)' }}>
-                    <span>📎</span> {doc}
+                    <Icons.Paperclip size={14} /> {doc}
                   </li>
                 ))}
               </ul>
