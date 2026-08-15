@@ -8,7 +8,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { ConsentGate, InlineError, applyServerErrors, SkeletonLoader } from '@stayos/ui';
+import { ConsentGate, InlineError, applyServerErrors, SkeletonLoader, Icons } from '@stayos/ui';
 import { publicBookingSchema } from '@stayos/validators';
 import type { PublicBookingInput } from '@stayos/validators';
 import { accommodationKeys, bookingKeys } from '@/lib/query-keys';
@@ -116,7 +116,7 @@ export default function BookingFormPage({ params }: Props): React.ReactElement {
     <div data-page>
       <button type="button" onClick={() => router.back()}
         style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-4)', cursor: 'pointer' }}>
-        ← Back
+        <Icons.ChevronLeft size={16} /> Back
       </button>
 
       <h1 data-page-title>Complete your booking</h1>
@@ -133,8 +133,8 @@ export default function BookingFormPage({ params }: Props): React.ReactElement {
             </div>
             <div>
               <div style={{ fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-1)' }}>{p['name'] as string}</div>
-              <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
-                📍 {p['city'] as string}
+              <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+                <Icons.MapPin size={14} /> {p['city'] as string}
               </div>
             </div>
           </div>
