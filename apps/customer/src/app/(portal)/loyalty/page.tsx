@@ -9,7 +9,7 @@ import { loyaltyKeys } from '@/lib/query-keys';
 const TIERS = [
   { id: 'silver',   label: 'Silver',   range: '0 – 3,999 QP',     color: '#9CA3AF', icon: Icons.Medal },
   { id: 'gold',     label: 'Gold',     range: '4,000 – 9,999 QP', color: '#F59E0B', icon: Icons.Award },
-  { id: 'platinum', label: 'Platinum', range: '10,000+ QP',       color: '#8B5CF6', icon: Icons.Gem },
+  { id: 'platinum', label: 'Platinum', range: '10,000+ QP',       color: '#64748B', icon: Icons.Gem },
 ];
 
 const EARN_WAYS = [
@@ -79,15 +79,13 @@ export default function LoyaltyPage(): React.ReactElement {
           <span data-section-title>Earn Q Points</span>
           <a href="/loyalty/earn" data-section-link>View all ways to earn →</a>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--space-4)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--space-3)' }}>
           {EARN_WAYS.map((w) => (
-            <div key={w.label} style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-3)' }}>
-              <span style={{ width: '40px', height: '40px', background: 'var(--color-surface-muted)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--color-primary)' }}><w.icon size={20} /></span>
-              <div>
-                <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-medium)' }}>{w.label}</div>
-                <div style={{ fontSize: 'var(--text-base)', fontWeight: 'var(--font-bold)', color: 'var(--color-primary)' }}>{w.detail}</div>
-                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{w.sub}</div>
-              </div>
+            <div key={w.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '2px' }}>
+              <span style={{ color: 'var(--color-text-secondary)', marginBottom: 'var(--space-1)' }}><w.icon size={20} /></span>
+              <div style={{ fontSize: '11px', fontWeight: 'var(--font-medium)', color: 'var(--color-text-primary)' }}>{w.label}</div>
+              <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-bold)', color: 'var(--color-primary)' }}>{w.detail}</div>
+              <div style={{ fontSize: '10px', color: 'var(--color-text-muted)' }}>{w.sub}</div>
             </div>
           ))}
         </div>
@@ -98,14 +96,14 @@ export default function LoyaltyPage(): React.ReactElement {
         <span data-section-title>Redeem your points</span>
         <a href="/loyalty/rewards" data-section-link>View all rewards →</a>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
+      <div data-horizontal-scroll style={{ marginBottom: 'var(--space-6)' }}>
         {[
           { label: 'R100 off your stay', cost: '1,000 QP', popular: true,  image: 'reward-discount' },
           { label: 'Free breakfast',     cost: '1,500 QP', popular: false, image: 'reward-breakfast' },
           { label: 'Room upgrade',       cost: '2,500 QP', popular: false, image: 'reward-upgrade' },
           { label: 'Late checkout',      cost: '500 QP',   popular: false, image: 'reward-checkout' },
         ].map((r) => (
-          <div key={r.label} data-card style={{ overflow: 'hidden', cursor: 'pointer' }}>
+          <div key={r.label} data-card data-horizontal-scroll-item style={{ overflow: 'hidden', cursor: 'pointer' }}>
             <div style={{ aspectRatio: '4/3', background: 'var(--color-surface-muted)', position: 'relative', overflow: 'hidden' }}>
               {/* Image path: /images/loyalty/[reward-image].jpg */}
               <img src={`/images/loyalty/${r.image}.jpg`} alt={r.label} loading="lazy"
@@ -131,10 +129,19 @@ export default function LoyaltyPage(): React.ReactElement {
       <div data-card-padded style={{ padding: '0 var(--space-6)', marginBottom: 'var(--space-6)' }}>
         {hist.length === 0 ? (
           <p style={{ padding: 'var(--space-5) 0', color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)' }}>No activity yet.</p>
-        ) : hist.slice(0, 4).map((h) => (
+        ) : hist.slice(0, 4).map((h) => {
+          const desc = ((h['description'] as string) ?? '').toLowerCase();
+          let ActivityIcon = Icons.Gift;
+          let tint = 'success';
+          if (desc.includes('review')) { ActivityIcon = Icons.Star; tint = 'warning'; }
+          else if (desc.includes('refer')) { ActivityIcon = Icons.Users; tint = 'sand'; }
+          else if (desc.includes('stay') || desc.includes('booking')) { ActivityIcon = Icons.Bed; tint = 'success'; }
+          const bg = tint === 'warning' ? 'var(--color-warning-bg)' : tint === 'sand' ? 'var(--color-sand-bg)' : 'var(--color-primary-light)';
+          const fg = tint === 'warning' ? 'var(--color-warning)' : tint === 'sand' ? 'var(--color-text-secondary)' : 'var(--color-primary)';
+          return (
           <div key={h['_id'] as string} data-transaction-item>
-            <span data-transaction-icon style={{ background: 'var(--color-primary-light)', color: 'var(--color-primary)' }}>
-              {(h['type'] as string) === 'earned' ? <Icons.Bed size={16} /> : <Icons.Gift size={16} />}
+            <span data-transaction-icon style={{ background: bg, color: fg }}>
+              <ActivityIcon size={16} />
             </span>
             <div data-transaction-info>
               <div data-transaction-name>{(h['description'] as string) ?? '—'}</div>
@@ -148,7 +155,8 @@ export default function LoyaltyPage(): React.ReactElement {
               </div>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Referral callout */}
