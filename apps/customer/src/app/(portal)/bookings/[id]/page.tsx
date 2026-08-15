@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { SkeletonLoader, ConfirmDialog, useToast } from '@stayos/ui';
+import { SkeletonLoader, ConfirmDialog, useToast, Icons } from '@stayos/ui';
 import { bookingKeys } from '@/lib/query-keys';
 
 interface Props { params: { id: string } }
@@ -61,7 +61,7 @@ export default function BookingDetailPage({ params }: Props): React.ReactElement
     <div data-page>
       <button type="button" onClick={() => router.back()}
         style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-4)', cursor: 'pointer' }}>
-        ← Back to bookings
+        <Icons.ChevronLeft size={16} /> Back to bookings
       </button>
 
       <h1 data-page-title>Booking details</h1>
@@ -69,7 +69,9 @@ export default function BookingDetailPage({ params }: Props): React.ReactElement
       {/* Pending-confirmation warning */}
       {isPendingConfirm && (
         <div data-card-padded style={{ background: 'var(--color-warning-bg)', borderColor: 'var(--color-warning)', marginBottom: 'var(--space-5)' }}>
-          <strong style={{ color: 'var(--color-warning)', fontSize: 'var(--text-sm)' }}>⚠ Confirmation required</strong>
+          <strong style={{ color: 'var(--color-warning)', fontSize: 'var(--text-sm)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <Icons.AlertTriangle size={16} /> Confirmation required
+          </strong>
           <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-warning)', marginTop: 'var(--space-1)' }}>
             Please confirm this booking within 24 hours, otherwise it will be automatically cancelled and the room released.
           </p>
@@ -83,12 +85,14 @@ export default function BookingDetailPage({ params }: Props): React.ReactElement
       {/* OTA profile-completion prompt */}
       {needsProfile && (
         <div data-card-padded style={{ background: 'var(--color-info-bg)', borderColor: 'var(--color-info)', marginBottom: 'var(--space-5)' }}>
-          <strong style={{ color: 'var(--color-info)', fontSize: 'var(--text-sm)' }}>ℹ Complete your profile</strong>
+          <strong style={{ color: 'var(--color-info)', fontSize: 'var(--text-sm)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <Icons.Info size={16} /> Complete your profile
+          </strong>
           <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-info)', marginTop: 'var(--space-1)' }}>
             Complete your guest profile before check-in to unlock digital key access and self-check-in features.
           </p>
-          <a href="/id-verification" data-btn-primary style={{ marginTop: 'var(--space-3)', display: 'inline-flex' }}>
-            Complete profile →
+          <a href="/id-verification" data-btn-primary style={{ marginTop: 'var(--space-3)', display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            Complete profile <Icons.ArrowRight size={14} />
           </a>
         </div>
       )}
@@ -109,8 +113,8 @@ export default function BookingDetailPage({ params }: Props): React.ReactElement
                 <h2 style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-1)' }}>
                   {b['propertyName'] as string ?? 'Property'}
                 </h2>
-                <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
-                  📍 {b['propertyCity'] as string ?? '—'}
+                <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+                  <Icons.MapPin size={14} /> {b['propertyCity'] as string ?? '—'}
                 </div>
               </div>
               <span data-status-badge data-status={status}>{status.replace(/_/g, ' ')}</span>
@@ -141,7 +145,7 @@ export default function BookingDetailPage({ params }: Props): React.ReactElement
 
             {isUpcoming && (
               <div style={{ marginTop: 'var(--space-4)', padding: 'var(--space-3)', background: 'var(--color-primary-light)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--text-sm)', color: 'var(--color-primary)', fontWeight: 'var(--font-semibold)' }}>
-                📅 Check-in in {daysUntil} day{daysUntil !== 1 ? 's' : ''}
+                <Icons.Calendar size={16} /> Check-in in {daysUntil} day{daysUntil !== 1 ? 's' : ''}
               </div>
             )}
           </div>
@@ -167,8 +171,8 @@ export default function BookingDetailPage({ params }: Props): React.ReactElement
             </div>
           </div>
           {depositPaid && (
-            <div style={{ marginTop: 'var(--space-4)', padding: 'var(--space-3)', background: 'var(--color-success-bg)', borderRadius: 'var(--radius-md)', fontSize: 'var(--text-sm)', color: 'var(--color-success)', fontWeight: 'var(--font-medium)' }}>
-              ✓ Deposit paid: R{(b['depositAmount'] as number ?? 0).toLocaleString()}
+            <div style={{ marginTop: 'var(--space-4)', padding: 'var(--space-3)', background: 'var(--color-success-bg)', borderRadius: 'var(--radius-md)', fontSize: 'var(--text-sm)', color: 'var(--color-success)', fontWeight: 'var(--font-medium)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+              <Icons.CheckCircle2 size={16} /> Deposit paid: R{(b['depositAmount'] as number ?? 0).toLocaleString()}
             </div>
           )}
           {(b['balanceDue'] as number) > 0 && (
@@ -184,7 +188,9 @@ export default function BookingDetailPage({ params }: Props): React.ReactElement
         {/* Digital key / self-check-in */}
         {digitalKey && (
           <div data-card-padded style={{ borderColor: 'var(--color-primary)' }}>
-            <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-3)' }}>🔑 Digital key &amp; self check-in</h3>
+            <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-3)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+              <Icons.KeyRound size={18} /> Digital key &amp; self check-in
+            </h3>
             <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-4)' }}>
               Your digital key is ready. Use it to access the property on your check-in date.
             </p>
@@ -200,8 +206,8 @@ export default function BookingDetailPage({ params }: Props): React.ReactElement
         {/* Actions */}
         {isUpcoming && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            <a href={`/bookings/${params.id}/reschedule`} data-btn-secondary data-btn-full>
-              📅 Modify booking dates
+            <a href={`/bookings/${params.id}/reschedule`} data-btn-secondary data-btn-full style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}>
+              <Icons.Calendar size={16} /> Modify booking dates
             </a>
             <button type="button" data-btn-ghost data-btn-full
               onClick={() => setCancelOpen(true)}
@@ -213,8 +219,12 @@ export default function BookingDetailPage({ params }: Props): React.ReactElement
 
         {/* Folio / invoice link */}
         <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
-          <a href={`/bookings/${params.id}/folio`} data-btn-ghost style={{ flex: 1 }}>🧾 View invoice</a>
-          <a href={`/support/new?ref=${params.id}`} data-btn-ghost style={{ flex: 1 }}>💬 Contact property</a>
+          <a href={`/bookings/${params.id}/folio`} data-btn-ghost style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}>
+            <Icons.FileText size={16} /> View invoice
+          </a>
+          <a href={`/support/new?ref=${params.id}`} data-btn-ghost style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}>
+            <Icons.MessageCircle size={16} /> Contact property
+          </a>
         </div>
       </div>
 
