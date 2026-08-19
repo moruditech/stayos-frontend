@@ -31,7 +31,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { rosterKeys } from '@/lib/query-keys';
-import { useSession } from '@stayos/auth';
 
 const shiftSchema = z.object({
   staffId:   z.string().min(1, 'Staff member required'),
@@ -45,7 +44,6 @@ type ShiftInput = z.infer<typeof shiftSchema>;
 export default function RosterPage(): React.ReactElement {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const session = useSession();
   const [activeTab, setActiveTab] = useState<'roster' | 'timeclock'>('roster');
   const [showNewShiftModal, setShowNewShiftModal] = useState(false);
   const [clockedIn, setClockedIn] = useState(false);
@@ -266,7 +264,7 @@ export default function RosterPage(): React.ReactElement {
           <RoleGate perm={PERMISSIONS.STAFF_MANAGE}>
             <section data-timeclock-entries>
               <h2>All clock entries</h2>
-              <TimeclockEntries queryClient={queryClient} />
+              <TimeclockEntries />
             </section>
           </RoleGate>
         </div>
@@ -328,7 +326,7 @@ export default function RosterPage(): React.ReactElement {
   );
 }
 
-function TimeclockEntries({ queryClient }: { queryClient: ReturnType<typeof useQueryClient> }): React.ReactElement {
+function TimeclockEntries(): React.ReactElement {
   const { data: entries, isLoading } = useQuery({
     queryKey: ['timeclock', 'entries'],
     queryFn: () => api.roster.getTimeclockEntries(),

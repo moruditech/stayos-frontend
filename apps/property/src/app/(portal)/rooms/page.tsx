@@ -19,7 +19,7 @@ import {
   Modal,
   useSocketEvent,
 } from '@stayos/ui';
-import { PERMISSIONS, SOCKET_EVENTS } from '@stayos/constants';
+import { PERMISSIONS } from '@stayos/constants';
 import { roomKeys } from '@/lib/query-keys';
 
 export default function RoomsPage(): React.ReactElement {

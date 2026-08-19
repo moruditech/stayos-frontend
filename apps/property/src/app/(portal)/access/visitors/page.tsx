@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { SkeletonLoader, EmptyState, useToast, Modal, InlineError } from '@stayos/ui';
+import { SkeletonLoader, useToast, Modal, InlineError } from '@stayos/ui';
 import { accessKeys } from '@/lib/query-keys';
 
 const visitorSchema = z.object({

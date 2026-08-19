@@ -19,28 +19,18 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import type { WorkOrder } from '@stayos/api-client';
 import {
   SkeletonLoader,
   EmptyState,
   StatusBadge,
-  RoleGate,
   useToast,
   useSocketEvent,
   Modal,
   InlineError,
   applyServerErrors,
 } from '@stayos/ui';
-import { PERMISSIONS } from '@stayos/constants';
-import { maintenanceKeys, staffKeys } from '@/lib/query-keys';
 
-// Maintenance-relevant roles for the assignee picker
-const MAINTENANCE_ROLES = [
-  'maintenance_technician',
-  'maintenance_supervisor',
-  'property_admin',
-  'property_manager',
-];
+import { maintenanceKeys } from '@/lib/query-keys';
 
 const createSchema = z.object({
   title:       z.string().min(1, 'Title is required'),
@@ -88,7 +78,7 @@ export default function MaintenancePage(): React.ReactElement {
 
   const createMutation = useMutation({
     mutationFn: (input: CreateInput) => api.maintenance.createWorkOrder(input),
-    onSuccess: (wo) => {
+    onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: maintenanceKeys.workOrders({}) });
       setShowNewModal(false);
       form.reset();

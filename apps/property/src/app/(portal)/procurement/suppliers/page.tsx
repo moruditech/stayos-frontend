@@ -8,8 +8,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
-import { SkeletonLoader, EmptyState, StatusBadge, RoleGate } from '@stayos/ui';
-import { PERMISSIONS } from '@stayos/constants';
+import { SkeletonLoader, EmptyState, StatusBadge } from '@stayos/ui';
 import { procurementKeys } from '@/lib/query-keys';
 
 export default function ProcurementSuppliersPage(): React.ReactElement {

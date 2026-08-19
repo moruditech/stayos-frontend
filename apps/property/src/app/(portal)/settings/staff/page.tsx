@@ -19,7 +19,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import type { StaffMember } from '@stayos/api-client';
 import {
   SkeletonLoader,
   EmptyState,

@@ -25,7 +25,7 @@ import { z } from 'zod';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { InlineError, applyServerErrors, useToast, SkeletonLoader } from '@stayos/ui';
+import { InlineError, applyServerErrors, useToast } from '@stayos/ui';
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
@@ -123,11 +123,13 @@ export default function NewBookingPage(): React.ReactElement {
 
   function handleNewGuestSubmit(values: NewGuestInput): void {
     const { guestMode: _m, ...rest } = values;
+    void _m;
     createMutation.mutate({ ...rest });
   }
 
   function handleExistingGuestSubmit(values: ExistingGuestInput): void {
     const { guestMode: _m, ...rest } = values;
+    void _m;
     createMutation.mutate({ ...rest });
   }
 
