@@ -11,7 +11,7 @@
  * If requiresPerm is omitted: visible to any authenticated tenant-scope session.
  */
 
-import { PERMISSIONS, PLAN_FEATURES } from '@stayos/constants';
+import { PERMISSIONS } from '@stayos/constants';
 import type { NavItem } from '@stayos/ui';
 
 export const NAV_CONFIG: NavItem[] = [

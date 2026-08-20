@@ -14,7 +14,7 @@
  *    only safeguard against misdirected assignments.
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
@@ -22,12 +22,11 @@ import type { HousekeepingTask } from '@stayos/api-client';
 import {
   SkeletonLoader,
   EmptyState,
-  StatusBadge,
   RoleGate,
   useToast,
   useSocketEvent,
 } from '@stayos/ui';
-import { PERMISSIONS, SOCKET_EVENTS } from '@stayos/constants';
+import { PERMISSIONS } from '@stayos/constants';
 import { housekeepingKeys } from '@/lib/query-keys';
 
 const COLUMNS: { key: string; label: string }[] = [

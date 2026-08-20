@@ -103,7 +103,7 @@ export default function NewBookingPage(): React.ReactElement {
   const createMutation = useMutation({
     mutationFn: (input: Record<string, unknown>) => api.bookings.create(input as Parameters<typeof api.bookings.create>[0]),
     onSuccess: (booking) => {
-      const status = (booking as Record<string, unknown>)['status'];
+      const status = (booking as unknown as Record<string, unknown>)['status'];
       if (status === 'pending_confirmation') {
         setPendingConfirm(true);
       } else {
@@ -274,7 +274,7 @@ export default function NewBookingPage(): React.ReactElement {
                     <p data-search-empty>No guests found. Try entering details below.</p>
                   ) : (
                     guestResults.map((g) => {
-                      const gRec = g as Record<string, unknown>;
+                      const gRec = g as unknown as Record<string, unknown>;
                       return (
                         <button
                           key={String(gRec['_id'])}

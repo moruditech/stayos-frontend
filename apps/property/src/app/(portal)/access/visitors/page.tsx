@@ -83,7 +83,7 @@ export default function VisitorsPage(): React.ReactElement {
             </thead>
             <tbody>
               {activeVisitors.map((v) => {
-                const vis = v as Record<string, unknown>;
+                const vis = v as unknown as Record<string, unknown>;
                 const id = String(vis['_id']);
                 return (
                   <tr key={id}>
@@ -115,7 +115,7 @@ export default function VisitorsPage(): React.ReactElement {
             </thead>
             <tbody>
               {recentVisitors.map((v) => {
-                const vis = v as Record<string, unknown>;
+                const vis = v as unknown as Record<string, unknown>;
                 return (
                   <tr key={String(vis['_id'])}>
                     <td>{String(vis['name'] ?? '—')}</td>

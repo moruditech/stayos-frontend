@@ -71,7 +71,7 @@ export default function ProcurementSuppliersPage(): React.ReactElement {
             </thead>
             <tbody>
               {suppliers.map((s) => {
-                const sup = s as Record<string, unknown>;
+                const sup = s as unknown as Record<string, unknown>;
                 return (
                   <tr key={String(sup['_id'])}>
                     <td>{String(sup['name'] ?? '—')}</td>

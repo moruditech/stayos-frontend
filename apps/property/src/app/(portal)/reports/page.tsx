@@ -16,12 +16,9 @@
  * individually per report entry.
  */
 
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { api } from '@stayos/api-client';
-import { SkeletonLoader, RoleGate } from '@stayos/ui';
+import React from 'react';
+import { RoleGate } from '@stayos/ui';
 import { PERMISSIONS } from '@stayos/constants';
-import { reportKeys } from '@/lib/query-keys';
 
 interface ReportEntry {
   id: string;

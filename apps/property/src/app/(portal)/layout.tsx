@@ -11,19 +11,14 @@ import {
 import {
   SocketProvider,
   MandateBanner,
-  MandateTerminationBanner,
   SkeletonLoader,
   filterNav,
-  RoleGate,
 } from '@stayos/ui';
-import { ACCESS_MODE, MANDATE_STATUS } from '@stayos/constants';
+import { ACCESS_MODE } from '@stayos/constants';
 import { propertyNav } from '@/lib/nav-config';
 
 const SOCKET_URL =
   process.env['NEXT_PUBLIC_SOCKET_URL'] ?? 'http://localhost:3000';
-const PROPERTY_PORTAL_URL =
-  process.env['NEXT_PUBLIC_PROPERTY_PORTAL_URL'] ?? 'https://app.stayos.co.za';
-
 export default function PortalLayout({
   children,
 }: {
@@ -51,9 +46,6 @@ export default function PortalLayout({
 
   // Owner returning from a managed property (read-only mandate exists)
   const isReadOnly = session.accessMode === ACCESS_MODE.READ_ONLY;
-  // mandateId on the session tells us a termination-notice check is relevant
-  const hasMandate = !!session.mandateId;
-
   return (
     <SocketProvider serverUrl={SOCKET_URL}>
       <div data-portal-layout>

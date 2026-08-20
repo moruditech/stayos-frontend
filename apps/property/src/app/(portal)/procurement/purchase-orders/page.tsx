@@ -70,7 +70,7 @@ export default function PurchaseOrdersPage(): React.ReactElement {
           </thead>
           <tbody>
             {orders.map((order) => {
-              const o = order as Record<string, unknown>;
+              const o = order as unknown as Record<string, unknown>;
               const id = String(o['_id']);
               const status = String(o['status'] ?? 'draft');
               const total = o['totalAmount'] != null ? fmtCurrency(Number(o['totalAmount'])) : '—';

@@ -27,8 +27,8 @@ export default function OnboardingPage(): React.ReactElement {
 
   if (isLoading) return <SkeletonLoader rows={5} />;
 
-  const ob = onboarding as Record<string, unknown> ?? {};
-  const steps = Array.isArray(ob['steps']) ? (ob['steps'] as Record<string, unknown>[]) : [];
+  const ob = onboarding as unknown as Record<string, unknown> ?? {};
+  const steps = Array.isArray(ob['steps']) ? (ob['steps'] as unknown as Record<string, unknown>[]) : [];
   const completedCount = steps.filter((s) => Boolean(s['completed'])).length;
   const totalCount = steps.length;
   const pct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;

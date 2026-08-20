@@ -179,7 +179,7 @@ export default function RosterPage(): React.ReactElement {
               </thead>
               <tbody>
                 {(roster ?? []).map((shift) => {
-                  const s = shift as Record<string, unknown>;
+                  const s = shift as unknown as Record<string, unknown>;
                   return (
                     <tr key={String(s['_id'])}>
                       <td>{String(s['staffName'] ?? s['staffId'] ?? '—')}</td>
@@ -349,7 +349,7 @@ function TimeclockEntries({ queryClient }: { queryClient: ReturnType<typeof useQ
       </thead>
       <tbody>
         {entries.map((e) => {
-          const entry = e as Record<string, unknown>;
+          const entry = e as unknown as Record<string, unknown>;
           const inTime = entry['clockIn'] ? new Date(String(entry['clockIn'])) : null;
           const outTime = entry['clockOut'] ? new Date(String(entry['clockOut'])) : null;
           const duration = inTime && outTime

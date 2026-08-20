@@ -34,7 +34,7 @@ export default function DashboardPage(): React.ReactElement {
 
   if (isLoading) return <SkeletonLoader rows={6} />;
 
-  const d = dashboard as Record<string, unknown> ?? {};
+  const d = dashboard as unknown as Record<string, unknown> ?? {};
   const metrics = [
     { label: 'Occupancy', value: d['occupancyRate'] != null ? `${Math.round(Number(d['occupancyRate']))}%` : '—' },
     { label: 'Arrivals today', value: d['arrivalsToday'] ?? '—' },

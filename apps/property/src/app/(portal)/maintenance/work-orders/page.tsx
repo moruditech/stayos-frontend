@@ -100,7 +100,7 @@ export default function MaintenancePage(): React.ReactElement {
     },
   });
 
-  const a = analytics as Record<string, unknown> ?? {};
+  const a = analytics as unknown as Record<string, unknown> ?? {};
   const metrics = [
     { label: 'Open', value: a['openWorkOrders'] ?? '—', key: 'open' },
     { label: 'In progress', value: a['inProgress'] ?? '—', key: 'in_progress' },

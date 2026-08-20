@@ -11,13 +11,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import type { ChatChannel, ChatMessage } from '@stayos/api-client';
 import {
   SkeletonLoader,
   RoleGate,
   useToast,
   useSocketEvent,
-  useEmit,
 } from '@stayos/ui';
 import { PERMISSIONS } from '@stayos/constants';
 import { chatKeys } from '@/lib/query-keys';
@@ -28,7 +26,6 @@ export default function StaffChatPage(): React.ReactElement {
   const [activeChannelId, setActiveChannelId] = useState<string | null>(null);
   const [messageText, setMessageText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const emit = useEmit();
 
   const { data: channels, isLoading: channelsLoading } = useQuery({
     queryKey: chatKeys.channels(),
@@ -199,3 +196,4 @@ export default function StaffChatPage(): React.ReactElement {
     </div>
   );
 }
+
