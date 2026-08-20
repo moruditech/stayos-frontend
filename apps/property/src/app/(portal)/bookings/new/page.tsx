@@ -19,7 +19,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useForm, type UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -155,9 +155,10 @@ export default function NewBookingPage(): React.ReactElement {
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sharedFields = (
-    form: typeof newForm | typeof existingForm,
-    formErrors: typeof newForm.formState.errors | typeof existingForm.formState.errors
+    form: UseFormReturn<any>,
+    formErrors: Record<string, { message?: string } | undefined>
   ) => (
     <>
       <div data-form-group>
