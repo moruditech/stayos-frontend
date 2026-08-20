@@ -3,8 +3,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
-import { SkeletonLoader, StatusBadge, useToast } from '@stayos/ui';
-import { useSession } from '@stayos/auth';
+import { SkeletonLoader, StatusBadge } from '@stayos/ui';
 import { dashboardKeys, bookingKeys, roomKeys } from '@/lib/query-keys';
 
 function formatCurrency(n: number): string {
@@ -12,8 +11,6 @@ function formatCurrency(n: number): string {
 }
 
 export default function DashboardPage(): React.ReactElement {
-  const session = useSession();
-
   const { data: dashboard, isLoading } = useQuery({
     queryKey: dashboardKeys.summary(),
     queryFn: () => api.tenants.getDashboard(),

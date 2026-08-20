@@ -175,7 +175,7 @@ export default function HrProfilePage(): React.ReactElement {
                 <ReadOnlyField label="Employment type" value={String(p['employmentType'])} />
               )}
               {p['onProbation'] != null && (
-                <ReadOnlyField label="Probation" value={Boolean(p['onProbation']) ? 'Yes' : 'No'} />
+                <ReadOnlyField label="Probation" value={p['onProbation'] ? 'Yes' : 'No'} />
               )}
             </div>
           )}

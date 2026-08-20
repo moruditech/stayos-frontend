@@ -14,7 +14,7 @@ import {
   RoleGate,
 } from '@stayos/ui';
 import { PERMISSIONS } from '@stayos/constants';
-import { bookingKeys, folioKeys } from '@/lib/query-keys';
+import { bookingKeys } from '@/lib/query-keys';
 
 function fmt(iso: string): string {
   return new Date(iso).toLocaleString('en-ZA', {
@@ -69,7 +69,6 @@ export default function BookingDetailPage(): React.ReactElement {
 
   const b = booking as unknown as Record<string, unknown>;
   const isPendingConfirm = booking.status === 'pending_confirmation';
-  const isCheckedIn = booking.status === 'checked_in';
   const isCancellable = ['confirmed', 'pending_confirmation'].includes(booking.status);
   const f = folio as unknown as Record<string, unknown> | undefined;
 
