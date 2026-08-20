@@ -97,7 +97,7 @@ export default function PromotionsPage(): React.ReactElement {
           </thead>
           <tbody>
             {promotions.map((promo) => {
-              const p = promo as Record<string, unknown>;
+              const p = promo as unknown as Record<string, unknown>;
               const id = String(p['_id']);
               const discountValue = Number(p['discountValue'] ?? 0);
               const discountDisplay = p['discountType'] === 'percentage'

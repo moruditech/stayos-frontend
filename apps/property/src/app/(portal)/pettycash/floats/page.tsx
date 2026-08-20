@@ -91,7 +91,7 @@ export default function PettyCashFloatsPage(): React.ReactElement {
       ) : (
         <div data-float-list>
           {floats.map((float) => {
-            const f = float as Record<string, unknown>;
+            const f = float as unknown as Record<string, unknown>;
             const id = String(f['_id']);
             return (
               <div key={id} data-float-card>

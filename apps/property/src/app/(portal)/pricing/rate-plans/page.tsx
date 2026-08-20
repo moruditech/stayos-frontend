@@ -95,7 +95,7 @@ export default function RatePlansPage(): React.ReactElement {
       ) : (
         <div data-rate-plan-grid>
           {plans.map((plan) => {
-            const p = plan as Record<string, unknown>;
+            const p = plan as unknown as Record<string, unknown>;
             const id = String(p['_id']);
             return (
               <div key={id} data-rate-plan-card data-default={Boolean(p['isDefault']) || undefined}>

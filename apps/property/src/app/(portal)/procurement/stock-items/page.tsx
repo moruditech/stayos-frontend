@@ -105,7 +105,7 @@ export default function StockItemsPage(): React.ReactElement {
           </thead>
           <tbody>
             {items.map((item) => {
-              const it = item as Record<string, unknown>;
+              const it = item as unknown as Record<string, unknown>;
               const id = String(it['_id']);
               const current = Number(it['currentStock'] ?? 0);
               const reorder = Number(it['reorderLevel'] ?? 0);

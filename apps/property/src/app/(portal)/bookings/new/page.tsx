@@ -25,7 +25,7 @@ import { z } from 'zod';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { InlineError, applyServerErrors, useToast } from '@stayos/ui';
+import { InlineError, applyServerErrors, useToast, SkeletonLoader } from '@stayos/ui';
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
@@ -103,7 +103,7 @@ export default function NewBookingPage(): React.ReactElement {
   const createMutation = useMutation({
     mutationFn: (input: Record<string, unknown>) => api.bookings.create(input as Parameters<typeof api.bookings.create>[0]),
     onSuccess: (booking) => {
-      const status = (booking as Record<string, unknown>)['status'];
+      const status = (booking as unknown as Record<string, unknown>)['status'];
       if (status === 'pending_confirmation') {
         setPendingConfirm(true);
       } else {
@@ -123,13 +123,11 @@ export default function NewBookingPage(): React.ReactElement {
 
   function handleNewGuestSubmit(values: NewGuestInput): void {
     const { guestMode: _m, ...rest } = values;
-    void _m;
     createMutation.mutate({ ...rest });
   }
 
   function handleExistingGuestSubmit(values: ExistingGuestInput): void {
     const { guestMode: _m, ...rest } = values;
-    void _m;
     createMutation.mutate({ ...rest });
   }
 
@@ -276,7 +274,7 @@ export default function NewBookingPage(): React.ReactElement {
                     <p data-search-empty>No guests found. Try entering details below.</p>
                   ) : (
                     guestResults.map((g) => {
-                      const gRec = g as Record<string, unknown>;
+                      const gRec = g as unknown as Record<string, unknown>;
                       return (
                         <button
                           key={String(gRec['_id'])}

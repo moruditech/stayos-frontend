@@ -129,7 +129,7 @@ export default function ChannelsPage(): React.ReactElement {
       ) : (
         <div data-channel-list>
           {channels.map((channel) => {
-            const ch = channel as Record<string, unknown>;
+            const ch = channel as unknown as Record<string, unknown>;
             const id = String(ch['_id']);
             const status = String(ch['status'] ?? 'active');
             const lastSync = ch['lastSyncAt'] ? fmtDate(String(ch['lastSyncAt'])) : 'Never';

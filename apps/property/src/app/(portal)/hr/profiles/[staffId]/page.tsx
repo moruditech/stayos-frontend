@@ -48,7 +48,7 @@ export default function HrProfilePage(): React.ReactElement {
   const [acknowledgeId, setAcknowledgeId] = useState<string | null>(null);
 
   // Current user ID for self-action guard
-  const currentUserId = (session as Record<string, unknown> | null)?.['userId'] as string | undefined;
+  const currentUserId = (session as unknown as Record<string, unknown> | null)?.['userId'] as string | undefined;
   const isSelf = currentUserId === staffId;
 
   const { data: staffMember } = useQuery({
@@ -120,7 +120,7 @@ export default function HrProfilePage(): React.ReactElement {
   const name = staffMember
     ? `${staffMember.firstName} ${staffMember.lastName}`
     : 'Staff member';
-  const p = profile as Record<string, unknown> ?? {};
+  const p = profile as unknown as Record<string, unknown> ?? {};
 
   return (
     <div data-page="hr-profile">
@@ -175,7 +175,7 @@ export default function HrProfilePage(): React.ReactElement {
                 <ReadOnlyField label="Employment type" value={String(p['employmentType'])} />
               )}
               {p['onProbation'] != null && (
-                <ReadOnlyField label="Probation" value={p['onProbation'] ? 'Yes' : 'No'} />
+                <ReadOnlyField label="Probation" value={Boolean(p['onProbation']) ? 'Yes' : 'No'} />
               )}
             </div>
           )}
@@ -213,7 +213,7 @@ export default function HrProfilePage(): React.ReactElement {
           ) : (
             <div data-document-list>
               {documents.map((doc) => {
-                const d = doc as Record<string, unknown>;
+                const d = doc as unknown as Record<string, unknown>;
                 const docId = String(d['_id']);
                 return (
                   <div key={docId} data-document-row>
@@ -259,7 +259,7 @@ export default function HrProfilePage(): React.ReactElement {
           ) : (
             <div data-disciplinary-list>
               {disciplinaryRecords.map((rec) => {
-                const r = rec as Record<string, unknown>;
+                const r = rec as unknown as Record<string, unknown>;
                 const recId = String(r['_id']);
                 const acknowledged = Boolean(r['acknowledgedAt']);
                 return (

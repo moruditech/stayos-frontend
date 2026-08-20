@@ -120,7 +120,7 @@ export default function ExpensesPage(): React.ReactElement {
           </thead>
           <tbody>
             {expenses.map((e) => {
-              const exp = e as Record<string, unknown>;
+              const exp = e as unknown as Record<string, unknown>;
               const id = String(exp['_id']);
               const status = String(exp['status'] ?? 'pending');
               return (

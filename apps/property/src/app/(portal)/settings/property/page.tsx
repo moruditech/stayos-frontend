@@ -9,6 +9,7 @@ import {
   SkeletonLoader,
   ReadOnlyField,
   InlineError,
+  applyServerErrors,
   useToast,
   RoleGate,
 } from '@stayos/ui';
@@ -29,7 +30,7 @@ export default function PropertySettingsPage(): React.ReactElement {
   const form = useForm<Record<string, string>>();
 
   function startEditing(): void {
-    const p = property as Record<string, unknown>;
+    const p = property as unknown as Record<string, unknown>;
     form.reset({
       name:        String(p['name'] ?? ''),
       phone:       String(p['phone'] ?? ''),
@@ -62,7 +63,7 @@ export default function PropertySettingsPage(): React.ReactElement {
 
   if (isLoading) return <SkeletonLoader rows={5} />;
 
-  const p = property as Record<string, unknown>;
+  const p = property as unknown as Record<string, unknown>;
 
   return (
     <div data-page="property-settings">

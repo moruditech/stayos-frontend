@@ -31,6 +31,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { rosterKeys } from '@/lib/query-keys';
+import { useSession } from '@stayos/auth';
 
 const shiftSchema = z.object({
   staffId:   z.string().min(1, 'Staff member required'),
@@ -44,6 +45,7 @@ type ShiftInput = z.infer<typeof shiftSchema>;
 export default function RosterPage(): React.ReactElement {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const session = useSession();
   const [activeTab, setActiveTab] = useState<'roster' | 'timeclock'>('roster');
   const [showNewShiftModal, setShowNewShiftModal] = useState(false);
   const [clockedIn, setClockedIn] = useState(false);
@@ -177,7 +179,7 @@ export default function RosterPage(): React.ReactElement {
               </thead>
               <tbody>
                 {(roster ?? []).map((shift) => {
-                  const s = shift as Record<string, unknown>;
+                  const s = shift as unknown as Record<string, unknown>;
                   return (
                     <tr key={String(s['_id'])}>
                       <td>{String(s['staffName'] ?? s['staffId'] ?? '—')}</td>
@@ -264,7 +266,7 @@ export default function RosterPage(): React.ReactElement {
           <RoleGate perm={PERMISSIONS.STAFF_MANAGE}>
             <section data-timeclock-entries>
               <h2>All clock entries</h2>
-              <TimeclockEntries />
+              <TimeclockEntries queryClient={queryClient} />
             </section>
           </RoleGate>
         </div>
@@ -326,7 +328,7 @@ export default function RosterPage(): React.ReactElement {
   );
 }
 
-function TimeclockEntries(): React.ReactElement {
+function TimeclockEntries({ queryClient }: { queryClient: ReturnType<typeof useQueryClient> }): React.ReactElement {
   const { data: entries, isLoading } = useQuery({
     queryKey: ['timeclock', 'entries'],
     queryFn: () => api.roster.getTimeclockEntries(),
@@ -347,7 +349,7 @@ function TimeclockEntries(): React.ReactElement {
       </thead>
       <tbody>
         {entries.map((e) => {
-          const entry = e as Record<string, unknown>;
+          const entry = e as unknown as Record<string, unknown>;
           const inTime = entry['clockIn'] ? new Date(String(entry['clockIn'])) : null;
           const outTime = entry['clockOut'] ? new Date(String(entry['clockOut'])) : null;
           const duration = inTime && outTime

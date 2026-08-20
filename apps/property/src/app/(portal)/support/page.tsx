@@ -116,7 +116,7 @@ export default function SupportPage(): React.ReactElement {
       ) : (
         <div data-ticket-list>
           {tickets.map((ticket) => {
-            const t = ticket as Record<string, unknown>;
+            const t = ticket as unknown as Record<string, unknown>;
             return (
               <div key={String(t['_id'])} data-ticket-row>
                 <div data-ticket-info>

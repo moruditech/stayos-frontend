@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { SkeletonLoader, useToast, Modal, InlineError } from '@stayos/ui';
+import { SkeletonLoader, EmptyState, useToast, Modal, InlineError } from '@stayos/ui';
 import { accessKeys } from '@/lib/query-keys';
 
 const visitorSchema = z.object({
@@ -83,7 +83,7 @@ export default function VisitorsPage(): React.ReactElement {
             </thead>
             <tbody>
               {activeVisitors.map((v) => {
-                const vis = v as Record<string, unknown>;
+                const vis = v as unknown as Record<string, unknown>;
                 const id = String(vis['_id']);
                 return (
                   <tr key={id}>
@@ -115,7 +115,7 @@ export default function VisitorsPage(): React.ReactElement {
             </thead>
             <tbody>
               {recentVisitors.map((v) => {
-                const vis = v as Record<string, unknown>;
+                const vis = v as unknown as Record<string, unknown>;
                 return (
                   <tr key={String(vis['_id'])}>
                     <td>{String(vis['name'] ?? '—')}</td>

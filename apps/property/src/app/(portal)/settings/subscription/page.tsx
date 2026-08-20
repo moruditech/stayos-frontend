@@ -37,7 +37,7 @@ export default function SubscriptionPage(): React.ReactElement {
 
   if (isLoading) return <SkeletonLoader rows={4} />;
 
-  const sub = subscription as Record<string, unknown> ?? {};
+  const sub = subscription as unknown as Record<string, unknown> ?? {};
   const planName    = String(sub['planName'] ?? '—');
   const tier        = String(sub['tier'] ?? '—');
   const price       = sub['monthlyPrice'] != null ? fmtCurrency(Number(sub['monthlyPrice'])) : '—';

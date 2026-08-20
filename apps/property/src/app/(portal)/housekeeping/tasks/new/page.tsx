@@ -52,7 +52,7 @@ export default function NewHousekeepingTaskPage(): React.ReactElement {
   const createMutation = useMutation({
     mutationFn: (input: FormInput) => api.housekeeping.createTask(input),
     onSuccess: (task) => {
-      const t = task as Record<string, unknown>;
+      const t = task as unknown as Record<string, unknown>;
       toast('Task created.', 'success');
       router.replace(`/housekeeping/tasks/${String(t['_id'])}`);
     },

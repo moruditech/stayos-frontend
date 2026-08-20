@@ -96,7 +96,7 @@ export default function VendorContractsPage(): React.ReactElement {
 
   // Contracts expiring within 30 days
   const expiringSoon = (contracts ?? []).filter((c) => {
-    const ct = c as Record<string, unknown>;
+    const ct = c as unknown as Record<string, unknown>;
     const end = String(ct['endDate'] ?? '');
     if (!end) return false;
     const days = daysUntilExpiry(end);
@@ -135,7 +135,7 @@ export default function VendorContractsPage(): React.ReactElement {
           </thead>
           <tbody>
             {contracts.map((contract) => {
-              const c = contract as Record<string, unknown>;
+              const c = contract as unknown as Record<string, unknown>;
               const id = String(c['_id']);
               const endDate = String(c['endDate'] ?? '');
               const days = endDate ? daysUntilExpiry(endDate) : null;
@@ -177,7 +177,7 @@ export default function VendorContractsPage(): React.ReactElement {
             <select id="vc-supplier" {...form.register('supplierId')}>
               <option value="">Select supplier…</option>
               {(suppliers ?? []).map((s) => {
-                const sup = s as Record<string, unknown>;
+                const sup = s as unknown as Record<string, unknown>;
                 return (
                   <option key={String(sup['_id'])} value={String(sup['_id'])}>
                     {String(sup['name'] ?? '—')}
