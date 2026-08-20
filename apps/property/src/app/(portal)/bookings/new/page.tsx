@@ -155,9 +155,8 @@ export default function NewBookingPage(): React.ReactElement {
     );
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sharedFields = (
-    form: UseFormReturn<any>,
+    form: UseFormReturn<Record<string, unknown>>,
     formErrors: Record<string, { message?: string } | undefined>
   ) => (
     <>
