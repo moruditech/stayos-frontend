@@ -67,7 +67,7 @@ export default function BookingDetailPage(): React.ReactElement {
   if (isLoading) return <SkeletonLoader rows={6} />;
   if (!booking) return <p>Booking not found.</p>;
 
-  const b = booking as Record<string, unknown>;
+  const b = booking as unknown as Record<string, unknown>;
   const isPendingConfirm = booking.status === 'pending_confirmation';
   const isCancellable = ['confirmed', 'pending_confirmation'].includes(booking.status);
   const f = folio as Record<string, unknown> | undefined;
