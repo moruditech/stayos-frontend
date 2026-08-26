@@ -27,6 +27,15 @@ export default function PaymentDetailPage({ params }: Props): React.ReactElement
   const status = p['status'] as string;
   const date   = new Date(p['createdAt'] as string).toLocaleDateString('en-ZA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
+  // bookingId can come back either as a plain ID string or as a populated
+  // object (e.g. { _id, confirmationNumber, ... }) depending on the endpoint.
+  // Handle both rather than assuming — interpolating the raw object into a
+  // template literal is what previously rendered literally as "[object Object]".
+  const bookingRaw = p['bookingId'];
+  const bookingObj = (typeof bookingRaw === 'object' && bookingRaw !== null) ? bookingRaw as Record<string, unknown> : null;
+  const bookingId  = bookingObj ? (bookingObj['_id'] as string) : (bookingRaw as string | undefined);
+  const bookingConfirmation = (p['confirmationNumber'] as string) ?? (bookingObj?.['confirmationNumber'] as string) ?? bookingId;
+
   return (
     <div data-page>
       <button type="button" onClick={() => router.back()}
@@ -48,10 +57,10 @@ export default function PaymentDetailPage({ params }: Props): React.ReactElement
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
           {[
-            { label: 'Description',    value: (p['description'] as string) ?? '—' },
+            { label: 'Description',    value: (p['description'] as string) ?? (p['note'] as string) ?? '—' },
             { label: 'Reference',      value: (p['reference'] as string) ?? '—', copy: true },
             { label: 'Payment method', value: (p['paymentMethod'] as string) ?? '—' },
-            p['bookingId'] ? { label: 'Booking', value: `#${p['confirmationNumber'] as string ?? p['bookingId'] as string}`, link: `/bookings/${p['bookingId'] as string}` } : null,
+            bookingId ? { label: 'Booking', value: `#${bookingConfirmation}`, link: `/bookings/${bookingId}` } : null,
           ].filter(Boolean).map((row) => row && (
             <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 'var(--space-4)', borderBottom: '1px solid var(--color-border)' }}>
               <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>{row.label}</span>
@@ -68,8 +77,8 @@ export default function PaymentDetailPage({ params }: Props): React.ReactElement
         </div>
       </div>
 
-      {status === 'due' && (
-        <Link href={`/bookings/${p['bookingId'] as string}/pay-balance`} data-btn-primary data-btn-full style={{ marginBottom: 'var(--space-4)' }}>
+      {status === 'due' && bookingId && (
+        <Link href={`/bookings/${bookingId}/pay-balance`} data-btn-primary data-btn-full style={{ marginBottom: 'var(--space-4)' }}>
           Pay now — R{((p['amount'] as number) ?? 0).toLocaleString()}
         </Link>
       )}
