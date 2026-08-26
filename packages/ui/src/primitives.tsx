@@ -9,7 +9,7 @@ import React, {
   useState,
 } from 'react';
 import type { Pagination as PaginationMeta } from '@stayos/types';
-import { Icons } from './icons';
+import { X } from './icons';
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
 
@@ -37,7 +37,7 @@ export function Modal({
         <div data-modal-header>
           <h2 id={titleId} data-modal-title>{title}</h2>
           <button type="button" onClick={onClose} aria-label="Close" data-modal-close>
-            <Icons.X aria-hidden="true" />
+            <X aria-hidden="true" />
           </button>
         </div>
         <div data-modal-body>{children}</div>
@@ -159,7 +159,7 @@ export function ToastStack({ children }: { children: React.ReactNode }): React.R
               aria-label="Dismiss"
               data-toast-dismiss
             >
-              <Icons.X aria-hidden="true" />
+              <X aria-hidden="true" />
             </button>
           </div>
         ))}
