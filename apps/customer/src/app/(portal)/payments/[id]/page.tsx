@@ -10,6 +10,16 @@ import { paymentKeys } from '@/lib/query-keys';
 
 interface Props { params: { id: string } }
 
+const GATEWAY_LABELS: Record<string, string> = {
+  payfast:    'PayFast',
+  ozow:       'Ozow',
+  stripe:     'Card (Stripe)',
+  snapscan:   'SnapScan',
+  zapper:     'Zapper',
+  manual_eft: 'Bank Transfer (EFT)',
+  cash:       'Cash',
+};
+
 export default function PaymentDetailPage({ params }: Props): React.ReactElement {
   const session = useSession();
   const router  = useRouter();
@@ -58,8 +68,8 @@ export default function PaymentDetailPage({ params }: Props): React.ReactElement
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
           {[
             { label: 'Description',    value: (p['description'] as string) ?? (p['note'] as string) ?? '—' },
-            { label: 'Reference',      value: (p['reference'] as string) ?? '—', copy: true },
-            { label: 'Payment method', value: (p['paymentMethod'] as string) ?? '—' },
+            { label: 'Reference',      value: (p['referenceNumber'] as string) ?? '—', copy: true },
+            { label: 'Payment method', value: GATEWAY_LABELS[p['gateway'] as string] ?? (p['gateway'] as string) ?? '—' },
             bookingId ? { label: 'Booking', value: `#${bookingConfirmation}`, link: `/bookings/${bookingId}` } : null,
           ].filter(Boolean).map((row) => row && (
             <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 'var(--space-4)', borderBottom: '1px solid var(--color-border)' }}>

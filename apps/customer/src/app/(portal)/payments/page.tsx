@@ -157,7 +157,7 @@ function TransactionItem({ payment: p }: { payment: Record<string, unknown> }): 
       <div data-transaction-info>
         <div data-transaction-name>{(p['description'] as string) ?? 'Payment'}</div>
         <div data-transaction-meta>
-          {(p['reference'] as string) ?? '—'} · {date}
+          {(p['referenceNumber'] as string) ?? '—'} · {date}
         </div>
       </div>
       <div data-transaction-amount>
