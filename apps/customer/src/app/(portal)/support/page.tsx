@@ -81,7 +81,7 @@ export default function SupportPage(): React.ReactElement {
     },
   });
 
-  const all = (tickets as Record<string,unknown>[] | undefined) ?? [];
+  const all = ((tickets as { data?: Record<string,unknown>[] } | undefined)?.data) ?? [];
 
   // ── New ticket form ─────────────────────────────────────────────────────────
   if (view === 'new') {
@@ -185,9 +185,9 @@ export default function SupportPage(): React.ReactElement {
                 <div style={{ display:'flex', gap:'var(--space-3)', justifyContent:'center' }}>
                   {[1,2,3,4,5].map((r) => (
                     <button key={r} type="button"
-                      style={{ fontSize:'var(--text-2xl)', cursor:'pointer', background:'none', border:'none' }}
+                      style={{ cursor:'pointer', background:'none', border:'none', color: 'var(--color-warning)', display: 'flex' }}
                       onClick={() => rateMutation.mutate({ id: view.id, rating: r })}>
-                      ⭐
+                      <Icons.Star size={28} fill="currentColor" />
                     </button>
                   ))}
                 </div>

@@ -1,13 +1,16 @@
 'use client';
+import Link from 'next/link';
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
-import { SkeletonLoader, EmptyState, StatusBadge } from '@stayos/ui';
+import { SkeletonLoader, EmptyState, StatusBadge, Icons } from '@stayos/ui';
 import { invoiceKeys } from '@/lib/query-keys';
 
 export default function InvoicesPage(): React.ReactElement {
   const session = useSession();
+  const router = useRouter();
   const { data: invoices, isLoading } = useQuery({
     queryKey: invoiceKeys.list(),
     queryFn:  () => api.customer.listInvoices(),
@@ -18,6 +21,10 @@ export default function InvoicesPage(): React.ReactElement {
 
   return (
     <div data-page>
+      <button type="button" onClick={() => router.back()}
+        style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-4)', cursor: 'pointer' }}>
+        <Icons.ChevronLeft size={16} /> Back
+      </button>
       <h1 data-page-title>Invoices</h1>
       <p data-page-subtitle>Your student billing statements</p>
 
@@ -31,7 +38,7 @@ export default function InvoicesPage(): React.ReactElement {
             const dueDate   = inv_['dueDate'] ? new Date(inv_['dueDate'] as string) : null;
             const isOverdue = dueDate && dueDate < new Date() && inv_['status'] !== 'paid';
             return (
-              <a key={inv_['_id'] as string} href={`/invoices/${inv_['_id'] as string}`}
+              <Link key={inv_['_id'] as string} href={`/invoices/${inv_['_id'] as string}`}
                 data-card-padded style={{ textDecoration: 'none', color: 'inherit', display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center', gap: 'var(--space-4)' }}>
                 <div>
                   <div style={{ fontWeight: 'var(--font-semibold)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-1)' }}>
@@ -49,7 +56,7 @@ export default function InvoicesPage(): React.ReactElement {
                   </div>
                   <div style={{ marginTop: 'var(--space-1)' }}><StatusBadge status={inv_['status'] as string} /></div>
                 </div>
-              </a>
+              </Link>
             );
           })}
         </div>

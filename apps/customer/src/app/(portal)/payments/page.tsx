@@ -50,14 +50,14 @@ export default function PaymentsPage(): React.ReactElement {
             </div>
             <div data-payment-stat-sub>{dueCount} due payment{dueCount !== 1 ? 's' : ''}</div>
             {balance > 0 && (
-              <button type="button" data-payment-stat-action data-danger>Pay now</button>
+              <Link href="/payments/all?status=due" data-payment-stat-action data-danger>Pay now</Link>
             )}
           </div>
           <div data-payment-stat>
             <div data-payment-stat-label>Paid this year <Icons.Info size={12} style={{ display: "inline", verticalAlign: "-1px" }} /></div>
             <div data-payment-stat-value>R{paidYear.toLocaleString()}</div>
             <div data-payment-stat-sub>{paidCount} payment{paidCount !== 1 ? 's' : ''}</div>
-            <button type="button" data-payment-stat-action>View history</button>
+            <Link href="/payments/all?status=paid" data-payment-stat-action>View history</Link>
           </div>
           <div data-payment-stat>
             <div data-payment-stat-label>Refunds <Icons.Info size={12} style={{ display: "inline", verticalAlign: "-1px" }} /></div>
@@ -65,7 +65,7 @@ export default function PaymentsPage(): React.ReactElement {
               R{refunded.toLocaleString()}
             </div>
             <div data-payment-stat-sub>{refCount} refund{refCount !== 1 ? 's' : ''}</div>
-            <button type="button" data-payment-stat-action>View refunds</button>
+            <Link href="/payments/all?status=refunded" data-payment-stat-action>View refunds</Link>
           </div>
         </div>
       </div>
@@ -76,9 +76,9 @@ export default function PaymentsPage(): React.ReactElement {
       </div>
       <div data-quick-actions>
         {[
-          { label: 'Make a payment',    icon: Icons.CreditCard, tint: 'success', path: '/payments/new' },
+          { label: 'Make a payment',    icon: Icons.CreditCard, tint: 'success', path: '/payments/all?status=due' },
           { label: 'View invoices',     icon: Icons.FileText,   tint: 'warning', path: '/invoices' },
-          { label: 'Payment history',   icon: Icons.RefreshCcw, tint: 'sand',  path: '/payments' },
+          { label: 'Payment history',   icon: Icons.RefreshCcw, tint: 'sand',  path: '/payments/all' },
           { label: 'Saved cards',       icon: Icons.Wallet,     tint: 'info',    path: '/payments/methods' },
         ].map((a) => (
           <Link key={a.label} href={a.path} data-quick-action>
@@ -107,18 +107,17 @@ export default function PaymentsPage(): React.ReactElement {
       {/* Saved payment methods */}
       <div data-section-header style={{ marginTop: 'var(--space-6)' }}>
         <span data-section-title>Saved payment methods</span>
-        <Link href="/payments/methods" data-section-link>Manage →</Link>
       </div>
-      <div data-card-padded>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-          <PaymentMethodPlaceholder icon={Icons.CreditCard} name="Mastercard ···· 4242" sub="Expires 12/27" isDefault />
-          <PaymentMethodPlaceholder icon={Icons.CreditCard} name="Visa ···· 8431" sub="Expires 09/26" />
-          <PaymentMethodPlaceholder icon={Icons.Landmark} name="FNB Checking Account" sub="···· 6789" />
+      <div data-card-padded style={{ textAlign: 'center', padding: 'var(--space-8) var(--space-6)' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--color-text-muted)', marginBottom: 'var(--space-3)' }}>
+          <Icons.Wallet size={32} />
         </div>
-        <button type="button" data-btn-ghost data-btn-full
-          style={{ marginTop: 'var(--space-4)', justifyContent: 'flex-start', gap: 'var(--space-3)' }}>
-          <Icons.Plus size={16} aria-hidden="true" /> Add payment method
-        </button>
+        <p style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-semibold)', marginBottom: 'var(--space-1)' }}>
+          Saved payment methods
+        </p>
+        <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>
+          Managing saved cards isn&apos;t available yet. You can still pay any due amount from your bookings or payment history.
+        </p>
       </div>
 
       {/* Support callout */}
@@ -176,23 +175,5 @@ function TransactionItem({ payment: p }: { payment: Record<string, unknown> }): 
       </div>
       <Icons.ChevronRight size={16} aria-hidden="true" style={{ color: 'var(--color-text-muted)' }} />
     </Link>
-  );
-}
-
-function PaymentMethodPlaceholder({ icon: Icon, name, sub, isDefault }: {
-  icon: LucideIcon; name: string; sub: string; isDefault?: boolean;
-}): React.ReactElement {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
-      <span style={{ width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-secondary)' }}><Icon size={22} /></span>
-      <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-semibold)' }}>{name}</div>
-        <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{sub}</div>
-      </div>
-      {isDefault && (
-        <span data-status-badge data-status="confirmed" style={{ fontSize: 'var(--text-xs)' }}>Default</span>
-      )}
-      <button type="button" style={{ color: 'var(--color-text-muted)', display: 'flex' }} aria-label="More options"><Icons.MoreHorizontal size={18} /></button>
-    </div>
   );
 }
