@@ -188,7 +188,8 @@ function LoginPageInner(): React.ReactElement {
       <div data-login-left>
         <div data-login-portal-label>
           <span data-portal-icon aria-hidden="true" />
-          PROPERTY OPERATIONS PORTAL
+          <span data-logo-wordmark>Stay<span data-logo-accent>OS</span></span>
+          <span style={{ marginLeft: 'var(--space-1)' }}>Property Portal</span>
         </div>
 
         <h1>
@@ -231,22 +232,28 @@ function LoginPageInner(): React.ReactElement {
         >
           <div data-form-group>
             <label htmlFor="email">Email address</label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              {...form.register('email')}
-            />
+            <div data-input-icon>
+              <Icons.Mail size={18} aria-hidden="true" />
+              <input
+                id="email"
+                type="email"
+                autoComplete="email"
+                placeholder="Enter your email"
+                {...form.register('email')}
+              />
+            </div>
             <InlineError message={form.formState.errors.email?.message} />
           </div>
 
           <div data-form-group>
             <label htmlFor="password">Password</label>
-            <div data-input-with-suffix>
+            <div data-input-icon data-input-icon-suffix>
+              <Icons.Lock size={18} aria-hidden="true" />
               <input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="current-password"
+                placeholder="Enter your password"
                 {...form.register('password')}
               />
               <button
@@ -254,8 +261,9 @@ function LoginPageInner(): React.ReactElement {
                 onClick={() => setShowPassword((s) => !s)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
                 data-password-toggle
+                style={{ left: 'auto', right: 'var(--space-3)' }}
               >
-                {showPassword ? 'Hide' : 'Show'}
+                {showPassword ? <Icons.EyeOff size={18} /> : <Icons.Eye size={18} />}
               </button>
             </div>
             <InlineError message={form.formState.errors.password?.message} />
@@ -279,7 +287,7 @@ function LoginPageInner(): React.ReactElement {
             data-btn-primary
             data-btn-full
           >
-            {submitting ? 'Signing in…' : 'Sign in'}
+            {submitting ? 'Signing in…' : 'Sign in'} <Icons.ArrowRight size={16} aria-hidden="true" />
           </button>
 
           <div data-divider><span>or continue with</span></div>
@@ -304,6 +312,27 @@ function LoginPageInner(): React.ReactElement {
             <a href={PUBLIC_SIGNUP_URL} data-link>
               Create account <Icons.ArrowRight aria-hidden="true" />
             </a>
+          </div>
+
+          <div data-login-trust-row>
+            <div data-login-trust-item>
+              <span data-trust-icon aria-hidden="true"><Icons.Shield size={16} /></span>
+              <div>
+                <strong>Bank-grade security</strong>
+                <span>Your data is encrypted end-to-end</span>
+              </div>
+            </div>
+            <div data-login-trust-item>
+              <span data-trust-icon aria-hidden="true"><Icons.Clock size={16} /></span>
+              <div>
+                <strong>24/7 platform uptime</strong>
+                <span>Manage your property anytime</span>
+              </div>
+            </div>
+          </div>
+
+          <div data-login-footer>
+            © {new Date().getFullYear()} StayOS. All rights reserved.
           </div>
         </form>
       </div>

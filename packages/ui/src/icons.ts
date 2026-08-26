@@ -81,6 +81,7 @@ export {
   FileCheck2,
   FileX2,
   ShieldAlert,
+  Shield,
   BadgeCheck,
   BadgeX,
   Sparkles,

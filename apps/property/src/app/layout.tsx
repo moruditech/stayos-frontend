@@ -2,6 +2,7 @@
 
 import React from 'react';
 import './globals.css';
+import './property-portal.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SessionProvider } from '@stayos/auth';
 import { ToastStack } from '@stayos/ui';

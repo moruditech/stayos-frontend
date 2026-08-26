@@ -1,0 +1,83 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   StayOS Design System — Property Operations Portal
+   Login-page pattern styles. Mirrors apps/customer's customer-portal.css
+   [data-login-*] rules (icon-wrapped inputs, trust row, footer, wordmark) so
+   both portals share the same visual language. Kept in a dedicated file
+   rather than globals.css, matching the pattern already established by the
+   customer app: general tokens/resets live in globals.css, login-specific
+   layout rules live in a per-app *-portal.css.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* ── Wordmark — on the dark [data-login-left] panel, so it needs to sit on
+   the inherited inverse (white) text color rather than the dark neutral
+   customer's header-context wordmark uses. ─────────────────────────────── */
+[data-login-left] [data-logo-wordmark] {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--color-text-inverse);
+  line-height: 1;
+}
+[data-login-left] [data-logo-wordmark] [data-logo-accent] {
+  color: var(--color-accent);
+}
+
+/* ── Icon-wrapped form inputs ─────────────────────────────────────────────── */
+[data-input-icon] {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+[data-input-icon] svg {
+  position: absolute;
+  left: var(--space-3);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+[data-input-icon] input { padding-left: var(--space-10); }
+[data-input-icon][data-input-icon-suffix] input { padding-right: var(--space-10); }
+
+/* ── Trust row ────────────────────────────────────────────────────────────── */
+[data-login-trust-row] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+[data-login-trust-item] {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+[data-login-trust-item] [data-trust-icon] {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+[data-login-trust-item] strong {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+}
+[data-login-trust-item] span {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+/* ── Footer ───────────────────────────────────────────────────────────────── */
+[data-login-footer] {
+  text-align: center;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-top: var(--space-8);
+}

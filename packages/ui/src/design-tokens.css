@@ -1,0 +1,105 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   StayOS Design System — Shared Design Tokens
+   Single source of truth for colors, typography, spacing, radii, shadows and
+   transitions. Every app (customer, property, owners, agency, admin, public)
+   imports this instead of redefining its own :root block — that duplication
+   is how apps/property ended up missing --shadow-xl and other apps drifted
+   out of sync. App-specific layout tokens (--sidebar-width, --header-height,
+   --content-max, --page-padding-x, etc.) stay local to each app's globals.css
+   since those genuinely vary per portal.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Brand */
+  --color-primary:        #1B4D3E;
+  --color-primary-hover:  #163D31;
+  --color-primary-light:  #E8F2EE;
+  --color-primary-mid:    #2D6A4F;
+  --color-accent:         #C8A84B; /* gold — loyalty, highlights */
+  --color-accent-light:   #FDF6E3;
+
+  /* Neutrals */
+  --color-bg:             #F7F6F3;   /* warm off-white — page background */
+  --color-surface:        #FFFFFF;
+  --color-surface-muted:  #F3F2EF;
+  --color-border:         #E5E2DB;
+  --color-border-strong:  #C9C4BC;
+
+  /* Text */
+  --color-text-primary:   #1A1A1A;
+  --color-text-secondary: #6B6860;
+  --color-text-muted:     #9B978F;
+  --color-text-inverse:   #FFFFFF;
+
+  /* Semantic */
+  --color-success:        #1B7A4A;
+  --color-success-bg:     #E6F4EC;
+  --color-warning:        #B45309;
+  --color-warning-bg:     #FEF3C7;
+  --color-error:          #C0392B;
+  --color-error-bg:       #FDECEA;
+  --color-info:           #1E5FA8;
+  --color-info-bg:        #EBF2FB;
+  --color-sand-bg:        #F5F0E8;
+
+  /* Typography */
+  --font-sans:   'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-serif:  'Playfair Display', Georgia, 'Times New Roman', serif;
+
+  /* Type scale */
+  --text-xs:   0.75rem;    /* 12px */
+  --text-sm:   0.875rem;   /* 14px */
+  --text-base: 1rem;       /* 16px */
+  --text-lg:   1.125rem;   /* 18px */
+  --text-xl:   1.25rem;    /* 20px */
+  --text-2xl:  1.5rem;     /* 24px */
+  --text-3xl:  1.875rem;   /* 30px */
+  --text-4xl:  2.25rem;    /* 36px */
+  --text-5xl:  3rem;       /* 48px */
+  --text-6xl:  3.75rem;    /* 60px */
+
+  /* Line heights */
+  --leading-tight:  1.2;
+  --leading-snug:   1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed:1.625;
+
+  /* Font weights */
+  --font-normal:   400;
+  --font-medium:   500;
+  --font-semibold: 600;
+  --font-bold:     700;
+
+  /* Spacing scale (4px base) */
+  --space-1:  0.25rem;   /* 4px  */
+  --space-2:  0.5rem;    /* 8px  */
+  --space-3:  0.75rem;   /* 12px */
+  --space-4:  1rem;      /* 16px */
+  --space-5:  1.25rem;   /* 20px */
+  --space-6:  1.5rem;    /* 24px */
+  --space-8:  2rem;      /* 32px */
+  --space-10: 2.5rem;    /* 40px */
+  --space-12: 3rem;      /* 48px */
+  --space-16: 4rem;      /* 64px */
+  --space-20: 5rem;      /* 80px */
+  --space-24: 6rem;      /* 96px */
+
+  /* Radii */
+  --radius-sm:   0.375rem;  /* 6px  */
+  --radius-md:   0.75rem;   /* 12px */
+  --radius-lg:   1rem;      /* 16px */
+  --radius-xl:   1.5rem;    /* 24px */
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-xs:  0 1px 2px rgba(0,0,0,0.05);
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:  0 4px 6px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg:  0 10px 15px rgba(0,0,0,0.07), 0 4px 6px rgba(0,0,0,0.04);
+  --shadow-xl:  0 20px 25px rgba(0,0,0,0.08), 0 10px 10px rgba(0,0,0,0.03);
+
+  /* Transitions */
+  --transition-fast:   150ms ease;
+  --transition-base:   200ms ease;
+  --transition-slow:   300ms ease;
+}
