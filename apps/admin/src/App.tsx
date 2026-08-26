@@ -6,6 +6,7 @@ import {
   Route,
   Routes,
   useLocation,
+  useNavigate,
   useParams,
 } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -113,27 +114,37 @@ function AppRoutes(): React.ReactElement {
   );
 }
 
+// Same approach as apps/customer and apps/property's root layout: a client-side
+// router.replace/navigate, never a hard window.location.href reload. A full
+// reload remounts the whole app, which reruns SessionProvider's bootstrap
+// refresh — if that refresh ever fails again (e.g. a slow/cold backend,
+// or a request that didn't carry the cookie for any reason), it calls
+// onUnauthenticated again, causing another reload, forever. A soft navigate
+// just swaps the route; nothing remounts, so there's nothing to loop.
+function AppWithAuth(): React.ReactElement {
+  const navigate = useNavigate();
+
+  return (
+    <SessionProvider
+      portalUserType="platform"
+      onUnauthenticated={(redirect) => {
+        navigate(redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : '/login', {
+          replace: true,
+        });
+      }}
+    >
+      <ToastStack>
+        <AppRoutes />
+      </ToastStack>
+    </SessionProvider>
+  );
+}
+
 export default function App(): React.ReactElement {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <SessionProvider
-          portalUserType="platform"
-          onUnauthenticated={(redirect) => {
-            // Avoid a hard-reload loop: if we're already on a public/auth
-            // route, a failed silent-refresh just means "not logged in yet"
-            // — there's nothing to redirect away from.
-            const publicPaths = ['/login', '/forgot-password', '/reset-password'];
-            if (publicPaths.some((p) => window.location.pathname.startsWith(p))) {
-              return;
-            }
-            window.location.href = `/login${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''}`;
-          }}
-        >
-          <ToastStack>
-            <AppRoutes />
-          </ToastStack>
-        </SessionProvider>
+        <AppWithAuth />
       </BrowserRouter>
     </QueryClientProvider>
   );
