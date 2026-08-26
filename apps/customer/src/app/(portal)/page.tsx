@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
@@ -172,21 +173,21 @@ export default function DashboardPage(): React.ReactElement {
       {/* ── Quick actions ─────────────────────────────────────────────── */}
       <div data-section-header>
         <span data-section-title>Quick actions</span>
-        <a href="/accommodation" data-section-link>View all →</a>
+        <Link href="/accommodation" data-section-link>View all →</Link>
       </div>
       <div data-quick-actions>
         {quickActions.map((a) => (
-          <a key={a.label} href={a.path} data-quick-action>
+          <Link key={a.label} href={a.path} data-quick-action>
             <span data-quick-action-icon data-tint={a.tint} aria-hidden="true"><a.icon size={20} /></span>
             <span>{a.label}</span>
-          </a>
+          </Link>
         ))}
       </div>
 
       {/* ── Upcoming stay ─────────────────────────────────────────────── */}
       <div data-section-header>
         <span data-section-title>Upcoming stay</span>
-        <a href="/bookings" data-section-link>View all bookings →</a>
+        <Link href="/bookings" data-section-link>View all bookings →</Link>
       </div>
 
       {bookingsLoading ? (
@@ -198,16 +199,16 @@ export default function DashboardPage(): React.ReactElement {
           title="No upcoming stays"
           description="Find your next accommodation and make a booking."
           action={
-            <a href="/accommodation" data-btn-primary>Find accommodation</a>
+            <Link href="/accommodation" data-btn-primary>Find accommodation</Link>
           }
         />
       )}
 
       {/* ── Loyalty summary ───────────────────────────────────────────── */}
       {loyalty && (
-        <a href="/loyalty" style={{ display: 'block', textDecoration: 'none', margin: 'var(--space-6) 0' }}>
+        <Link href="/loyalty" style={{ display: 'block', textDecoration: 'none', margin: 'var(--space-6) 0' }}>
           <div data-loyalty-summary-card>
-            <Icons.Shield size={140} aria-hidden="true" data-loyalty-watermark />
+            <Icons.ShieldCheck size={140} aria-hidden="true" data-loyalty-watermark />
             <div data-loyalty-hero-header>
               <span data-loyalty-member-badge>
                 <Icons.Medal size={14} aria-hidden="true" />
@@ -238,7 +239,7 @@ export default function DashboardPage(): React.ReactElement {
               />
             </div>
           </div>
-        </a>
+        </Link>
       )}
 
       {/* ── Recommended properties ────────────────────────────────────── */}
@@ -246,7 +247,7 @@ export default function DashboardPage(): React.ReactElement {
         <>
           <div data-section-header>
             <span data-section-title>Recommended for you</span>
-            <a href="/accommodation" data-section-link>View all →</a>
+            <Link href="/accommodation" data-section-link>View all →</Link>
           </div>
           <div data-horizontal-scroll>
             {(featured as Record<string, unknown>[]).slice(0, 6).map((p) => (
@@ -271,7 +272,7 @@ export default function DashboardPage(): React.ReactElement {
             <p>Unlock special rates and save more on your next stay.</p>
           </div>
         </div>
-        <a href="/accommodation?deals=true" data-btn-secondary style={{ position: 'relative' }}>Explore deals →</a>
+        <Link href="/accommodation?deals=true" data-btn-secondary style={{ position: 'relative' }}>Explore deals →</Link>
       </div>
     </div>
   );
@@ -290,7 +291,7 @@ function UpcomingBookingCard({ booking }: { booking: Record<string, unknown> }):
 
   return (
     <div data-booking-card style={{ marginBottom: 'var(--space-4)' }}>
-      <a href={`/bookings/${booking['_id'] as string}`} data-booking-card-top>
+      <Link href={`/bookings/${booking['_id'] as string}`} data-booking-card-top>
         <div data-booking-card-image>
           {/* Property image — /images/properties/[propertyId].jpg */}
           <img
@@ -320,7 +321,7 @@ function UpcomingBookingCard({ booking }: { booking: Record<string, unknown> }):
             <Icons.Calendar size={14} /> Booking #{booking['confirmationNumber'] as string ?? '—'}
           </div>
         </div>
-      </a>
+      </Link>
 
       <div data-booking-card-footer data-stacked>
         {daysUntil > 0 && (
@@ -328,7 +329,7 @@ function UpcomingBookingCard({ booking }: { booking: Record<string, unknown> }):
         )}
         <div data-booking-card-actions>
           <div data-booking-card-actions-left>
-            <a href={`/bookings/${booking['_id'] as string}`} data-btn-secondary>View booking</a>
+            <Link href={`/bookings/${booking['_id'] as string}`} data-btn-secondary>View booking</Link>
             <button type="button" data-btn-icon-square aria-label="More options">
               <Icons.MoreHorizontal size={16} />
             </button>
@@ -347,7 +348,7 @@ function UpcomingBookingCard({ booking }: { booking: Record<string, unknown> }):
 
 function PropertyCard({ property }: { property: Record<string, unknown> }): React.ReactElement {
   return (
-    <a href={`/accommodation/${property['slug'] as string}`} data-property-card style={{ textDecoration: 'none' }}>
+    <Link href={`/accommodation/${property['slug'] as string}`} data-property-card style={{ textDecoration: 'none' }}>
       <div data-property-card-image>
         {/* /images/properties/[slug]-thumb.jpg */}
         <img
@@ -387,6 +388,6 @@ function PropertyCard({ property }: { property: Record<string, unknown> }): Reac
           </div>
         </div>
       </div>
-    </a>
+    </Link>
   );
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React, { Suspense, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -189,7 +190,7 @@ function LoginPageInner(): React.ReactElement {
                     <input type="checkbox" {...loginForm.register('rememberMe')} />
                     Remember me
                   </label>
-                  <a href="/forgot-password" data-link>Forgot password?</a>
+                  <Link href="/forgot-password" data-link>Forgot password?</Link>
                 </div>
 
                 {formError && <span role="alert" data-form-error>{formError}</span>}
@@ -294,8 +295,8 @@ function LoginPageInner(): React.ReactElement {
             {!registerSuccess && (
               <p data-login-legal>
                 By continuing, you agree to our{' '}
-                <a href="/legal/terms">Terms of Use</a> and{' '}
-                <a href="/legal/privacy">Privacy Policy</a>.
+                <Link href="/legal/terms">Terms of Use</Link> and{' '}
+                <Link href="/legal/privacy">Privacy Policy</Link>.
               </p>
             )}
           </div>
@@ -342,9 +343,9 @@ function LoginPageInner(): React.ReactElement {
 
           <div data-login-footer>
             © {new Date().getFullYear()} StayOS. All rights reserved. ·{' '}
-            <a href="/legal/terms">Terms of Use</a> ·{' '}
-            <a href="/legal/privacy">Privacy Policy</a> ·{' '}
-            <a href="/legal/cookies">Cookie Policy</a>
+            <Link href="/legal/terms">Terms of Use</Link> ·{' '}
+            <Link href="/legal/privacy">Privacy Policy</Link> ·{' '}
+            <Link href="/legal/cookies">Cookie Policy</Link>
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
@@ -91,9 +92,9 @@ export default function BookingDetailPage({ params }: Props): React.ReactElement
           <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-info)', marginTop: 'var(--space-1)' }}>
             Complete your guest profile before check-in to unlock digital key access and self-check-in features.
           </p>
-          <a href="/id-verification" data-btn-primary style={{ marginTop: 'var(--space-3)', display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <Link href="/id-verification" data-btn-primary style={{ marginTop: 'var(--space-3)', display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
             Complete profile <Icons.ArrowRight size={14} />
-          </a>
+          </Link>
         </div>
       )}
 
@@ -180,7 +181,7 @@ export default function BookingDetailPage({ params }: Props): React.ReactElement
               <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-error)', fontWeight: 'var(--font-semibold)', marginBottom: 'var(--space-3)' }}>
                 Balance due: R{(b['balanceDue'] as number).toLocaleString()}
               </div>
-              <a href={`/bookings/${params.id}/pay-balance`} data-btn-primary data-btn-full>Pay balance now</a>
+              <Link href={`/bookings/${params.id}/pay-balance`} data-btn-primary data-btn-full>Pay balance now</Link>
             </div>
           )}
         </div>
@@ -206,9 +207,9 @@ export default function BookingDetailPage({ params }: Props): React.ReactElement
         {/* Actions */}
         {isUpcoming && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            <a href={`/bookings/${params.id}/reschedule`} data-btn-secondary data-btn-full style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}>
+            <Link href={`/bookings/${params.id}/reschedule`} data-btn-secondary data-btn-full style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}>
               <Icons.Calendar size={16} /> Modify booking dates
-            </a>
+            </Link>
             <button type="button" data-btn-ghost data-btn-full
               onClick={() => setCancelOpen(true)}
               style={{ color: 'var(--color-error)', borderColor: 'var(--color-error)' }}>
@@ -219,12 +220,12 @@ export default function BookingDetailPage({ params }: Props): React.ReactElement
 
         {/* Folio / invoice link */}
         <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
-          <a href={`/bookings/${params.id}/folio`} data-btn-ghost style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}>
+          <Link href={`/bookings/${params.id}/folio`} data-btn-ghost style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}>
             <Icons.FileText size={16} /> View invoice
-          </a>
-          <a href={`/support/new?ref=${params.id}`} data-btn-ghost style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}>
+          </Link>
+          <Link href={`/support/new?ref=${params.id}`} data-btn-ghost style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}>
             <Icons.MessageCircle size={16} /> Contact property
-          </a>
+          </Link>
         </div>
       </div>
 

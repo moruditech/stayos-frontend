@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
@@ -200,9 +201,9 @@ export default function AccommodationPage(): React.ReactElement {
             <span data-results-count>
               <strong>{properties.length}</strong> properties found
             </span>
-            <a href="/accommodation?mapview=true" data-section-link style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+            <Link href="/accommodation?mapview=true" data-section-link style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}>
               <Icons.Map size={14} /> Map view
-            </a>
+            </Link>
           </div>
 
           {/* Results */}
@@ -230,15 +231,15 @@ export default function AccommodationPage(): React.ReactElement {
             <p>Sign in to access exclusive deals and save more on your next stay.</p>
           </div>
         </div>
-        <a href="/login" data-btn-primary style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+        <Link href="/login" data-btn-primary style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <Icons.User size={16} /> Sign in / Register
-        </a>
+        </Link>
       </div>
 
       {/* Explore by category */}
       <div data-section-header style={{ marginTop: 'var(--space-6)' }}>
         <span data-section-title>Explore by category</span>
-        <a href="/accommodation" data-section-link>View all →</a>
+        <Link href="/accommodation" data-section-link>View all →</Link>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 'var(--space-3)' }}>
         {[
@@ -247,11 +248,11 @@ export default function AccommodationPage(): React.ReactElement {
           { label: 'Family Friendly', icon: Icons.Users,    type: 'family' },
           { label: 'Business Stay',   icon: Icons.Briefcase,type: 'business' },
         ].map((c) => (
-          <a key={c.label} href={`/accommodation?amenity=${c.type}`} data-card
+          <Link key={c.label} href={`/accommodation?amenity=${c.type}`} data-card
             style={{ padding: 'var(--space-4)', textAlign: 'center', textDecoration: 'none', cursor: 'pointer' }}>
             <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--color-primary)', marginBottom: 'var(--space-2)' }}><c.icon size={28} /></div>
             <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-medium)' }}>{c.label}</div>
-          </a>
+          </Link>
         ))}
       </div>
     </div>
@@ -267,7 +268,7 @@ function PropertySearchCard({ property: p }: { property: Record<string, unknown>
   const breakfastIncluded = p['breakfastIncluded'] as boolean | undefined;
 
   return (
-    <a href={`/accommodation/${p['slug'] as string}`} data-property-card data-property-list-item
+    <Link href={`/accommodation/${p['slug'] as string}`} data-property-card data-property-list-item
       style={{ textDecoration: 'none' }}>
       <div data-property-card-image>
         {/* Image path: /images/properties/[slug]-main.jpg */}
@@ -312,6 +313,6 @@ function PropertySearchCard({ property: p }: { property: Record<string, unknown>
           </button>
         </div>
       </div>
-    </a>
+    </Link>
   );
 }

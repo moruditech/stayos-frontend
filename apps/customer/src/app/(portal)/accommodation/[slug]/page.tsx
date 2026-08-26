@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
@@ -148,9 +149,9 @@ export default function PropertyDetailPage({ params }: Props): React.ReactElemen
                             <span data-property-rate-label> / night</span>
                           </div>
                           {isStudent ? (
-                            <a href={`/accommodation/${params.slug}/apply`} data-btn-primary style={{ padding: 'var(--space-2) var(--space-5)' }}>
+                            <Link href={`/accommodation/${params.slug}/apply`} data-btn-primary style={{ padding: 'var(--space-2) var(--space-5)' }}>
                               Apply now
-                            </a>
+                            </Link>
                           ) : (
                             <button type="button" data-btn-primary style={{ padding: 'var(--space-2) var(--space-5)' }}
                               onClick={() => handleBookNow(room['_id'] as string)}>
@@ -202,7 +203,7 @@ export default function PropertyDetailPage({ params }: Props): React.ReactElemen
               <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-5)' }}>
                 No account required. Submit your application in minutes.
               </p>
-              <a href={`/accommodation/${params.slug}/apply`} data-btn-primary data-btn-full>Apply now →</a>
+              <Link href={`/accommodation/${params.slug}/apply`} data-btn-primary data-btn-full>Apply now →</Link>
             </>
           ) : (
             <>

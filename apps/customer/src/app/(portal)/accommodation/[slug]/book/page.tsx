@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -235,7 +236,7 @@ export default function BookingFormPage({ params }: Props): React.ReactElement {
 
             <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', textAlign: 'center' }}>
               By confirming, you agree to the property&apos;s cancellation policy and our{' '}
-              <a href="/legal/terms" data-link>Terms of Service</a>.
+              <Link href="/legal/terms" data-link>Terms of Service</Link>.
             </p>
           </div>
         </form>

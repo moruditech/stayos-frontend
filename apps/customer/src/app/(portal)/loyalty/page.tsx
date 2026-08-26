@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from '@stayos/auth';
@@ -77,7 +78,7 @@ export default function LoyaltyPage(): React.ReactElement {
       <div data-card-padded style={{ marginBottom: 'var(--space-5)' }}>
         <div data-section-header style={{ marginBottom: 'var(--space-4)' }}>
           <span data-section-title>Earn Q Points</span>
-          <a href="/loyalty/earn" data-section-link>View all ways to earn →</a>
+          <Link href="/loyalty/earn" data-section-link>View all ways to earn →</Link>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--space-3)' }}>
           {EARN_WAYS.map((w) => (
@@ -94,7 +95,7 @@ export default function LoyaltyPage(): React.ReactElement {
       {/* Redeem section */}
       <div data-section-header>
         <span data-section-title>Redeem your points</span>
-        <a href="/loyalty/rewards" data-section-link>View all rewards →</a>
+        <Link href="/loyalty/rewards" data-section-link>View all rewards →</Link>
       </div>
       <div data-horizontal-scroll style={{ marginBottom: 'var(--space-6)' }}>
         {[
@@ -124,7 +125,7 @@ export default function LoyaltyPage(): React.ReactElement {
       {/* Activity */}
       <div data-section-header>
         <span data-section-title>Your activity</span>
-        <a href="/loyalty/history" data-section-link>View all activity →</a>
+        <Link href="/loyalty/history" data-section-link>View all activity →</Link>
       </div>
       <div data-card-padded style={{ padding: '0 var(--space-6)', marginBottom: 'var(--space-6)' }}>
         {hist.length === 0 ? (
@@ -176,7 +177,7 @@ export default function LoyaltyPage(): React.ReactElement {
       {/* Tier overview */}
       <div data-section-header>
         <span data-section-title>Member tiers</span>
-        <a href="/loyalty/tiers" data-section-link>View all tiers →</a>
+        <Link href="/loyalty/tiers" data-section-link>View all tiers →</Link>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-4)' }}>
         {TIERS.map((t) => {

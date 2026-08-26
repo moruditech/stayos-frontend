@@ -1,6 +1,7 @@
 'use client';
+import Link from 'next/link';
 import React from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
@@ -15,7 +16,6 @@ const STATUS_STEPS = ['submitted', 'under_review', 'docs_requested', 'approved']
 export default function ApplicationDetailPage({ params }: Props): React.ReactElement {
   const session = useSession();
   const router  = useRouter();
-  const qc      = useQueryClient();
   const { toast } = useToast();
 
   const { data: application, isLoading } = useQuery({
@@ -123,9 +123,9 @@ export default function ApplicationDetailPage({ params }: Props): React.ReactEle
           <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginTop: 'var(--space-2)', marginBottom: 'var(--space-4)' }}>
             The property has requested additional documents. Please upload them to continue.
           </p>
-          <a href={`/documents?ref=${params.id}`} data-btn-primary style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <Link href={`/documents?ref=${params.id}`} data-btn-primary style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
             Upload documents <Icons.ArrowRight size={16} />
-          </a>
+          </Link>
         </div>
       )}
 
@@ -163,9 +163,9 @@ export default function ApplicationDetailPage({ params }: Props): React.ReactEle
             <p>Our support team is here to help you.</p>
           </div>
         </div>
-        <a href="/support" data-btn-secondary style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+        <Link href="/support" data-btn-secondary style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           Contact support <Icons.ArrowRight size={16} />
-        </a>
+        </Link>
       </div>
     </div>
   );

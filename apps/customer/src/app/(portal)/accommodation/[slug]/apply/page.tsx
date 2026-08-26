@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React, { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useSession } from '@stayos/auth';
@@ -84,14 +85,14 @@ export default function ApplicationFormPage({ params }: Props): React.ReactEleme
             Your application to {ft['propertyName'] as string} has been received. We&apos;ll be in touch shortly.
           </p>
           {session ? (
-            <a href="/applications" data-btn-primary>View my applications →</a>
+            <Link href="/applications" data-btn-primary>View my applications →</Link>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', alignItems: 'center' }}>
               <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
                 Create an account to track your application status.
               </p>
-              <a href="/register" data-btn-primary>Create account →</a>
-              <a href="/" data-btn-ghost>Return to home</a>
+              <Link href="/register" data-btn-primary>Create account →</Link>
+              <Link href="/" data-btn-ghost>Return to home</Link>
             </div>
           )}
         </div>
@@ -128,7 +129,7 @@ export default function ApplicationFormPage({ params }: Props): React.ReactEleme
         <div data-card-padded style={{ background: 'var(--color-primary-light)', marginBottom: 'var(--space-5)' }}>
           <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
             <Icons.Lightbulb size={16} /> Already have an account?{' '}
-            <a href={`/login?redirect=/accommodation/${params.slug}/apply`} data-link>Sign in</a>{' '}
+            <Link href={`/login?redirect=/accommodation/${params.slug}/apply`} data-link>Sign in</Link>{' '}
             to pre-fill your details.
           </p>
         </div>

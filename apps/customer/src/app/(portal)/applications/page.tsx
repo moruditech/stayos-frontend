@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from '@stayos/auth';
@@ -54,14 +55,14 @@ export default function ApplicationsPage(): React.ReactElement {
             </p>
           </div>
         </div>
-        <a href="/accommodation" data-btn-secondary style={{ whiteSpace: 'nowrap', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+        <Link href="/accommodation" data-btn-secondary style={{ whiteSpace: 'nowrap', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           New application <Icons.Plus size={16} />
-        </a>
+        </Link>
       </div>
 
       {isLoading ? <SkeletonLoader rows={4} /> : filtered.length === 0 ? (
         <EmptyState title="No applications" description="Start by browsing accommodation and applying."
-          action={<a href="/accommodation" data-btn-primary>Browse accommodation</a>} />
+          action={<Link href="/accommodation" data-btn-primary>Browse accommodation</Link>} />
       ) : (
         <>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
@@ -86,9 +87,9 @@ export default function ApplicationsPage(): React.ReactElement {
             <p>Our support team is here to help you with any questions.</p>
           </div>
         </div>
-        <a href="/support" data-btn-secondary style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+        <Link href="/support" data-btn-secondary style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           Contact support <Icons.ArrowRight size={16} />
-        </a>
+        </Link>
       </div>
     </div>
   );
@@ -117,7 +118,7 @@ function ApplicationCard({ application: app }: { application: Record<string, unk
   const TypeIcon = TYPE_ICON_MAP[category] ?? Icons.Home;
 
   return (
-    <a href={`/applications/${app['_id'] as string}`} data-application-card style={{ textDecoration: 'none', color: 'inherit' }}>
+    <Link href={`/applications/${app['_id'] as string}`} data-application-card style={{ textDecoration: 'none', color: 'inherit' }}>
       <div data-application-card-image>
         {/* Image path: /images/properties/[propertySlug]-thumb.jpg */}
         <img src={`/images/properties/${app['propertySlug'] as string}-thumb.jpg`} alt="" loading="lazy"
@@ -159,6 +160,6 @@ function ApplicationCard({ application: app }: { application: Record<string, unk
           </div>
         </div>
       </div>
-    </a>
+    </Link>
   );
 }

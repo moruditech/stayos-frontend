@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -63,9 +64,9 @@ export default function ChangePasswordPage(): React.ReactElement {
 
   return (
     <div data-page>
-      <a href="/profile" data-link style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', fontSize:'var(--text-sm)', marginBottom:'var(--space-5)', textDecoration:'none', color:'var(--color-text-secondary)' }}>
+      <Link href="/profile" data-link style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', fontSize:'var(--text-sm)', marginBottom:'var(--space-5)', textDecoration:'none', color:'var(--color-text-secondary)' }}>
         <Icons.ChevronLeft size={16} /> Back to profile
-      </a>
+      </Link>
 
       <h1 data-page-title>Change password</h1>
       <p data-page-subtitle>Changing your password signs out all other active sessions.</p>

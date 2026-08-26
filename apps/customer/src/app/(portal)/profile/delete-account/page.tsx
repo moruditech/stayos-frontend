@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import React, { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useSession } from '@stayos/auth';
@@ -33,9 +34,9 @@ export default function DeleteAccountPage(): React.ReactElement {
 
   return (
     <div data-page>
-      <a href="/profile" data-link style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', fontSize:'var(--text-sm)', marginBottom:'var(--space-5)', textDecoration:'none', color:'var(--color-text-secondary)' }}>
+      <Link href="/profile" data-link style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', fontSize:'var(--text-sm)', marginBottom:'var(--space-5)', textDecoration:'none', color:'var(--color-text-secondary)' }}>
         <Icons.ChevronLeft size={16} /> Back to profile
-      </a>
+      </Link>
 
       <h1 data-page-title>Delete account</h1>
       <p data-page-subtitle>Permanently deactivate your StayOS account</p>
@@ -88,8 +89,8 @@ export default function DeleteAccountPage(): React.ReactElement {
             <li>Outstanding payments will still need to be settled with the relevant property.</li>
           </ul>
           <div style={{ display:'flex', gap:'var(--space-3)', marginTop:'var(--space-4)', flexWrap:'wrap' }}>
-            <a href="/bookings?status=upcoming" data-btn-ghost style={{ fontSize:'var(--text-sm)' }}>Check upcoming bookings</a>
-            <a href="/profile/data-export" data-btn-ghost style={{ fontSize:'var(--text-sm)' }}>Export my data first</a>
+            <Link href="/bookings?status=upcoming" data-btn-ghost style={{ fontSize:'var(--text-sm)' }}>Check upcoming bookings</Link>
+            <Link href="/profile/data-export" data-btn-ghost style={{ fontSize:'var(--text-sm)' }}>Export my data first</Link>
           </div>
         </div>
 

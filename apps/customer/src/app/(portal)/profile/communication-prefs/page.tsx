@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from '@stayos/auth';
@@ -50,9 +51,9 @@ export default function CommPrefsPage(): React.ReactElement {
 
   return (
     <div data-page>
-      <a href="/profile" data-link style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', fontSize:'var(--text-sm)', marginBottom:'var(--space-5)', textDecoration:'none', color:'var(--color-text-secondary)' }}>
+      <Link href="/profile" data-link style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', fontSize:'var(--text-sm)', marginBottom:'var(--space-5)', textDecoration:'none', color:'var(--color-text-secondary)' }}>
         <Icons.ChevronLeft size={16} /> Back to profile
-      </a>
+      </Link>
 
       <h1 data-page-title>Communication preferences</h1>
       <p data-page-subtitle>Choose how you&apos;d like us to contact you</p>
@@ -109,7 +110,7 @@ export default function CommPrefsPage(): React.ReactElement {
 
         <p style={{ fontSize:'var(--text-xs)', color:'var(--color-text-muted)', lineHeight:'var(--leading-relaxed)' }}>
           You can unsubscribe from marketing emails at any time by clicking the unsubscribe link in any email. Changes take effect within 24 hours. For more information, see our{' '}
-          <a href="/legal/privacy" data-link>Privacy Policy</a>.
+          <Link href="/legal/privacy" data-link>Privacy Policy</Link>.
         </p>
       </div>
     </div>

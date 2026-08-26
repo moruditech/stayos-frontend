@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession, useSessionContext, performLogout, useSessionLoading } from '@stayos/auth';
@@ -121,20 +122,20 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
             <span /><span /><span />
           </button>
 
-          <a href="/" data-logo>
+          <Link href="/" data-logo>
             <span data-logo-wordmark>Stay<span data-logo-accent>OS</span></span>
             <span data-logo-sub>Guest Portal</span>
-          </a>
+          </Link>
 
           <div data-header-actions>
-            <a href="/notifications" data-notif-button aria-label="Notifications">
+            <Link href="/notifications" data-notif-button aria-label="Notifications">
               <Icons.Bell size={20} />
               {unreadCount > 0 && (
                 <span data-notif-count aria-hidden="true">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
-            </a>
+            </Link>
             <div data-avatar-group ref={avatarMenuRef}>
               <button
                 type="button"
@@ -180,10 +181,10 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
           aria-label="Main navigation"
         >
           <div data-sidebar-header>
-            <a href="/" data-logo>
+            <Link href="/" data-logo>
               <span data-logo-wordmark>Stay<span data-logo-accent>OS</span></span>
               <span data-logo-sub>Guest Portal</span>
-            </a>
+            </Link>
             <button type="button" data-sidebar-close onClick={closeSidebar} aria-label="Close navigation">
               <Icons.X size={18} />
             </button>

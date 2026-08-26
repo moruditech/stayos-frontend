@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -135,7 +136,7 @@ export default function ProfilePage(): React.ReactElement {
           <div data-card-padded>
             <h3 style={{ fontSize:'var(--text-base)', fontWeight:'var(--font-bold)', marginBottom:'var(--space-3)' }}>Change password</h3>
             <p style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', marginBottom:'var(--space-4)' }}>Changing your password signs out all other active sessions.</p>
-            <a href="/profile/password" data-btn-secondary>Change password →</a>
+            <Link href="/profile/password" data-btn-secondary>Change password →</Link>
           </div>
           <div data-card-padded>
             <h3 style={{ fontSize:'var(--text-base)', fontWeight:'var(--font-bold)', marginBottom:'var(--space-3)' }}>Connected accounts</h3>

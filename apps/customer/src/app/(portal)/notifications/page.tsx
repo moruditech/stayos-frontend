@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from '@stayos/auth';
@@ -131,9 +132,9 @@ export default function NotificationsPage(): React.ReactElement {
         </div>
       )}
 
-      <a href="/notifications/settings" data-btn-ghost data-btn-full style={{ marginTop: 'var(--space-6)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}>
+      <Link href="/notifications/settings" data-btn-ghost data-btn-full style={{ marginTop: 'var(--space-6)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}>
         <Icons.Settings size={16} /> Notification settings
-      </a>
+      </Link>
     </div>
   );
 }

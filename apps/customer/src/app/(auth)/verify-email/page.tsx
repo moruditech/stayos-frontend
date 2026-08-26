@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import React, { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { api } from '@stayos/api-client';
@@ -73,7 +74,7 @@ function VerifyEmailPageInner(): React.ReactElement {
       <div data-auth-panel>
         <h1>Verification failed</h1>
         <p>{errorMessage}</p>
-        <a href="/login" data-btn-ghost data-btn-full>Back to sign in</a>
+        <Link href="/login" data-btn-ghost data-btn-full>Back to sign in</Link>
       </div>
     </div>
   );

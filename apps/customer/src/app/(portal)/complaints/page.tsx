@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -234,10 +235,10 @@ export default function ComplaintsPage(): React.ReactElement {
                 <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:'var(--space-2)' }}>
                   <StatusBadge status={status} />
                   {status !== 'resolved' && status !== 'closed' && (
-                    <a href={`/support/new?ref=${c['_id'] as string}`} data-btn-ghost
+                    <Link href={`/support/new?ref=${c['_id'] as string}`} data-btn-ghost
                       style={{ fontSize:'var(--text-xs)', padding:'var(--space-1) var(--space-3)' }}>
                       Escalate
-                    </a>
+                    </Link>
                   )}
                 </div>
               </div>
@@ -254,7 +255,7 @@ export default function ComplaintsPage(): React.ReactElement {
             <p>If your complaint is not being resolved, our support team can help.</p>
           </div>
         </div>
-        <a href="/support" data-btn-secondary>Contact support →</a>
+        <Link href="/support" data-btn-secondary>Contact support →</Link>
       </div>
     </div>
   );

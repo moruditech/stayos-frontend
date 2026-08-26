@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import React, { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useSession } from '@stayos/auth';
@@ -37,9 +38,9 @@ export default function DataExportPage(): React.ReactElement {
 
   return (
     <div data-page>
-      <a href="/profile" data-link style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', fontSize:'var(--text-sm)', marginBottom:'var(--space-5)', textDecoration:'none', color:'var(--color-text-secondary)' }}>
+      <Link href="/profile" data-link style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', fontSize:'var(--text-sm)', marginBottom:'var(--space-5)', textDecoration:'none', color:'var(--color-text-secondary)' }}>
         <Icons.ChevronLeft size={16} /> Back to profile
-      </a>
+      </Link>
 
       <h1 data-page-title>Export my data</h1>
       <p data-page-subtitle>Download a copy of everything StayOS holds about you (POPIA DSAR)</p>

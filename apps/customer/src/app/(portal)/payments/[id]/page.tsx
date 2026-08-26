@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
@@ -56,7 +57,7 @@ export default function PaymentDetailPage({ params }: Props): React.ReactElement
               <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>{row.label}</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
                 {row.link ? (
-                  <a href={row.link} data-link style={{ fontSize: 'var(--text-sm)' }}>{row.value}</a>
+                  <Link href={row.link} data-link style={{ fontSize: 'var(--text-sm)' }}>{row.value}</Link>
                 ) : (
                   <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-medium)' }}>{row.value}</span>
                 )}
@@ -68,18 +69,18 @@ export default function PaymentDetailPage({ params }: Props): React.ReactElement
       </div>
 
       {status === 'due' && (
-        <a href={`/bookings/${p['bookingId'] as string}/pay-balance`} data-btn-primary data-btn-full style={{ marginBottom: 'var(--space-4)' }}>
+        <Link href={`/bookings/${p['bookingId'] as string}/pay-balance`} data-btn-primary data-btn-full style={{ marginBottom: 'var(--space-4)' }}>
           Pay now — R{((p['amount'] as number) ?? 0).toLocaleString()}
-        </a>
+        </Link>
       )}
 
       <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
         <a href={`/api/v1/payments/${params.id}/receipt`} target="_blank" rel="noopener noreferrer" data-btn-ghost style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}>
           <Icons.FileText size={16} /> Download receipt
         </a>
-        <a href="/support" data-btn-ghost style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}>
+        <Link href="/support" data-btn-ghost style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}>
           <Icons.MessageCircle size={16} /> Query payment
-        </a>
+        </Link>
       </div>
     </div>
   );

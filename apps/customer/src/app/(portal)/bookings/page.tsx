@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from '@stayos/auth';
@@ -54,7 +55,7 @@ export default function BookingsPage(): React.ReactElement {
 
       {isLoading ? <SkeletonLoader rows={4} /> : filtered.length === 0 ? (
         <EmptyState title={`No ${tab} bookings`} description="When you make a booking it will appear here."
-          action={tab === 'upcoming' ? <a href="/accommodation" data-btn-primary>Find accommodation</a> : undefined} />
+          action={tab === 'upcoming' ? <Link href="/accommodation" data-btn-primary>Find accommodation</Link> : undefined} />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
           {filtered.map((b) => <BookingCard key={b['_id'] as string} booking={b} />)}
@@ -70,9 +71,9 @@ export default function BookingsPage(): React.ReactElement {
               <p>You can modify or cancel your booking before check-in.</p>
             </div>
           </div>
-          <a href="/bookings" data-btn-secondary style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <Link href="/bookings" data-btn-secondary style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
             Manage booking <Icons.ArrowRight size={16} />
-          </a>
+          </Link>
         </div>
       )}
 
@@ -87,10 +88,10 @@ export default function BookingsPage(): React.ReactElement {
           { label: 'Contact property', icon: Icons.MessageCircle, tint: 'sand',  path: '/support' },
           { label: 'Add to calendar',  icon: Icons.Calendar,      tint: 'success', path: '/bookings' },
         ].map((a) => (
-          <a key={a.label} href={a.path} data-quick-action>
+          <Link key={a.label} href={a.path} data-quick-action>
             <span data-quick-action-icon data-tint={a.tint} aria-hidden="true"><a.icon size={20} /></span>
             <span>{a.label}</span>
-          </a>
+          </Link>
         ))}
       </div>
 
@@ -102,9 +103,9 @@ export default function BookingsPage(): React.ReactElement {
             <p>As a Silver Member, you get free cancellation on most stays.</p>
           </div>
         </div>
-        <a href="/loyalty" data-btn-secondary style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+        <Link href="/loyalty" data-btn-secondary style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           View benefits <Icons.ArrowRight size={16} />
-        </a>
+        </Link>
       </div>
     </div>
   );
@@ -120,7 +121,7 @@ function BookingCard({ booking }: { booking: Record<string, unknown> }): React.R
 
   return (
     <div data-booking-card style={{ position: 'relative' }}>
-      <a href={`/bookings/${booking['_id'] as string}`} data-booking-card-top style={{ textDecoration: 'none', color: 'inherit' }}>
+      <Link href={`/bookings/${booking['_id'] as string}`} data-booking-card-top style={{ textDecoration: 'none', color: 'inherit' }}>
         <div data-booking-card-image>
           {/* Image path: /images/properties/[tenantId]-thumb.jpg */}
           <img src={`/images/properties/${booking['tenantId'] as string}-thumb.jpg`} alt="" loading="lazy"
@@ -151,7 +152,7 @@ function BookingCard({ booking }: { booking: Record<string, unknown> }): React.R
             Booking #{(booking['confirmationNumber'] as string) ?? '—'}
           </div>
         </div>
-      </a>
+      </Link>
 
       <button type="button" data-btn-icon-square aria-label="More options" data-booking-card-more>
         <Icons.MoreHorizontal size={16} />

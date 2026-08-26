@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from '@stayos/auth';
@@ -36,7 +37,7 @@ export default function WishlistPage(): React.ReactElement {
         <EmptyState
           title="No saved places yet"
           description="Tap the heart icon on any property to save it here."
-          action={<a href="/accommodation" data-btn-primary>Browse accommodation</a>}
+          action={<Link href="/accommodation" data-btn-primary>Browse accommodation</Link>}
         />
       ) : (
         <div data-property-list>
@@ -59,9 +60,9 @@ export default function WishlistPage(): React.ReactElement {
                 </div>
                 <div data-property-card-body>
                   <div data-property-card-header>
-                    <a href={`/accommodation/${p['slug'] as string}`} data-property-card-name style={{ textDecoration:'none' }}>
+                    <Link href={`/accommodation/${p['slug'] as string}`} data-property-card-name style={{ textDecoration:'none' }}>
                       {p['name'] as string}
-                    </a>
+                    </Link>
                     {rating && <span data-property-card-rating><Icons.Star size={14} fill="currentColor" /> {rating.toFixed(1)}</span>}
                   </div>
                   <div data-property-card-location><Icons.MapPin size={14} /> {p['city'] as string}</div>
@@ -70,9 +71,9 @@ export default function WishlistPage(): React.ReactElement {
                       <span data-property-rate>R{((p['baseRate'] as number) ?? 0).toLocaleString()}</span>
                       <span data-property-rate-label> / night</span>
                     </div>
-                    <a href={`/accommodation/${p['slug'] as string}`} data-btn-primary style={{ padding:'var(--space-2) var(--space-4)', fontSize:'var(--text-sm)' }}>
+                    <Link href={`/accommodation/${p['slug'] as string}`} data-btn-primary style={{ padding:'var(--space-2) var(--space-4)', fontSize:'var(--text-sm)' }}>
                       View
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>
