@@ -120,6 +120,13 @@ export default function App(): React.ReactElement {
         <SessionProvider
           portalUserType="platform"
           onUnauthenticated={(redirect) => {
+            // Avoid a hard-reload loop: if we're already on a public/auth
+            // route, a failed silent-refresh just means "not logged in yet"
+            // — there's nothing to redirect away from.
+            const publicPaths = ['/login', '/forgot-password', '/reset-password'];
+            if (publicPaths.some((p) => window.location.pathname.startsWith(p))) {
+              return;
+            }
             window.location.href = `/login${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''}`;
           }}
         >
