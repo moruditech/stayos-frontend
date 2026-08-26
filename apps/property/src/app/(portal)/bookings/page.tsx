@@ -26,7 +26,7 @@ export default function BookingsPage(): React.ReactElement {
 
   const cleanFilters = Object.fromEntries(
     Object.entries(filters).filter(([, v]) => v !== '')
-  ) as unknown as Record<string, string | number>;
+  ) as unknown as Parameters<typeof api.bookings.list>[0];
 
   const { data: bookings, isLoading } = useQuery({
     queryKey: bookingKeys.list(cleanFilters),
