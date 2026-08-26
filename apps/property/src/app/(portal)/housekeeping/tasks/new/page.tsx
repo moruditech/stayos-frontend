@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -8,7 +10,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { InlineError, applyServerErrors, useToast } from '@stayos/ui';
+import { InlineError, applyServerErrors, useToast, Icons } from '@stayos/ui';
 import { roomKeys, staffKeys } from '@/lib/query-keys';
 
 // Housekeeping-relevant roles for the assignee picker.
@@ -66,7 +68,7 @@ export default function NewHousekeepingTaskPage(): React.ReactElement {
     <div data-page="new-hk-task">
       <div data-page-header>
         <div>
-          <a href="/housekeeping" data-breadcrumb>← Housekeeping</a>
+          <Link href="/housekeeping" data-breadcrumb><Icons.ChevronLeft data-breadcrumb-icon aria-hidden="true" /> Housekeeping</Link>
           <h1>New housekeeping task</h1>
         </div>
       </div>
@@ -136,7 +138,7 @@ export default function NewHousekeepingTaskPage(): React.ReactElement {
           </div>
 
           <div data-form-actions>
-            <a href="/housekeeping" data-btn-ghost>Cancel</a>
+            <Link href="/housekeeping" data-btn-ghost>Cancel</Link>
             <button type="submit" data-btn-primary disabled={createMutation.isPending}>
               {createMutation.isPending ? 'Creating…' : 'Create task'}
             </button>

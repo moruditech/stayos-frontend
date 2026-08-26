@@ -1,10 +1,12 @@
 'use client';
 
+import Link from 'next/link';
+
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { SkeletonLoader, useToast } from '@stayos/ui';
+import { SkeletonLoader, useToast, Icons } from '@stayos/ui';
 
 export default function OnboardingPage(): React.ReactElement {
   const { toast } = useToast();
@@ -60,7 +62,7 @@ export default function OnboardingPage(): React.ReactElement {
 
           return (
             <div key={key} data-onboarding-step data-complete={done || undefined}>
-              <div data-step-check aria-hidden="true">{done ? '✓' : '○'}</div>
+              <div data-step-check aria-hidden="true">{done ? <Icons.Check /> : <Icons.Circle />}</div>
               <div data-step-info>
                 <h2 data-step-name>{name}</h2>
                 {desc && <p data-step-desc>{desc}</p>}
@@ -87,7 +89,7 @@ export default function OnboardingPage(): React.ReactElement {
         <div data-onboarding-complete role="status">
           <h2>Setup complete</h2>
           <p>Your property is fully configured and ready to accept bookings.</p>
-          <a href="/dashboard" data-btn-primary>Go to dashboard</a>
+          <Link href="/dashboard" data-btn-primary>Go to dashboard</Link>
         </div>
       )}
     </div>

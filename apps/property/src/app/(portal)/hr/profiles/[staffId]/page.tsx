@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 /**
  * HR profile — TAD 11 §12.
  * Permission split:
@@ -23,8 +25,7 @@ import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
 import {
   SkeletonLoader, StatusBadge, ReadOnlyField, RoleGate, useToast,
-  Modal, InlineError, applyServerErrors, ConfirmDialog,
-} from '@stayos/ui';
+  Modal, InlineError, applyServerErrors, ConfirmDialog, Icons } from '@stayos/ui';
 import { PERMISSIONS } from '@stayos/constants';
 import { hrKeys, staffKeys } from '@/lib/query-keys';
 import { useSession } from '@stayos/auth';
@@ -126,7 +127,7 @@ export default function HrProfilePage(): React.ReactElement {
     <div data-page="hr-profile">
       <div data-page-header>
         <div>
-          <a href="/hr" data-breadcrumb>← HR</a>
+          <Link href="/hr" data-breadcrumb><Icons.ChevronLeft data-breadcrumb-icon aria-hidden="true" /> HR</Link>
           <h1>{name}</h1>
           {staffMember && (
             <p data-page-subtitle>{staffMember.role.replace(/_/g, ' ')}</p>

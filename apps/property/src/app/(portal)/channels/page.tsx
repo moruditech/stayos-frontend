@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 /**
  * Channel Management — iCal sync.
  * TAD 11 §17: calendar-level synchronisation with external OTA channels.
@@ -15,7 +17,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { SkeletonLoader, EmptyState, StatusBadge, useToast, Modal, InlineError, ConfirmDialog } from '@stayos/ui';
+import { SkeletonLoader, EmptyState, StatusBadge, useToast, Modal, InlineError, ConfirmDialog, Icons } from '@stayos/ui';
 import { channelKeys } from '@/lib/query-keys';
 
 const connectSchema = z.object({
@@ -95,7 +97,7 @@ export default function ChannelsPage(): React.ReactElement {
     <div data-page="channels">
       <div data-page-header>
         <div>
-          <a href="/settings/property" data-breadcrumb>← Settings</a>
+          <Link href="/settings/property" data-breadcrumb><Icons.ChevronLeft data-breadcrumb-icon aria-hidden="true" /> Settings</Link>
           <h1>Channel management</h1>
           <p data-page-subtitle>Sync bookings with external OTA calendars via iCal</p>
         </div>
@@ -111,7 +113,7 @@ export default function ChannelsPage(): React.ReactElement {
           also trigger a manual sync at any time.
         </p>
         <p data-info-note>
-          To export a per-room iCal feed to your OTA, go to <a href="/rooms" data-link>Rooms</a> and
+          To export a per-room iCal feed to your OTA, go to <Link href="/rooms" data-link>Rooms</Link> and
           enable the iCal export feed on the individual room.
         </p>
       </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
 import { api } from '@stayos/api-client';
@@ -12,6 +13,7 @@ import {
   useToast,
   ConfirmDialog,
   RoleGate,
+  Icons,
 } from '@stayos/ui';
 import { PERMISSIONS } from '@stayos/constants';
 import { bookingKeys } from '@/lib/query-keys';
@@ -76,7 +78,7 @@ export default function BookingDetailPage(): React.ReactElement {
     <div data-page="booking-detail">
       <div data-page-header>
         <div>
-          <a href="/bookings" data-breadcrumb>← Bookings</a>
+          <Link href="/bookings" data-breadcrumb><Icons.ChevronLeft data-breadcrumb-icon aria-hidden="true" /> Bookings</Link>
           <h1>Booking {String(b['confirmationNumber'] ?? id.slice(-8).toUpperCase())}</h1>
         </div>
         <StatusBadge status={booking.status} />
@@ -95,8 +97,8 @@ export default function BookingDetailPage(): React.ReactElement {
         <section data-detail-section>
           <h2>Stay details</h2>
           <div data-field-list>
-            <ReadOnlyField label="Guest" value={String(b['guestName'] ?? booking.guestId)} />
-            <ReadOnlyField label="Room" value={String(b['roomNumber'] ?? booking.roomId)} />
+            <ReadOnlyField label="Guest" value={`${booking.customerId?.firstName ?? ''} ${booking.customerId?.lastName ?? ''}`.trim() || '—'} />
+            <ReadOnlyField label="Room" value={booking.roomId?.roomNumber ?? '—'} />
             <ReadOnlyField label="Check-in" value={fmt(booking.checkIn)} />
             <ReadOnlyField label="Check-out" value={fmt(booking.checkOut)} />
             <ReadOnlyField label="Guests" value={`${String(b['adults'] ?? 1)} adults${b['children'] ? `, ${String(b['children'])} children` : ''}`} />
@@ -125,9 +127,9 @@ export default function BookingDetailPage(): React.ReactElement {
                   </span>
                 }
               />
-              <a href={`/folios/${String(f['_id'])}`} data-btn-ghost data-btn-sm>
+              <Link href={`/folios/${String(f['_id'])}`} data-btn-ghost data-btn-sm>
                 View folio
-              </a>
+              </Link>
             </div>
           )}
         </section>
@@ -147,9 +149,9 @@ export default function BookingDetailPage(): React.ReactElement {
             </button>
           )}
           {['confirmed', 'pending_confirmation'].includes(booking.status) && (
-            <a href={`/bookings/${id}/edit`} data-btn-ghost>
+            <Link href={`/bookings/${id}/edit`} data-btn-ghost>
               Edit booking
-            </a>
+            </Link>
           )}
         </div>
       </RoleGate>

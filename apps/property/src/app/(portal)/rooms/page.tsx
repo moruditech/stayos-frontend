@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 /**
  * Rooms & Availability — status board view.
  * The calendar matrix view lives at /rooms/calendar (separate page).
@@ -62,9 +64,9 @@ export default function RoomsPage(): React.ReactElement {
           <p data-page-subtitle>Live status board</p>
         </div>
         <div data-header-actions>
-          <a href="/rooms/calendar" data-btn-ghost>Calendar view</a>
+          <Link href="/rooms/calendar" data-btn-ghost>Calendar view</Link>
           <RoleGate perm={PERMISSIONS.ROOM_MANAGE}>
-            <a href="/rooms/new" data-btn-primary>+ Add room</a>
+            <Link href="/rooms/new" data-btn-primary>+ Add room</Link>
           </RoleGate>
         </div>
       </div>
@@ -90,7 +92,7 @@ export default function RoomsPage(): React.ReactElement {
           description="Add your first room to get started."
           action={
             <RoleGate perm={PERMISSIONS.ROOM_MANAGE}>
-              <a href="/rooms/new" data-btn-primary>Add room</a>
+              <Link href="/rooms/new" data-btn-primary>Add room</Link>
             </RoleGate>
           }
         />
@@ -114,9 +116,9 @@ export default function RoomsPage(): React.ReactElement {
               {rooms.map((room) => (
                 <tr key={room._id} data-room-row>
                   <td data-room-number-cell>
-                    <a href={`/rooms/${room._id}`} data-table-link>
+                    <Link href={`/rooms/${room._id}`} data-table-link>
                       {room.roomNumber}
-                    </a>
+                    </Link>
                   </td>
                   <td>{room.type}</td>
                   <td>{String((room as unknown as Record<string,unknown>)['floor'] ?? '—')}</td>

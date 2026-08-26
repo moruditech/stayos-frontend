@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 /**
  * Procurement hub — TAD 11 §14.
  * The entire module sits behind a single procurement:manage permission.
@@ -8,7 +10,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
-import { SkeletonLoader, EmptyState, StatusBadge } from '@stayos/ui';
+import { SkeletonLoader, EmptyState, StatusBadge, Icons } from '@stayos/ui';
 import { procurementKeys } from '@/lib/query-keys';
 
 export default function ProcurementSuppliersPage(): React.ReactElement {
@@ -27,9 +29,9 @@ export default function ProcurementSuppliersPage(): React.ReactElement {
     <div data-page="procurement">
       <div data-page-header>
         <h1>Procurement</h1>
-        <a href="/procurement/purchase-orders" data-btn-ghost>Purchase orders</a>
-        <a href="/procurement/stock-items" data-btn-ghost>Stock items</a>
-        <a href="/procurement/vendor-contracts" data-btn-ghost>Contracts</a>
+        <Link href="/procurement/purchase-orders" data-btn-ghost>Purchase orders</Link>
+        <Link href="/procurement/stock-items" data-btn-ghost>Stock items</Link>
+        <Link href="/procurement/vendor-contracts" data-btn-ghost>Contracts</Link>
       </div>
 
       {/* Low-stock alert */}
@@ -37,16 +39,16 @@ export default function ProcurementSuppliersPage(): React.ReactElement {
         <div role="alert" data-alert data-alert-warning>
           <strong>{(lowStock as unknown[]).length} items below reorder level.</strong>
           {' '}
-          <a href="/procurement/stock-items?filter=low" data-alert-link>
-            View low stock →
-          </a>
+          <Link href="/procurement/stock-items?filter=low" data-alert-link>
+            View low stock <Icons.ArrowRight data-alert-link-icon aria-hidden="true" />
+          </Link>
         </div>
       )}
 
       <section data-procurement-section>
         <div data-section-header>
           <h2>Suppliers</h2>
-          <a href="/procurement/suppliers/new" data-btn-primary>+ Add supplier</a>
+          <Link href="/procurement/suppliers/new" data-btn-primary>+ Add supplier</Link>
         </div>
 
         {suppliersLoading ? (
@@ -55,7 +57,7 @@ export default function ProcurementSuppliersPage(): React.ReactElement {
           <EmptyState
             title="No suppliers"
             description="Add suppliers to manage procurement."
-            action={<a href="/procurement/suppliers/new" data-btn-primary>Add supplier</a>}
+            action={<Link href="/procurement/suppliers/new" data-btn-primary>Add supplier</Link>}
           />
         ) : (
           <table data-table>
@@ -78,10 +80,9 @@ export default function ProcurementSuppliersPage(): React.ReactElement {
                     <td>{String(sup['category'] ?? '—')}</td>
                     <td><StatusBadge status={String(sup['status'] ?? 'active')} /></td>
                     <td>
-                      <a
-                        href={`/procurement/suppliers/${String(sup['_id'])}`}
+                      <Link href={`/procurement/suppliers/${String(sup['_id'])}`}
                         data-btn-ghost data-btn-sm
-                      >View</a>
+                      >View</Link>
                     </td>
                   </tr>
                 );

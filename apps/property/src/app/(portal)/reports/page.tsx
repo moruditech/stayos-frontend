@@ -17,7 +17,8 @@
  */
 
 import React from 'react';
-import { RoleGate } from '@stayos/ui';
+import Link from 'next/link';
+import { RoleGate, Icons } from '@stayos/ui';
 import { PERMISSIONS } from '@stayos/constants';
 
 interface ReportEntry {
@@ -94,18 +95,18 @@ export default function ReportsPage(): React.ReactElement {
       <div data-page-header>
         <h1>Reports</h1>
         <RoleGate perm={PERMISSIONS.REPORT_EXPORT}>
-          <a href="/reports/export" data-btn-ghost>Export data</a>
+          <Link href="/reports/export" data-btn-ghost>Export data</Link>
         </RoleGate>
       </div>
 
       <div data-report-grid>
         {REPORTS.map((report) => (
           <RoleGate key={report.id} perm={report.perm}>
-            <a href={report.href} data-report-card>
+            <Link href={report.href} data-report-card>
               <h2 data-report-title>{report.title}</h2>
               <p data-report-description>{report.description}</p>
-              <span data-report-link>View report →</span>
-            </a>
+              <span data-report-link>View report <Icons.ArrowRight aria-hidden="true" /></span>
+            </Link>
           </RoleGate>
         ))}
       </div>

@@ -7,6 +7,7 @@
  */
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -130,9 +131,9 @@ export default function SupportPage(): React.ReactElement {
                       : '—'}
                   </span>
                   <StatusBadge status={String(t['status'] ?? 'open')} />
-                  <a href={`/support/${String(t['_id'])}`} data-btn-ghost data-btn-sm>
+                  <Link href={`/support/${String(t['_id'])}`} data-btn-ghost data-btn-sm>
                     View
-                  </a>
+                  </Link>
                 </div>
               </div>
             );

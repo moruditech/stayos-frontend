@@ -1,13 +1,14 @@
 'use client';
 
+import Link from 'next/link';
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
 import {
-  SkeletonLoader, StatusBadge, ReadOnlyField, RoleGate, useToast, ConfirmDialog,
-} from '@stayos/ui';
+  SkeletonLoader, StatusBadge, ReadOnlyField, RoleGate, useToast, ConfirmDialog, Icons } from '@stayos/ui';
 import { PERMISSIONS } from '@stayos/constants';
 import { maintenanceKeys, staffKeys } from '@/lib/query-keys';
 
@@ -92,7 +93,7 @@ export default function WorkOrderDetailPage(): React.ReactElement {
     <div data-page="wo-detail">
       <div data-page-header>
         <div>
-          <a href="/maintenance/work-orders" data-breadcrumb>← Work orders</a>
+          <Link href="/maintenance/work-orders" data-breadcrumb><Icons.ChevronLeft data-breadcrumb-icon aria-hidden="true" /> Work orders</Link>
           <h1>WO-{id.slice(-4).toUpperCase()}</h1>
         </div>
         <div data-header-right>

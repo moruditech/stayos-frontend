@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 /**
  * Folio detail — staff view.
  * Matches the design image showing charges table, payments summary,
@@ -32,8 +34,7 @@ import {
   Modal,
   InlineError,
   applyServerErrors,
-  DownloadButton,
-} from '@stayos/ui';
+  DownloadButton, Icons } from '@stayos/ui';
 import { PERMISSIONS } from '@stayos/constants';
 import { folioKeys } from '@/lib/query-keys';
 
@@ -128,7 +129,7 @@ export default function FolioDetailPage(): React.ReactElement {
     <div data-page="folio-detail">
       <div data-page-header>
         <div>
-          <a href="/bookings" data-breadcrumb>← Bookings</a>
+          <Link href="/bookings" data-breadcrumb><Icons.ChevronLeft data-breadcrumb-icon aria-hidden="true" /> Bookings</Link>
           <h1>Folio {f.folioNumber}</h1>
         </div>
         <div data-header-actions>

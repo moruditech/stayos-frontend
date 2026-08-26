@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 /**
  * Staff management — property settings.
  *
@@ -28,8 +30,7 @@ import {
   Modal,
   InlineError,
   applyServerErrors,
-  ConfirmDialog,
-} from '@stayos/ui';
+  ConfirmDialog, Icons } from '@stayos/ui';
 import { PERMISSIONS } from '@stayos/constants';
 import { staffKeys } from '@/lib/query-keys';
 
@@ -109,7 +110,7 @@ export default function StaffSettingsPage(): React.ReactElement {
     <div data-page="staff-settings">
       <div data-page-header>
         <div>
-          <a href="/settings/property" data-breadcrumb>← Settings</a>
+          <Link href="/settings/property" data-breadcrumb><Icons.ChevronLeft data-breadcrumb-icon aria-hidden="true" /> Settings</Link>
           <h1>Staff accounts</h1>
         </div>
         <RoleGate perm={PERMISSIONS.STAFF_MANAGE}>
@@ -148,17 +149,16 @@ export default function StaffSettingsPage(): React.ReactElement {
                 <td><StatusBadge status={s.status} /></td>
                 <td>
                   <div data-action-cluster>
-                    <a href={`/settings/staff/${s._id}`} data-btn-ghost data-btn-sm>
+                    <Link href={`/settings/staff/${s._id}`} data-btn-ghost data-btn-sm>
                       Edit
-                    </a>
+                    </Link>
                     {/* Permission overrides — separate gate from staff:manage */}
                     <RoleGate perm={PERMISSIONS.STAFF_PERMISSIONS_MANAGE}>
-                      <a
-                        href={`/settings/staff/${s._id}?tab=permissions`}
+                      <Link href={`/settings/staff/${s._id}?tab=permissions`}
                         data-btn-ghost data-btn-sm
                       >
                         Permissions
-                      </a>
+                      </Link>
                     </RoleGate>
                     <RoleGate perm={PERMISSIONS.STAFF_MANAGE}>
                       <button

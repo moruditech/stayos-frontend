@@ -1,10 +1,12 @@
 'use client';
 
+import Link from 'next/link';
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { SkeletonLoader, ReadOnlyField, RoleGate, useToast, ConfirmDialog } from '@stayos/ui';
+import { SkeletonLoader, ReadOnlyField, RoleGate, useToast, ConfirmDialog, Icons } from '@stayos/ui';
 import { PERMISSIONS } from '@stayos/constants';
 
 function fmtCurrency(n: number): string {
@@ -55,7 +57,7 @@ export default function SubscriptionPage(): React.ReactElement {
     <div data-page="subscription">
       <div data-page-header>
         <div>
-          <a href="/settings/property" data-breadcrumb>← Settings</a>
+          <Link href="/settings/property" data-breadcrumb><Icons.ChevronLeft data-breadcrumb-icon aria-hidden="true" /> Settings</Link>
           <h1>Subscription</h1>
         </div>
       </div>
@@ -75,7 +77,7 @@ export default function SubscriptionPage(): React.ReactElement {
             <h3>Included features</h3>
             <ul data-feature-list>
               {features.map((f) => (
-                <li key={f}><span data-check aria-hidden="true">✓</span> {f.replace(/_/g, ' ')}</li>
+                <li key={f}><Icons.Check data-check aria-hidden="true" /> {f.replace(/_/g, ' ')}</li>
               ))}
             </ul>
           </div>

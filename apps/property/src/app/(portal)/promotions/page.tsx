@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -115,7 +117,7 @@ export default function PromotionsPage(): React.ReactElement {
                   <td><StatusBadge status={String(p['status'] ?? 'active')} /></td>
                   <td>
                     <div data-action-cluster>
-                      <a href={`/promotions/${id}/usage`} data-btn-ghost data-btn-sm>Usage</a>
+                      <Link href={`/promotions/${id}/usage`} data-btn-ghost data-btn-sm>Usage</Link>
                       <button type="button" data-btn-ghost data-btn-sm data-destructive
                         onClick={() => setDeleteId(id)}>Delete</button>
                     </div>

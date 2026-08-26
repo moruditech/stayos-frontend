@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -10,8 +12,7 @@ import {
   ReadOnlyField,
   InlineError,
   useToast,
-  RoleGate,
-} from '@stayos/ui';
+  RoleGate, Icons } from '@stayos/ui';
 import { PERMISSIONS } from '@stayos/constants';
 
 const propertyKeys = { me: () => ['properties', 'me'] as const };
@@ -68,12 +69,12 @@ export default function PropertySettingsPage(): React.ReactElement {
     <div data-page="property-settings">
       <div data-page-header>
         <div>
-          <a href="/settings" data-breadcrumb>← Settings</a>
+          <Link href="/settings" data-breadcrumb><Icons.ChevronLeft data-breadcrumb-icon aria-hidden="true" /> Settings</Link>
           <h1>Property settings</h1>
         </div>
         <div data-header-actions>
-          <a href="/settings/staff" data-btn-ghost>Staff accounts</a>
-          <a href="/settings/subscription" data-btn-ghost>Subscription</a>
+          <Link href="/settings/staff" data-btn-ghost>Staff accounts</Link>
+          <Link href="/settings/subscription" data-btn-ghost>Subscription</Link>
           <RoleGate perm={PERMISSIONS.PROPERTY_MANAGE}>
             {!editing && (
               <button type="button" data-btn-ghost onClick={startEditing}>
@@ -134,26 +135,26 @@ export default function PropertySettingsPage(): React.ReactElement {
       )}
 
       <div data-settings-links>
-        <a href="/settings/staff" data-settings-nav-item>
+        <Link href="/settings/staff" data-settings-nav-item>
           <span data-settings-nav-label>Staff accounts</span>
-          <span data-settings-nav-arrow>→</span>
-        </a>
-        <a href="/settings/subscription" data-settings-nav-item>
+          <Icons.ChevronRight data-settings-nav-arrow aria-hidden="true" />
+        </Link>
+        <Link href="/settings/subscription" data-settings-nav-item>
           <span data-settings-nav-label>Subscription &amp; billing</span>
-          <span data-settings-nav-arrow>→</span>
-        </a>
-        <a href="/settings/agency-requests" data-settings-nav-item>
+          <Icons.ChevronRight data-settings-nav-arrow aria-hidden="true" />
+        </Link>
+        <Link href="/settings/agency-requests" data-settings-nav-item>
           <span data-settings-nav-label>Agency management requests</span>
-          <span data-settings-nav-arrow>→</span>
-        </a>
-        <a href="/channels" data-settings-nav-item>
+          <Icons.ChevronRight data-settings-nav-arrow aria-hidden="true" />
+        </Link>
+        <Link href="/channels" data-settings-nav-item>
           <span data-settings-nav-label>Channel management (iCal)</span>
-          <span data-settings-nav-arrow>→</span>
-        </a>
-        <a href="/onboarding" data-settings-nav-item>
+          <Icons.ChevronRight data-settings-nav-arrow aria-hidden="true" />
+        </Link>
+        <Link href="/onboarding" data-settings-nav-item>
           <span data-settings-nav-label>Onboarding wizard</span>
-          <span data-settings-nav-arrow>→</span>
-        </a>
+          <Icons.ChevronRight data-settings-nav-arrow aria-hidden="true" />
+        </Link>
       </div>
     </div>
   );

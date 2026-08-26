@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -7,7 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { SkeletonLoader, EmptyState, StatusBadge, useToast, Modal, InlineError, applyServerErrors } from '@stayos/ui';
+import { SkeletonLoader, EmptyState, StatusBadge, useToast, Modal, InlineError, applyServerErrors, Icons } from '@stayos/ui';
 import { maintenanceKeys } from '@/lib/query-keys';
 
 const assetSchema = z.object({
@@ -51,11 +53,11 @@ export default function AssetsPage(): React.ReactElement {
     <div data-page="assets">
       <div data-page-header>
         <div>
-          <a href="/maintenance/work-orders" data-breadcrumb>← Maintenance</a>
+          <Link href="/maintenance/work-orders" data-breadcrumb><Icons.ChevronLeft data-breadcrumb-icon aria-hidden="true" /> Maintenance</Link>
           <h1>Asset register</h1>
         </div>
         <div data-header-actions>
-          <a href="/maintenance/schedules" data-btn-ghost>Schedules</a>
+          <Link href="/maintenance/schedules" data-btn-ghost>Schedules</Link>
           <button type="button" data-btn-primary onClick={() => setShowNew(true)}>
             + Add asset
           </button>
@@ -95,12 +97,11 @@ export default function AssetsPage(): React.ReactElement {
                 </td>
                 <td><StatusBadge status={asset.status} /></td>
                 <td>
-                  <a
-                    href={`/maintenance/assets/${asset._id}`}
+                  <Link href={`/maintenance/assets/${asset._id}`}
                     data-btn-ghost data-btn-sm
                   >
                     View
-                  </a>
+                  </Link>
                 </td>
               </tr>
             ))}

@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 /**
  * Maintenance — work orders list and summary.
  * Matches the design image showing metrics bar, work order table with
@@ -107,7 +109,7 @@ export default function MaintenancePage(): React.ReactElement {
           <p data-page-subtitle>Manage work orders, assets and preventive maintenance</p>
         </div>
         <div data-header-actions>
-          <a href="/maintenance/assets" data-btn-ghost>Assets</a>
+          <Link href="/maintenance/assets" data-btn-ghost>Assets</Link>
           <button
             type="button"
             data-btn-primary
@@ -190,9 +192,9 @@ export default function MaintenancePage(): React.ReactElement {
                           : '—'}
                       </td>
                       <td>
-                        <a href={`/maintenance/work-orders/${wo._id}`} data-btn-ghost data-btn-sm>
+                        <Link href={`/maintenance/work-orders/${wo._id}`} data-btn-ghost data-btn-sm>
                           View
-                        </a>
+                        </Link>
                       </td>
                     </tr>
                   );
@@ -206,7 +208,7 @@ export default function MaintenancePage(): React.ReactElement {
         <section data-maintenance-section data-pm-section>
           <div data-section-header>
             <h2>Preventive maintenance</h2>
-            <a href="/maintenance/schedules" data-link-action>View all</a>
+            <Link href="/maintenance/schedules" data-link-action>View all</Link>
           </div>
           {!schedules?.length ? (
             <p data-empty-note>No schedules configured.</p>

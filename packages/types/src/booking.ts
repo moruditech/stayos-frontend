@@ -2,7 +2,7 @@ export interface Booking {
   _id: string;
   tenantId: string;
   roomId: string;
-  guestId: string;
+  customerId: string;
   checkIn: string;
   checkOut: string;
   source: string; // booking origin — distinct axis from paymentSource
@@ -28,6 +28,27 @@ export interface Booking {
   version: number;
   createdAt: string;
   updatedAt: string;
+}
+
+// GET /bookings and GET /bookings/:id populate customerId and roomId (see
+// bookings.service.js#listBookings / getBooking) — those two fields arrive
+// as embedded objects, not raw ObjectId strings, on every staff-facing read.
+// Use this type (not the bare Booking above) wherever a booking came back
+// from the list/detail endpoints.
+export interface PopulatedBooking extends Omit<Booking, 'customerId' | 'roomId'> {
+  customerId: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email?: string;
+    phone?: string;
+  };
+  roomId: {
+    _id: string;
+    roomNumber: string;
+    type: string;
+    floor?: number;
+  };
 }
 
 export interface CreateBookingInput {

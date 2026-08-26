@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -7,7 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { SkeletonLoader, EmptyState, useToast, Modal, InlineError } from '@stayos/ui';
+import { SkeletonLoader, EmptyState, useToast, Modal, InlineError, Icons } from '@stayos/ui';
 import { expenseKeys } from '@/lib/query-keys';
 
 const floatSchema = z.object({
@@ -74,7 +76,7 @@ export default function PettyCashFloatsPage(): React.ReactElement {
     <div data-page="pettycash-floats">
       <div data-page-header>
         <div>
-          <a href="/expenses" data-breadcrumb>← Expenses</a>
+          <Link href="/expenses" data-breadcrumb><Icons.ChevronLeft data-breadcrumb-icon aria-hidden="true" /> Expenses</Link>
           <h1>Petty cash floats</h1>
         </div>
         <button type="button" data-btn-primary onClick={() => setShowNew(true)}>
@@ -109,7 +111,7 @@ export default function PettyCashFloatsPage(): React.ReactElement {
                   </div>
                 </div>
                 <div data-float-actions>
-                  <a href={`/pettycash/floats/${id}/ledger`} data-btn-ghost data-btn-sm>View ledger</a>
+                  <Link href={`/pettycash/floats/${id}/ledger`} data-btn-ghost data-btn-sm>View ledger</Link>
                   <button type="button" data-btn-ghost data-btn-sm
                     onClick={() => { setReconcilingId(id); reconForm.reset(); }}>
                     Reconcile

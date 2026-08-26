@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -7,7 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { SkeletonLoader, EmptyState, useToast, Modal, InlineError, ConfirmDialog } from '@stayos/ui';
+import { SkeletonLoader, EmptyState, useToast, Modal, InlineError, ConfirmDialog, Icons } from '@stayos/ui';
 import { maintenanceKeys } from '@/lib/query-keys';
 
 const scheduleSchema = z.object({
@@ -76,7 +78,7 @@ export default function SchedulesPage(): React.ReactElement {
     <div data-page="schedules">
       <div data-page-header>
         <div>
-          <a href="/maintenance/work-orders" data-breadcrumb>← Maintenance</a>
+          <Link href="/maintenance/work-orders" data-breadcrumb><Icons.ChevronLeft data-breadcrumb-icon aria-hidden="true" /> Maintenance</Link>
           <h1>Preventive maintenance schedules</h1>
         </div>
         <button type="button" data-btn-primary onClick={() => setShowNew(true)}>

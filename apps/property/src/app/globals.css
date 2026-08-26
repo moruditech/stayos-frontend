@@ -862,6 +862,19 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   margin: 0 auto;
 }
 
+/* ── Breadcrumb (back-link) ───────────────────────────────────────────────── */
+[data-breadcrumb] {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-2);
+}
+[data-breadcrumb]:hover { color: var(--color-primary); }
+[data-breadcrumb-icon] { width: 16px; height: 16px; }
+
 /* ── Page-level layout helpers ────────────────────────────────────────────── */
 [data-page-header] {
   display: flex;

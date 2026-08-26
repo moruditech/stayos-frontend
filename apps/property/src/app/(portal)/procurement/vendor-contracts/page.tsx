@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -7,7 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { SkeletonLoader, EmptyState, StatusBadge, useToast, Modal, InlineError, ConfirmDialog } from '@stayos/ui';
+import { SkeletonLoader, EmptyState, StatusBadge, useToast, Modal, InlineError, ConfirmDialog, Icons } from '@stayos/ui';
 import { procurementKeys } from '@/lib/query-keys';
 
 const contractSchema = z.object({
@@ -107,7 +109,7 @@ export default function VendorContractsPage(): React.ReactElement {
     <div data-page="vendor-contracts">
       <div data-page-header>
         <div>
-          <a href="/procurement/suppliers" data-breadcrumb>← Procurement</a>
+          <Link href="/procurement/suppliers" data-breadcrumb><Icons.ChevronLeft data-breadcrumb-icon aria-hidden="true" /> Procurement</Link>
           <h1>Vendor contracts</h1>
         </div>
         <button type="button" data-btn-primary onClick={() => setShowNew(true)}>+ Add contract</button>
@@ -155,7 +157,7 @@ export default function VendorContractsPage(): React.ReactElement {
                   <td><StatusBadge status={String(c['status'] ?? 'active')} /></td>
                   <td>
                     <div data-action-cluster>
-                      <a href={`/procurement/vendor-contracts/${id}`} data-btn-ghost data-btn-sm>View</a>
+                      <Link href={`/procurement/vendor-contracts/${id}`} data-btn-ghost data-btn-sm>View</Link>
                       <button type="button" data-btn-ghost data-btn-sm
                         onClick={() => { setRenewingId(id); renewForm.reset(); }}>Renew</button>
                       <button type="button" data-btn-ghost data-btn-sm data-destructive

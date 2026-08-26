@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 /**
  * Individual staff member edit page.
  * TAD 11 §2: two separate permission gates enforced at the action level:
@@ -24,8 +26,7 @@ import {
   RoleGate,
   InlineError,
   applyServerErrors,
-  useToast,
-} from '@stayos/ui';
+  useToast, Icons } from '@stayos/ui';
 import { PERMISSIONS, PROPERTY_ROLES } from '@stayos/constants';
 import { staffKeys } from '@/lib/query-keys';
 
@@ -127,7 +128,7 @@ function StaffDetailPageInner(): React.ReactElement {
     <div data-page="staff-detail">
       <div data-page-header>
         <div>
-          <a href="/settings/staff" data-breadcrumb>← Staff accounts</a>
+          <Link href="/settings/staff" data-breadcrumb><Icons.ChevronLeft data-breadcrumb-icon aria-hidden="true" /> Staff accounts</Link>
           <h1>{staff.firstName} {staff.lastName}</h1>
         </div>
         <StatusBadge status={staff.status} />

@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -7,9 +9,12 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@stayos/api-client';
 import { useSessionContext, useSessionLoading } from '@stayos/auth';
 import { loginSchema } from '@stayos/validators';
-import { InlineError, applyServerErrors } from '@stayos/ui';
+import { InlineError, applyServerErrors, Icons } from '@stayos/ui';
 import type { LoginInput } from '@stayos/validators';
 import type { ApiError } from '@stayos/api-client';
+
+const PUBLIC_SIGNUP_URL =
+  `${process.env['NEXT_PUBLIC_PUBLIC_SITE_URL'] ?? 'https://stayos.co.za'}/signup`;
 
 function LoginPageInner(): React.ReactElement {
   const router = useRouter();
@@ -261,9 +266,9 @@ function LoginPageInner(): React.ReactElement {
               <input type="checkbox" {...form.register('rememberMe')} />
               Remember me
             </label>
-            <a href="/forgot-password" data-link>
+            <Link href="/forgot-password" data-link>
               Forgot password?
-            </a>
+            </Link>
           </div>
 
           {formError && <span role="alert" data-form-error>{formError}</span>}
@@ -292,8 +297,12 @@ function LoginPageInner(): React.ReactElement {
 
           <div data-login-signup-hint>
             New to the Property Portal?{' '}
-            <a href="/register" data-link>
-              Create account →
+            {/* /register isn't a route in this app — new tenants sign up
+                on the public marketing site (apps/public/src/app/signup),
+                a separate Next.js app, so this is a real cross-app link
+                rather than an internal Link. */}
+            <a href={PUBLIC_SIGNUP_URL} data-link>
+              Create account <Icons.ArrowRight aria-hidden="true" />
             </a>
           </div>
         </form>

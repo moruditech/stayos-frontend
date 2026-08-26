@@ -1,10 +1,16 @@
 import type { Session } from '@stayos/types';
 import { hasAnyPermission } from '@stayos/auth';
+import type { LucideIcon } from './icons';
 
 export interface NavItem {
   id: string;
   label: string;
   path: string;
+  /**
+   * Icon shown next to the label in the sidebar. Optional — group headers
+   * (no path) typically omit this.
+   */
+  icon?: LucideIcon;
   /**
    * One or more permission strings from @stayos/constants PERMISSIONS.
    * ANY one matching grants access. Omit to allow any authenticated user.

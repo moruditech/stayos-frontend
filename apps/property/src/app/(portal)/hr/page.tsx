@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
@@ -24,7 +26,7 @@ export default function HrHubPage(): React.ReactElement {
         <EmptyState
           title="No staff"
           description="Add staff members to manage their HR records."
-          action={<a href="/settings/staff" data-btn-primary>Manage staff accounts</a>}
+          action={<Link href="/settings/staff" data-btn-primary>Manage staff accounts</Link>}
         />
       ) : (
         <div data-hr-staff-list>
@@ -44,12 +46,12 @@ export default function HrHubPage(): React.ReactElement {
 
       <div data-hr-links>
         <h2>HR tools</h2>
-        <a href="/roster" data-settings-nav-item>
+        <Link href="/roster" data-settings-nav-item>
           <span>Roster &amp; Time Clock</span><span data-arrow>›</span>
-        </a>
-        <a href="/hr/timesheets" data-settings-nav-item>
+        </Link>
+        <Link href="/hr/timesheets" data-settings-nav-item>
           <span>Timesheets &amp; payroll export</span><span data-arrow>›</span>
-        </a>
+        </Link>
       </div>
     </div>
   );

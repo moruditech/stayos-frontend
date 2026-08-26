@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 /**
  * Rooms calendar matrix — forward-looking booking grid.
  * TAD 11 §4: the calendar matrix is for forward-looking booking placement,
@@ -11,7 +13,7 @@
 import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
-import { SkeletonLoader, useSocketEvent } from '@stayos/ui';
+import { SkeletonLoader, useSocketEvent, Icons } from '@stayos/ui';
 import { SOCKET_EVENTS } from '@stayos/constants';
 import { roomKeys } from '@/lib/query-keys';
 
@@ -77,13 +79,13 @@ export default function CalendarPage(): React.ReactElement {
     <div data-page="rooms-calendar">
       <div data-page-header>
         <div>
-          <a href="/rooms" data-breadcrumb>← Rooms</a>
+          <Link href="/rooms" data-breadcrumb><Icons.ChevronLeft data-breadcrumb-icon aria-hidden="true" /> Rooms</Link>
           <h1>Rooms &amp; Availability</h1>
           <p data-page-subtitle>Calendar view</p>
         </div>
         <div data-header-actions>
-          <a href="/rooms" data-btn-ghost>Status board</a>
-          <a href="/bookings/new" data-btn-primary>+ New booking</a>
+          <Link href="/rooms" data-btn-ghost>Status board</Link>
+          <Link href="/bookings/new" data-btn-primary>+ New booking</Link>
         </div>
       </div>
 
@@ -160,14 +162,13 @@ export default function CalendarPage(): React.ReactElement {
                         data-today={iso === today || undefined}
                       >
                         {cell?.bookingId ? (
-                          <a
-                            href={`/bookings/${cell.bookingId}`}
+                          <Link href={`/bookings/${cell.bookingId}`}
                             data-booking-chip
                             style={{ backgroundColor: statusColor[cell.status] ?? statusColor['confirmed'] }}
                             title={cell.guestName}
                           >
                             <span data-booking-chip-guest>{cell.guestName}</span>
-                          </a>
+                          </Link>
                         ) : cell?.status === 'blocked' ? (
                           <div data-blocked-chip>Blocked</div>
                         ) : null}

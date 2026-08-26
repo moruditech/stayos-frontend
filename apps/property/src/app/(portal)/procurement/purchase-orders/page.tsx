@@ -1,10 +1,12 @@
 'use client';
 
+import Link from 'next/link';
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { SkeletonLoader, EmptyState, StatusBadge, useToast, ConfirmDialog } from '@stayos/ui';
+import { SkeletonLoader, EmptyState, StatusBadge, useToast, ConfirmDialog, Icons } from '@stayos/ui';
 import { procurementKeys } from '@/lib/query-keys';
 
 function fmtCurrency(n: number): string {
@@ -51,17 +53,17 @@ export default function PurchaseOrdersPage(): React.ReactElement {
     <div data-page="purchase-orders">
       <div data-page-header>
         <div>
-          <a href="/procurement/suppliers" data-breadcrumb>← Procurement</a>
+          <Link href="/procurement/suppliers" data-breadcrumb><Icons.ChevronLeft data-breadcrumb-icon aria-hidden="true" /> Procurement</Link>
           <h1>Purchase orders</h1>
         </div>
-        <a href="/procurement/purchase-orders/new" data-btn-primary>+ New order</a>
+        <Link href="/procurement/purchase-orders/new" data-btn-primary>+ New order</Link>
       </div>
 
       {isLoading ? <SkeletonLoader rows={4} /> : !orders?.length ? (
         <EmptyState
           title="No purchase orders"
           description="Create purchase orders to track orders from suppliers."
-          action={<a href="/procurement/purchase-orders/new" data-btn-primary>Create first order</a>}
+          action={<Link href="/procurement/purchase-orders/new" data-btn-primary>Create first order</Link>}
         />
       ) : (
         <table data-table>
@@ -76,9 +78,9 @@ export default function PurchaseOrdersPage(): React.ReactElement {
               const total = o['totalAmount'] != null ? fmtCurrency(Number(o['totalAmount'])) : '—';
               return (
                 <tr key={id}>
-                  <td><a href={`/procurement/purchase-orders/${id}`} data-table-link>
+                  <td><Link href={`/procurement/purchase-orders/${id}`} data-table-link>
                     PO-{id.slice(-6).toUpperCase()}
-                  </a></td>
+                  </Link></td>
                   <td>{String(o['supplierName'] ?? o['supplierId'] ?? '—')}</td>
                   <td>{o['createdAt'] ? fmtDate(String(o['createdAt'])) : '—'}</td>
                   <td>{total}</td>
@@ -95,7 +97,7 @@ export default function PurchaseOrdersPage(): React.ReactElement {
                           Mark received
                         </button>
                       )}
-                      <a href={`/procurement/purchase-orders/${id}`} data-btn-ghost data-btn-sm>View</a>
+                      <Link href={`/procurement/purchase-orders/${id}`} data-btn-ghost data-btn-sm>View</Link>
                     </div>
                   </td>
                 </tr>

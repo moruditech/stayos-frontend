@@ -1,19 +1,25 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
 import { SkeletonLoader, StatusBadge } from '@stayos/ui';
 import { dashboardKeys, bookingKeys, roomKeys } from '@/lib/query-keys';
 
-function formatCurrency(n: number): string {
-  return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(n);
+// tenants.service.js#getDashboard only ever returns these four counts —
+// occupancy%, room revenue and RevPAR are not computed server-side yet.
+interface DashboardSummary {
+  arrivalsToday: number;
+  departuresToday: number;
+  currentGuests: number;
+  totalRooms: number;
 }
 
 export default function DashboardPage(): React.ReactElement {
   const { data: dashboard, isLoading } = useQuery({
     queryKey: dashboardKeys.summary(),
-    queryFn: () => api.tenants.getDashboard(),
+    queryFn: () => api.tenants.getDashboard() as unknown as Promise<DashboardSummary>,
     staleTime: 60_000,
   });
 
@@ -31,21 +37,28 @@ export default function DashboardPage(): React.ReactElement {
 
   if (isLoading) return <SkeletonLoader rows={6} />;
 
-  const d = dashboard as unknown as Record<string, unknown> ?? {};
+  const d = dashboard;
+  // Occupancy isn't returned by the backend — derived here from the two
+  // counts it does return (checked-in bookings ≈ occupied rooms). Remove
+  // this once tenants.service.js#getDashboard returns a real occupancyRate.
+  const occupancyRate =
+    d && d.totalRooms > 0 ? Math.round((d.currentGuests / d.totalRooms) * 100) : null;
+
   const metrics = [
-    { label: 'Occupancy', value: d['occupancyRate'] != null ? `${Math.round(Number(d['occupancyRate']))}%` : '—' },
-    { label: 'Arrivals today', value: d['arrivalsToday'] ?? '—' },
-    { label: 'Departures today', value: d['departuresToday'] ?? '—' },
-    { label: 'In house', value: d['inHouseGuests'] ?? '—' },
-    { label: 'Room revenue', value: d['roomRevenueToday'] != null ? formatCurrency(Number(d['roomRevenueToday'])) : '—' },
-    { label: 'RevPAR', value: d['revpar'] != null ? formatCurrency(Number(d['revpar'])) : '—' },
+    { label: 'Occupancy', value: occupancyRate != null ? `${occupancyRate}%` : '—' },
+    { label: 'Arrivals today', value: d?.arrivalsToday ?? '—' },
+    { label: 'Departures today', value: d?.departuresToday ?? '—' },
+    { label: 'In house', value: d?.currentGuests ?? '—' },
+    // Not available yet — backend has no room-rate revenue rollup.
+    { label: 'Room revenue', value: '—' },
+    { label: 'RevPAR', value: '—' },
   ];
 
   return (
     <div data-page="dashboard">
       <div data-page-header>
         <h1>Dashboard</h1>
-        <a href="/rooms/calendar" data-btn-ghost>View calendar</a>
+        <Link href="/rooms/calendar" data-btn-ghost>View calendar</Link>
       </div>
 
       {/* Key metrics */}
@@ -63,7 +76,7 @@ export default function DashboardPage(): React.ReactElement {
         <section data-dashboard-section>
           <div data-section-header>
             <h2>Arrivals today</h2>
-            <a href="/bookings?checkIn=today" data-link-action>View all</a>
+            <Link href="/bookings?checkIn=today" data-link-action>View all</Link>
           </div>
           {!arrivals?.length ? (
             <p data-empty-note>No arrivals today.</p>
@@ -72,11 +85,13 @@ export default function DashboardPage(): React.ReactElement {
               {(arrivals ?? []).slice(0, 6).map((booking) => (
                 <div key={booking._id} data-arrival-row>
                   <div data-arrival-guest>
-                    <span data-guest-name>{String((booking as unknown as Record<string,unknown>)['guestName'] ?? booking.guestId)}</span>
-                    <span data-guest-room>Room {String((booking as unknown as Record<string,unknown>)['roomNumber'] ?? '—')}</span>
+                    <span data-guest-name>
+                      {`${booking.customerId?.firstName ?? ''} ${booking.customerId?.lastName ?? ''}`.trim() || '—'}
+                    </span>
+                    <span data-guest-room>Room {booking.roomId?.roomNumber ?? '—'}</span>
                   </div>
                   <StatusBadge status={booking.status} />
-                  <a href={`/bookings/${booking._id}`} data-btn-ghost data-btn-sm>View</a>
+                  <Link href={`/bookings/${booking._id}`} data-btn-ghost data-btn-sm>View</Link>
                 </div>
               ))}
             </div>
@@ -87,7 +102,7 @@ export default function DashboardPage(): React.ReactElement {
         <section data-dashboard-section>
           <div data-section-header>
             <h2>Room status</h2>
-            <a href="/rooms" data-link-action>Status board</a>
+            <Link href="/rooms" data-link-action>Status board</Link>
           </div>
           {!statusBoard?.length ? (
             <p data-empty-note>No rooms configured.</p>

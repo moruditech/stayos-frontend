@@ -6,8 +6,9 @@ import { useSearchParams } from 'next/navigation';
 import { api } from '@stayos/api-client';
 import { SkeletonLoader, EmptyState, StatusBadge, useSocketEvent, DataTable } from '@stayos/ui';
 import { SOCKET_EVENTS } from '@stayos/constants';
+import Link from 'next/link';
 import type { ColumnDef } from '@stayos/ui';
-import type { Booking } from '@stayos/types';
+import type { PopulatedBooking } from '@stayos/types';
 import { bookingKeys } from '@/lib/query-keys';
 
 function formatDate(iso: string): string {
@@ -41,25 +42,27 @@ function BookingsPageInner(): React.ReactElement {
     void queryClient.invalidateQueries({ queryKey: bookingKeys.all });
   });
 
-  const columns: ColumnDef<Booking>[] = [
+  const columns: ColumnDef<PopulatedBooking>[] = [
     {
       key: 'confirmationNumber',
       header: 'Confirmation #',
       render: (b) => (
-        <a href={`/bookings/${b._id}`} data-table-link>
+        <Link href={`/bookings/${b._id}`} data-table-link>
           {String((b as unknown as Record<string,unknown>)['confirmationNumber'] ?? b._id.slice(-8).toUpperCase())}
-        </a>
+        </Link>
       ),
     },
     {
-      key: 'guestId',
+      key: 'customerId',
       header: 'Guest',
-      render: (b) => String((b as unknown as Record<string,unknown>)['guestName'] ?? b.guestId),
+      // customerId arrives populated (firstName/lastName) on this endpoint —
+      // see @stayos/types#PopulatedBooking.
+      render: (b) => `${b.customerId?.firstName ?? ''} ${b.customerId?.lastName ?? ''}`.trim() || '—',
     },
     {
       key: 'roomId',
       header: 'Room',
-      render: (b) => String((b as unknown as Record<string,unknown>)['roomNumber'] ?? b.roomId),
+      render: (b) => b.roomId?.roomNumber ?? '—',
     },
     {
       key: 'checkIn',
@@ -88,7 +91,7 @@ function BookingsPageInner(): React.ReactElement {
     <div data-page="bookings">
       <div data-page-header>
         <h1>Bookings</h1>
-        <a href="/bookings/new" data-btn-primary>+ New booking</a>
+        <Link href="/bookings/new" data-btn-primary>+ New booking</Link>
       </div>
 
       {/* Filters */}
@@ -132,10 +135,10 @@ function BookingsPageInner(): React.ReactElement {
         <EmptyState
           title="No bookings found"
           description="Try adjusting your filters, or create a new booking."
-          action={<a href="/bookings/new" data-btn-primary>New booking</a>}
+          action={<Link href="/bookings/new" data-btn-primary>New booking</Link>}
         />
       ) : (
-        <DataTable columns={columns} rows={bookings} rowKey={(b) => b._id} />
+        <DataTable columns={columns} rows={bookings ?? []} rowKey={(b) => b._id} />
       )}
     </div>
   );

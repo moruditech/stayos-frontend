@@ -1,5 +1,5 @@
 import { client } from '../client';
-import type { Booking } from '@stayos/types';
+import type { Booking, PopulatedBooking } from '@stayos/types';
 import type {
   StaffCreateBookingInput,
   PublicBookingInput,
@@ -9,12 +9,13 @@ import type {
 } from '@stayos/validators';
 
 export const bookingsApi = {
-  // GET /bookings — staff list (Property Operations Portal)
+  // GET /bookings — staff list (Property Operations Portal). customerId and
+  // roomId come back populated — see bookings.service.js#listBookings.
   list: (filters?: BookingFilters) =>
-    client.get<Booking[]>('/bookings', { params: filters as Record<string, string | number | boolean | undefined> }),
+    client.get<PopulatedBooking[]>('/bookings', { params: filters as Record<string, string | number | boolean | undefined> }),
 
-  // GET /bookings/:id — staff detail
-  get: (id: string) => client.get<Booking>(`/bookings/${id}`),
+  // GET /bookings/:id — staff detail. Also populated — see #getBooking.
+  get: (id: string) => client.get<PopulatedBooking>(`/bookings/${id}`),
 
   // POST /bookings — staff-created booking (Document 11 §3)
   create: (input: StaffCreateBookingInput) =>

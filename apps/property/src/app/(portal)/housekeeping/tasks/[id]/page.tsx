@@ -1,13 +1,14 @@
 'use client';
 
+import Link from 'next/link';
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
 import {
-  SkeletonLoader, StatusBadge, ReadOnlyField, RoleGate, useToast, ConfirmDialog,
-} from '@stayos/ui';
+  SkeletonLoader, StatusBadge, ReadOnlyField, RoleGate, useToast, ConfirmDialog, Icons } from '@stayos/ui';
 import { PERMISSIONS } from '@stayos/constants';
 import { housekeepingKeys, staffKeys } from '@/lib/query-keys';
 
@@ -92,7 +93,7 @@ export default function HousekeepingTaskDetailPage(): React.ReactElement {
     <div data-page="hk-task-detail">
       <div data-page-header>
         <div>
-          <a href="/housekeeping" data-breadcrumb>← Housekeeping</a>
+          <Link href="/housekeeping" data-breadcrumb><Icons.ChevronLeft data-breadcrumb-icon aria-hidden="true" /> Housekeeping</Link>
           <h1>{task.type.replace(/_/g, ' ')}</h1>
         </div>
         <StatusBadge status={task.status} />

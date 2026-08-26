@@ -1,10 +1,12 @@
 'use client';
 
+import Link from 'next/link';
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { SkeletonLoader, EmptyState, useToast, Modal, InlineError } from '@stayos/ui';
+import { SkeletonLoader, EmptyState, useToast, Modal, InlineError, Icons } from '@stayos/ui';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -80,7 +82,7 @@ export default function StockItemsPage(): React.ReactElement {
     <div data-page="stock-items">
       <div data-page-header>
         <div>
-          <a href="/procurement/suppliers" data-breadcrumb>← Procurement</a>
+          <Link href="/procurement/suppliers" data-breadcrumb><Icons.ChevronLeft data-breadcrumb-icon aria-hidden="true" /> Procurement</Link>
           <h1>Stock items</h1>
         </div>
         <button type="button" data-btn-primary onClick={() => setShowNew(true)}>+ Add item</button>

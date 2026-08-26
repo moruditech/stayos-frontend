@@ -133,6 +133,8 @@ export {
   CalendarCheck2,
   XCircle,
   List,
+  Wrench,
+  DoorClosed,
 } from 'lucide-react';
 
 export type { LucideIcon, LucideProps } from 'lucide-react';

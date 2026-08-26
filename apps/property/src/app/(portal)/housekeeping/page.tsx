@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 /**
  * Housekeeping task board — kanban layout per the design specification.
  * Columns: pending → in_progress → done → verified
@@ -82,7 +84,7 @@ export default function HousekeepingPage(): React.ReactElement {
       <div data-page-header>
         <h1>Housekeeping</h1>
         <RoleGate perm={PERMISSIONS.HOUSEKEEPING_ALL}>
-          <a href="/housekeeping/tasks/new" data-btn-primary>+ New task</a>
+          <Link href="/housekeeping/tasks/new" data-btn-primary>+ New task</Link>
         </RoleGate>
       </div>
 
@@ -92,7 +94,7 @@ export default function HousekeepingPage(): React.ReactElement {
           description="All rooms are clean or no tasks have been created yet."
           action={
             <RoleGate perm={PERMISSIONS.HOUSEKEEPING_ALL}>
-              <a href="/housekeeping/tasks/new" data-btn-primary>Create task</a>
+              <Link href="/housekeeping/tasks/new" data-btn-primary>Create task</Link>
             </RoleGate>
           }
         />
@@ -162,9 +164,9 @@ function TaskCard({
       {assigneeName && <span data-task-assignee>{assigneeName}</span>}
 
       <div data-task-actions>
-        <a href={`/housekeeping/tasks/${task._id}`} data-btn-ghost data-btn-sm>
+        <Link href={`/housekeeping/tasks/${task._id}`} data-btn-ghost data-btn-sm>
           View
-        </a>
+        </Link>
         {nextStatuses[task.status] && (
           <RoleGate
             perm={[PERMISSIONS.HOUSEKEEPING_TASK_UPDATE, PERMISSIONS.HOUSEKEEPING_ALL]}

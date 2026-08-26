@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 /**
  * Staff-created booking — Document 11 §3.
  *
@@ -25,7 +27,7 @@ import { z } from 'zod';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { InlineError, applyServerErrors, useToast } from '@stayos/ui';
+import { InlineError, applyServerErrors, useToast, Icons } from '@stayos/ui';
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
@@ -148,7 +150,7 @@ export default function NewBookingPage(): React.ReactElement {
             bookings list.
           </p>
           <div data-action-row>
-            <a href="/bookings" data-btn-ghost>Back to bookings</a>
+            <Link href="/bookings" data-btn-ghost>Back to bookings</Link>
           </div>
         </div>
       </div>
@@ -224,7 +226,7 @@ export default function NewBookingPage(): React.ReactElement {
     <div data-page="new-booking">
       <div data-page-header>
         <div>
-          <a href="/bookings" data-breadcrumb>← Back to bookings</a>
+          <Link href="/bookings" data-breadcrumb><Icons.ChevronLeft data-breadcrumb-icon aria-hidden="true" /> Back to bookings</Link>
           <h1>New booking</h1>
         </div>
       </div>
@@ -301,7 +303,7 @@ export default function NewBookingPage(): React.ReactElement {
             {sharedFields(existingForm as unknown as UseFormReturn<FieldValues>, existingForm.formState.errors as unknown as Record<string, { message?: string } | undefined>)}
 
             <div data-form-actions>
-              <a href="/bookings" data-btn-ghost>Cancel</a>
+              <Link href="/bookings" data-btn-ghost>Cancel</Link>
               <button type="submit" data-btn-primary disabled={createMutation.isPending}>
                 {createMutation.isPending ? 'Creating booking…' : 'Create booking'}
               </button>
@@ -347,7 +349,7 @@ export default function NewBookingPage(): React.ReactElement {
             {sharedFields(newForm as unknown as UseFormReturn<FieldValues>, newForm.formState.errors as unknown as Record<string, { message?: string } | undefined>)}
 
             <div data-form-actions>
-              <a href="/bookings" data-btn-ghost>Cancel</a>
+              <Link href="/bookings" data-btn-ghost>Cancel</Link>
               <button type="submit" data-btn-primary disabled={createMutation.isPending}>
                 {createMutation.isPending ? 'Creating booking…' : 'Create booking'}
               </button>

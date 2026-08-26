@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -81,7 +83,7 @@ export default function RatePlansPage(): React.ReactElement {
       <div data-page-header>
         <h1>Pricing &amp; Revenue</h1>
         <div data-header-actions>
-          <a href="/pricing/dynamic-rules" data-btn-ghost>Dynamic rules</a>
+          <Link href="/pricing/dynamic-rules" data-btn-ghost>Dynamic rules</Link>
           <button type="button" data-btn-primary onClick={() => setShowNew(true)}>+ New rate plan</button>
         </div>
       </div>
