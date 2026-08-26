@@ -39,7 +39,7 @@ const editSchema = z.object({
 });
 type EditInput = z.infer<typeof editSchema>;
 
-export default function StaffDetailPage(): React.ReactElement {
+function StaffDetailPageInner(): React.ReactElement {
   const params = useParams<{ id: string }>();
   const searchParams = useSearchParams();
   const id = params.id;
@@ -265,5 +265,13 @@ export default function StaffDetailPage(): React.ReactElement {
         </RoleGate>
       )}
     </div>
+  );
+}
+
+export default function StaffDetailPage(): React.ReactElement {
+  return (
+    <React.Suspense fallback={<></>}>
+      <StaffDetailPageInner />
+    </React.Suspense>
   );
 }

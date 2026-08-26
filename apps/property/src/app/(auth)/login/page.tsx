@@ -11,7 +11,7 @@ import { InlineError, applyServerErrors } from '@stayos/ui';
 import type { LoginInput } from '@stayos/validators';
 import type { ApiError } from '@stayos/api-client';
 
-export default function LoginPage(): React.ReactElement {
+function LoginPageInner(): React.ReactElement {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setSession } = useSessionContext();
@@ -299,5 +299,13 @@ export default function LoginPage(): React.ReactElement {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage(): React.ReactElement {
+  return (
+    <React.Suspense fallback={<></>}>
+      <LoginPageInner />
+    </React.Suspense>
   );
 }

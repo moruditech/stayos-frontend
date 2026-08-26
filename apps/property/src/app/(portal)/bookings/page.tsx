@@ -14,7 +14,7 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-export default function BookingsPage(): React.ReactElement {
+function BookingsPageInner(): React.ReactElement {
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const [filters, setFilters] = useState({
@@ -138,5 +138,13 @@ export default function BookingsPage(): React.ReactElement {
         <DataTable columns={columns} rows={bookings} rowKey={(b) => b._id} />
       )}
     </div>
+  );
+}
+
+export default function BookingsPage(): React.ReactElement {
+  return (
+    <React.Suspense fallback={<></>}>
+      <BookingsPageInner />
+    </React.Suspense>
   );
 }
