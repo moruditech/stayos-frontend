@@ -1,6 +1,6 @@
 export type { ApiResponse, ApiErrorResponse, ApiErrorPayload, ApiFieldError, ApiEnvelope, Pagination } from './api';
 export type { Scope, AccessMode, DecodedAccessToken, PropertySessionBootstrap, Session } from './session';
-export type { Booking, CreateBookingInput, UpdateBookingInput, BookingFilters } from './booking';
+export type { Booking, PopulatedBooking, CreateBookingInput, UpdateBookingInput, BookingFilters } from './booking';
 export type { Room, RoomImage, RoomBlock } from './room';
 export type { Folio, FolioLineItem } from './folio';
 export type { Tenant } from './tenant';
