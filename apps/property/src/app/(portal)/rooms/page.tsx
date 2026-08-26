@@ -119,7 +119,7 @@ export default function RoomsPage(): React.ReactElement {
                     </a>
                   </td>
                   <td>{room.type}</td>
-                  <td>{String((room as Record<string,unknown>)['floor'] ?? '—')}</td>
+                  <td>{String((room as unknown as Record<string,unknown>)['floor'] ?? '—')}</td>
                   <td><StatusBadge status={room.status} /></td>
                   <td><StatusBadge status={room.housekeepingStatus} /></td>
                   <td>

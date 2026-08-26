@@ -26,7 +26,7 @@ export default function BookingsPage(): React.ReactElement {
 
   const cleanFilters = Object.fromEntries(
     Object.entries(filters).filter(([, v]) => v !== '')
-  ) as Record<string, string | number>;
+  ) as unknown as Record<string, string | number>;
 
   const { data: bookings, isLoading } = useQuery({
     queryKey: bookingKeys.list(cleanFilters),
@@ -47,19 +47,19 @@ export default function BookingsPage(): React.ReactElement {
       header: 'Confirmation #',
       render: (b) => (
         <a href={`/bookings/${b._id}`} data-table-link>
-          {String((b as Record<string,unknown>)['confirmationNumber'] ?? b._id.slice(-8).toUpperCase())}
+          {String((b as unknown as Record<string,unknown>)['confirmationNumber'] ?? b._id.slice(-8).toUpperCase())}
         </a>
       ),
     },
     {
       key: 'guestId',
       header: 'Guest',
-      render: (b) => String((b as Record<string,unknown>)['guestName'] ?? b.guestId),
+      render: (b) => String((b as unknown as Record<string,unknown>)['guestName'] ?? b.guestId),
     },
     {
       key: 'roomId',
       header: 'Room',
-      render: (b) => String((b as Record<string,unknown>)['roomNumber'] ?? b.roomId),
+      render: (b) => String((b as unknown as Record<string,unknown>)['roomNumber'] ?? b.roomId),
     },
     {
       key: 'checkIn',

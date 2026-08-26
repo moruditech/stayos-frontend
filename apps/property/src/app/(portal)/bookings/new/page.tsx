@@ -19,7 +19,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm, type UseFormReturn } from 'react-hook-form';
+import { useForm, type UseFormReturn, type FieldValues } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -156,7 +156,7 @@ export default function NewBookingPage(): React.ReactElement {
   }
 
   const sharedFields = (
-    form: UseFormReturn<Record<string, unknown>>,
+    form: UseFormReturn<FieldValues>,
     formErrors: Record<string, { message?: string } | undefined>
   ) => (
     <>
@@ -170,19 +170,19 @@ export default function NewBookingPage(): React.ReactElement {
             </option>
           ))}
         </select>
-        <InlineError message={(formErrors as Record<string,{message?:string}>)['roomId']?.message} />
+        <InlineError message={formErrors['roomId']?.message} />
       </div>
 
       <div data-form-row>
         <div data-form-group>
           <label htmlFor="checkIn">Check-in</label>
           <input id="checkIn" type="date" {...form.register('checkIn')} />
-          <InlineError message={(formErrors as Record<string,{message?:string}>)['checkIn']?.message} />
+          <InlineError message={formErrors['checkIn']?.message} />
         </div>
         <div data-form-group>
           <label htmlFor="checkOut">Check-out</label>
           <input id="checkOut" type="date" {...form.register('checkOut')} />
-          <InlineError message={(formErrors as Record<string,{message?:string}>)['checkOut']?.message} />
+          <InlineError message={formErrors['checkOut']?.message} />
         </div>
       </div>
 
@@ -298,7 +298,7 @@ export default function NewBookingPage(): React.ReactElement {
               <InlineError message={existingForm.formState.errors.customerId?.message} />
             </div>
 
-            {sharedFields(existingForm, existingForm.formState.errors)}
+            {sharedFields(existingForm as unknown as UseFormReturn<FieldValues>, existingForm.formState.errors as unknown as Record<string, { message?: string } | undefined>)}
 
             <div data-form-actions>
               <a href="/bookings" data-btn-ghost>Cancel</a>
@@ -344,7 +344,7 @@ export default function NewBookingPage(): React.ReactElement {
               <input id="phone" type="tel" {...newForm.register('phone')} />
             </div>
 
-            {sharedFields(newForm, newForm.formState.errors)}
+            {sharedFields(newForm as unknown as UseFormReturn<FieldValues>, newForm.formState.errors as unknown as Record<string, { message?: string } | undefined>)}
 
             <div data-form-actions>
               <a href="/bookings" data-btn-ghost>Cancel</a>

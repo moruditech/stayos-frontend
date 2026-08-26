@@ -72,8 +72,8 @@ export default function DashboardPage(): React.ReactElement {
               {(arrivals ?? []).slice(0, 6).map((booking) => (
                 <div key={booking._id} data-arrival-row>
                   <div data-arrival-guest>
-                    <span data-guest-name>{String((booking as Record<string,unknown>)['guestName'] ?? booking.guestId)}</span>
-                    <span data-guest-room>Room {String((booking as Record<string,unknown>)['roomNumber'] ?? '—')}</span>
+                    <span data-guest-name>{String((booking as unknown as Record<string,unknown>)['guestName'] ?? booking.guestId)}</span>
+                    <span data-guest-room>Room {String((booking as unknown as Record<string,unknown>)['roomNumber'] ?? '—')}</span>
                   </div>
                   <StatusBadge status={booking.status} />
                   <a href={`/bookings/${booking._id}`} data-btn-ghost data-btn-sm>View</a>

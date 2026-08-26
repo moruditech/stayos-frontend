@@ -59,8 +59,8 @@ export default function VisitorsPage(): React.ReactElement {
     onError: (err: ApiError) => toast(err.message ?? 'Failed.', 'error'),
   });
 
-  const activeVisitors = (visitors ?? []).filter((v) => !(v as Record<string,unknown>)['checkOutTime']);
-  const recentVisitors = (visitors ?? []).filter((v) => !!(v as Record<string,unknown>)['checkOutTime']).slice(0, 20);
+  const activeVisitors = (visitors ?? []).filter((v) => !(v as unknown as Record<string,unknown>)['checkOutTime']);
+  const recentVisitors = (visitors ?? []).filter((v) => !!(v as unknown as Record<string,unknown>)['checkOutTime']).slice(0, 20);
 
   return (
     <div data-page="visitors">
