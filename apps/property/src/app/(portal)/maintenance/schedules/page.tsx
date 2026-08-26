@@ -34,7 +34,7 @@ export default function SchedulesPage(): React.ReactElement {
   const form = useForm<ScheduleInput>({ resolver: zodResolver(scheduleSchema) });
 
   const createMutation = useMutation({
-    mutationFn: (input: ScheduleInput) => api.maintenance.createSchedule(input),
+    mutationFn: (input: ScheduleInput) => api.maintenance.createSchedule(input as unknown as Parameters<typeof api.maintenance.createSchedule>[0]),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: maintenanceKeys.schedules() });
       setShowNew(false); form.reset();

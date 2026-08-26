@@ -77,7 +77,7 @@ export default function StaffSettingsPage(): React.ReactElement {
 
   const createMutation = useMutation({
     mutationFn: (input: CreateStaffInput) =>
-      api.staff.create(input),
+      api.staff.create(input as unknown as Parameters<typeof api.staff.create>[0]),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: staffKeys.list() });
       setShowNewModal(false);

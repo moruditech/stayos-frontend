@@ -157,7 +157,7 @@ export default function ChannelsPage(): React.ReactElement {
                   </code>
                 </div>
 
-                {ch['lastSyncError'] && (
+                {Boolean(ch['lastSyncError']) && (
                   <div role="alert" data-sync-error>
                     Last sync error: {String(ch['lastSyncError'])}
                   </div>

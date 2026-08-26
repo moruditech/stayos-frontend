@@ -34,7 +34,7 @@ export default function AssetsPage(): React.ReactElement {
   const form = useForm<AssetInput>({ resolver: zodResolver(assetSchema) });
 
   const createMutation = useMutation({
-    mutationFn: (input: AssetInput) => api.maintenance.createAsset(input),
+    mutationFn: (input: AssetInput) => api.maintenance.createAsset(input as unknown as Parameters<typeof api.maintenance.createAsset>[0]),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: maintenanceKeys.assets() });
       setShowNew(false);

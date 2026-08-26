@@ -76,7 +76,7 @@ export default function MaintenancePage(): React.ReactElement {
   });
 
   const createMutation = useMutation({
-    mutationFn: (input: CreateInput) => api.maintenance.createWorkOrder(input),
+    mutationFn: (input: CreateInput) => api.maintenance.createWorkOrder(input as unknown as Parameters<typeof api.maintenance.createWorkOrder>[0]),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: maintenanceKeys.workOrders({}) });
       setShowNewModal(false);

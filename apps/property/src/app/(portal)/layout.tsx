@@ -65,7 +65,7 @@ export default function PortalLayout({
           {session.isAgencyStaffInProperty && (
             <a
               href={
-                (import.meta as { env: Record<string, string> }).env?.[
+                (import.meta as unknown as { env: Record<string, string> }).env?.[
                   'NEXT_PUBLIC_AGENCY_PORTAL_URL'
                 ] ?? 'https://agency.stayos.co.za'
               }

@@ -17,7 +17,7 @@ export default function OnboardingPage(): React.ReactElement {
   });
 
   const stepMutation = useMutation({
-    mutationFn: (step: string) => api.tenants.completeOnboardingStep(step),
+    mutationFn: (step: string) => api.tenants.updateOnboardingStep(step, {}),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['onboarding'] });
       toast('Step saved.', 'success');

@@ -99,16 +99,16 @@ export default function RatePlansPage(): React.ReactElement {
             const id = String(p['_id']);
             return (
               <div key={id} data-rate-plan-card data-default={Boolean(p['isDefault']) || undefined}>
-                {p['isDefault'] && <span data-default-badge>Default</span>}
+                {Boolean(p['isDefault']) && <span data-default-badge>Default</span>}
                 <h2 data-plan-name>{String(p['name'] ?? '—')}</h2>
-                {p['description'] && <p data-plan-desc>{String(p['description'])}</p>}
+                {Boolean(p['description']) && <p data-plan-desc>{String(p['description'])}</p>}
                 <div data-plan-rate>
                   <span data-rate-amount>{p['ratePerNight'] != null ? fmtCurrency(Number(p['ratePerNight'])) : '—'}</span>
                   <span data-rate-period>per night</span>
                 </div>
                 <div data-plan-meta>
-                  {p['minNights'] && <span>Min {String(p['minNights'])} night{Number(p['minNights']) !== 1 ? 's' : ''}</span>}
-                  {p['maxNights'] && <span> · Max {String(p['maxNights'])} nights</span>}
+                  {Boolean(p['minNights']) && <span>Min {String(p['minNights'])} night{Number(p['minNights']) !== 1 ? 's' : ''}</span>}
+                  {Boolean(p['maxNights']) && <span> · Max {String(p['maxNights'])} nights</span>}
                 </div>
                 <div data-plan-actions>
                   <button type="button" data-btn-ghost data-btn-sm onClick={() => setCloneId(id)}>

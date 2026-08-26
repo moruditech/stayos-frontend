@@ -127,7 +127,7 @@ export default function PropertySettingsPage(): React.ReactElement {
           <ReadOnlyField label="Phone" value={String(p['phone'] ?? '—')} />
           <ReadOnlyField label="Email" value={String(p['email'] ?? '—')} />
           <ReadOnlyField label="Website" value={String(p['website'] ?? '—')} />
-          {p['description'] && (
+          {Boolean(p['description']) && (
             <ReadOnlyField label="Description" value={String(p['description'])} />
           )}
         </div>

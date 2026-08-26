@@ -19,7 +19,7 @@ export default function DashboardPage(): React.ReactElement {
 
   const { data: arrivals } = useQuery({
     queryKey: bookingKeys.list({ type: 'arrivals' }),
-    queryFn: () => api.bookings.list({ checkIn: new Date().toISOString().slice(0, 10) }),
+    queryFn: () => api.bookings.list({ checkInFrom: new Date().toISOString().slice(0, 10) } as Parameters<typeof api.bookings.list>[0]),
     staleTime: 60_000,
   });
 

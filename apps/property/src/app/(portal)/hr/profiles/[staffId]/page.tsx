@@ -165,13 +165,13 @@ export default function HrProfilePage(): React.ReactElement {
             </div>
           ) : (
             <div data-field-list>
-              {p['startDate'] && (
+              {Boolean(p['startDate']) && (
                 <ReadOnlyField label="Start date"
                   value={new Date(String(p['startDate'])).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })} />
               )}
-              {p['jobTitle'] && <ReadOnlyField label="Job title" value={String(p['jobTitle'])} />}
-              {p['bankName'] && <ReadOnlyField label="Bank" value={String(p['bankName'])} />}
-              {p['employmentType'] && (
+              {Boolean(p['jobTitle']) && <ReadOnlyField label="Job title" value={String(p['jobTitle'])} />}
+              {Boolean(p['bankName']) && <ReadOnlyField label="Bank" value={String(p['bankName'])} />}
+              {Boolean(p['employmentType']) && (
                 <ReadOnlyField label="Employment type" value={String(p['employmentType'])} />
               )}
               {p['onProbation'] != null && (
@@ -222,7 +222,7 @@ export default function HrProfilePage(): React.ReactElement {
                       {d['createdAt'] ? new Date(String(d['createdAt'])).toLocaleDateString('en-ZA') : ''}
                     </span>
                     <div data-doc-actions>
-                      {d['url'] && (
+                      {Boolean(d['url']) && (
                         <a href={String(d['url'])} target="_blank" rel="noopener noreferrer"
                           data-btn-ghost data-btn-sm>Download</a>
                       )}
@@ -271,7 +271,7 @@ export default function HrProfilePage(): React.ReactElement {
                       </span>
                     </div>
                     <p data-disc-desc>{String(r['description'] ?? '')}</p>
-                    {r['outcome'] && <p data-disc-outcome><strong>Outcome:</strong> {String(r['outcome'])}</p>}
+                    {Boolean(r['outcome']) && <p data-disc-outcome><strong>Outcome:</strong> {String(r['outcome'])}</p>}
                     <div data-disc-footer>
                       {acknowledged ? (
                         <span data-acknowledged-badge>

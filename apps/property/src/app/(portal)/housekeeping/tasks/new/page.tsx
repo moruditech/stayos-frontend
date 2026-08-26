@@ -50,7 +50,7 @@ export default function NewHousekeepingTaskPage(): React.ReactElement {
   });
 
   const createMutation = useMutation({
-    mutationFn: (input: FormInput) => api.housekeeping.createTask(input),
+    mutationFn: (input: FormInput) => api.housekeeping.createTask(input as unknown as Parameters<typeof api.housekeeping.createTask>[0]),
     onSuccess: (task) => {
       const t = task as unknown as Record<string, unknown>;
       toast('Task created.', 'success');

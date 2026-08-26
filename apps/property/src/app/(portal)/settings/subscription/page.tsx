@@ -23,7 +23,11 @@ export default function SubscriptionPage(): React.ReactElement {
   });
 
   const cancelMutation = useMutation({
-    mutationFn: () => api.tenants.cancelSubscription(),
+    // cancelSubscription not yet in api-client — redirect to contact until added
+    mutationFn: (): Promise<void> => {
+      window.location.href = 'https://stayos.co.za/contact?subject=cancel-subscription';
+      return Promise.resolve();
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['settings', 'subscription'] });
       setConfirmCancel(false);

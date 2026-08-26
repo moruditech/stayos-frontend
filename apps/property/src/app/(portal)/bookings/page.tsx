@@ -19,18 +19,18 @@ export default function BookingsPage(): React.ReactElement {
   const searchParams = useSearchParams();
   const [filters, setFilters] = useState({
     status: searchParams.get('status') ?? '',
-    checkIn: searchParams.get('checkIn') ?? '',
+    checkInFrom: searchParams.get('checkInFrom') ?? '',
     page: 1,
     limit: 25,
   });
 
   const cleanFilters = Object.fromEntries(
     Object.entries(filters).filter(([, v]) => v !== '')
-  ) as unknown as Parameters<typeof api.bookings.list>[0];
+  ) as Record<string, unknown>;
 
   const { data: bookings, isLoading } = useQuery({
     queryKey: bookingKeys.list(cleanFilters),
-    queryFn: () => api.bookings.list(cleanFilters),
+    queryFn: () => api.bookings.list(cleanFilters as Parameters<typeof api.bookings.list>[0]),
   });
 
   // Real-time: invalidate list on any booking change
@@ -109,17 +109,17 @@ export default function BookingsPage(): React.ReactElement {
 
         <input
           type="date"
-          value={filters.checkIn}
-          onChange={(e) => setFilters((f) => ({ ...f, checkIn: e.target.value, page: 1 }))}
+          value={filters.checkInFrom}
+          onChange={(e) => setFilters((f) => ({ ...f, checkInFrom: e.target.value, page: 1 }))}
           data-filter-input
-          placeholder="Check-in date"
+          placeholder="Check-in from"
         />
 
-        {(filters.status || filters.checkIn) && (
+        {(filters.status || filters.checkInFrom) && (
           <button
             type="button"
             data-btn-ghost
-            onClick={() => setFilters({ status: '', checkIn: '', page: 1, limit: 25 })}
+            onClick={() => setFilters({ status: '', checkInFrom: '', page: 1, limit: 25 })}
           >
             Clear filters
           </button>

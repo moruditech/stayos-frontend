@@ -108,15 +108,15 @@ export default function SupportPage(): React.ReactElement {
         </div>
       )}
 
-      {!tickets?.length ? (
+      {!(tickets as unknown as { data?: unknown[] })?.data?.length ? (
         <EmptyState
           title="No support tickets"
           description="Submit a ticket if you need help from the StayOS team."
         />
       ) : (
         <div data-ticket-list>
-          {tickets.map((ticket) => {
-            const t = ticket as unknown as Record<string, unknown>;
+          {(Array.isArray(tickets) ? tickets : (tickets as unknown as { data?: Record<string, unknown>[] })?.data ?? []).map((ticket) => {
+            const t = ticket as Record<string, unknown>;
             return (
               <div key={String(t['_id'])} data-ticket-row>
                 <div data-ticket-info>

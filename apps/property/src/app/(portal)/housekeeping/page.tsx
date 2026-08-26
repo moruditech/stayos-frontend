@@ -18,7 +18,6 @@ import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import type { HousekeepingTask } from '@stayos/api-client';
 import {
   SkeletonLoader,
   EmptyState,
@@ -28,6 +27,18 @@ import {
 } from '@stayos/ui';
 import { PERMISSIONS } from '@stayos/constants';
 import { housekeepingKeys } from '@/lib/query-keys';
+
+interface HousekeepingTask {
+  _id: string;
+  type: string;
+  status: string;
+  priority: string;
+  roomId: string | { roomNumber: string } | null;
+  assignedTo?: string | { firstName: string; lastName: string } | null;
+  checklist: { item: string; done: boolean }[];
+  notes?: string;
+  dueDate?: string;
+}
 
 const COLUMNS: { key: string; label: string }[] = [
   { key: 'pending',     label: 'Pending' },

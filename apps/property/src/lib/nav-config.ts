@@ -14,7 +14,10 @@
 import { PERMISSIONS } from '@stayos/constants';
 import type { NavItem } from '@stayos/ui';
 
-export const NAV_CONFIG: NavItem[] = [
+// NavGroup extends NavItem with optional path (group headers have no path)
+type NavGroup = Omit<NavItem, 'path'> & { group?: boolean; path?: string; };
+
+export const NAV_CONFIG: NavGroup[] = [
   {
     id: 'dashboard',
     label: 'Dashboard',
@@ -161,4 +164,4 @@ export const NAV_CONFIG: NavItem[] = [
 ];
 
 // Alias required by the portal layout
-export const propertyNav = NAV_CONFIG;
+export const propertyNav: NavItem[] = NAV_CONFIG as NavItem[];

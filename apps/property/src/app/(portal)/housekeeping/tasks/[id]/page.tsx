@@ -47,7 +47,7 @@ export default function HousekeepingTaskDetailPage(): React.ReactElement {
   });
 
   const reassignMutation = useMutation({
-    mutationFn: (assignedTo: string) => api.housekeeping.updateTask(id, { assignedTo }),
+    mutationFn: (assignedTo: string) => api.housekeeping.updateTask(id, { assignedTo } as unknown as Parameters<typeof api.housekeeping.updateTask>[1]),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: housekeepingKeys.task(id) });
       toast('Reassigned.', 'success');
@@ -144,7 +144,7 @@ export default function HousekeepingTaskDetailPage(): React.ReactElement {
         {nextStatus[task.status] && (
           <button type="button" data-btn-primary
             disabled={statusMutation.isPending}
-            onClick={() => statusMutation.mutate(nextStatus[task.status])}>
+            onClick={() => statusMutation.mutate(nextStatus[task.status] as string)}>
             {task.status === 'pending' ? 'Start task' : 'Mark done'}
           </button>
         )}

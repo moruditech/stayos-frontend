@@ -104,7 +104,7 @@ export default function FolioDetailPage(): React.ReactElement {
   });
 
   const settleMutation = useMutation({
-    mutationFn: (input: SettleInput) => api.folios.settle(id, input),
+    mutationFn: (input: SettleInput) => api.folios.settle(id, input as unknown as Parameters<typeof api.folios.settle>[1]),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: folioKeys.detail(id) });
       setShowSettleModal(false);
