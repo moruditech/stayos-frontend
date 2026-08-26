@@ -1,5 +1,4 @@
 'use client';
-import Link from 'next/link';
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from '@stayos/auth';
@@ -38,9 +37,9 @@ export default function PaymentsPage(): React.ReactElement {
             <h2>Payment overview</h2>
             <p>Your account summary</p>
           </div>
-          <Link href="/invoices" data-btn-ghost style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)', padding: 'var(--space-2) var(--space-3)' }}>
+          <a href="/invoices" data-btn-ghost style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)', padding: 'var(--space-2) var(--space-3)' }}>
             <Icons.FileText size={14} /> View statements <Icons.ChevronRight size={14} />
-          </Link>
+          </a>
         </div>
         <div data-payment-stats>
           <div data-payment-stat>
@@ -81,17 +80,17 @@ export default function PaymentsPage(): React.ReactElement {
           { label: 'Payment history',   icon: Icons.RefreshCcw, tint: 'sand',  path: '/payments' },
           { label: 'Saved cards',       icon: Icons.Wallet,     tint: 'info',    path: '/payments/methods' },
         ].map((a) => (
-          <Link key={a.label} href={a.path} data-quick-action>
+          <a key={a.label} href={a.path} data-quick-action>
             <span data-quick-action-icon data-tint={a.tint} aria-hidden="true"><a.icon size={20} /></span>
             <span>{a.label}</span>
-          </Link>
+          </a>
         ))}
       </div>
 
       {/* Recent transactions */}
       <div data-section-header>
         <span data-section-title>Recent transactions</span>
-        <Link href="/payments/all" data-section-link>View all →</Link>
+        <a href="/payments/all" data-section-link>View all →</a>
       </div>
 
       {isLoading ? <SkeletonLoader rows={4} /> : (
@@ -107,7 +106,7 @@ export default function PaymentsPage(): React.ReactElement {
       {/* Saved payment methods */}
       <div data-section-header style={{ marginTop: 'var(--space-6)' }}>
         <span data-section-title>Saved payment methods</span>
-        <Link href="/payments/methods" data-section-link>Manage →</Link>
+        <a href="/payments/methods" data-section-link>Manage →</a>
       </div>
       <div data-card-padded>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
@@ -130,9 +129,9 @@ export default function PaymentsPage(): React.ReactElement {
             <p>Our support team is here to help you with any payment related issues.</p>
           </div>
         </div>
-        <Link href="/support" data-btn-secondary style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+        <a href="/support" data-btn-secondary style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           Contact support <Icons.ArrowRight size={16} />
-        </Link>
+        </a>
       </div>
     </div>
   );
@@ -151,7 +150,7 @@ function TransactionItem({ payment: p }: { payment: Record<string, unknown> }): 
   const StatusIcon = STATUS_ICON_MAP[status] ?? Icons.CreditCard;
   const tint = STATUS_TINT_MAP[status] ?? { bg: 'var(--color-surface-muted)', fg: 'var(--color-text-secondary)' };
   return (
-    <Link href={`/payments/${p['_id'] as string}`} data-transaction-item style={{ textDecoration: 'none' }}>
+    <a href={`/payments/${p['_id'] as string}`} data-transaction-item style={{ textDecoration: 'none' }}>
       <span data-transaction-icon style={{ background: tint.bg, color: tint.fg }}>
         <StatusIcon size={16} />
       </span>
@@ -175,7 +174,7 @@ function TransactionItem({ payment: p }: { payment: Record<string, unknown> }): 
         </div>
       </div>
       <Icons.ChevronRight size={16} aria-hidden="true" style={{ color: 'var(--color-text-muted)' }} />
-    </Link>
+    </a>
   );
 }
 

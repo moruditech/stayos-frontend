@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { SkeletonLoader, EmptyState, InlineError, useToast } from '@stayos/ui';
+import { SkeletonLoader, EmptyState, InlineError, useToast, Icons } from '@stayos/ui';
 
 // Matches createReviewSchema — field names and structure confirmed against
 // src/modules/reviews/reviews.validation.js
@@ -25,6 +25,16 @@ const newReviewSchema = z.object({
   body:  z.string().min(10, 'Please write at least a few sentences').max(3000),
 });
 type NewReviewInput = z.infer<typeof newReviewSchema>;
+
+function StarDisplay({ value, size = 16 }: { value: number; size?: number }): React.ReactElement {
+  return (
+    <span style={{ display: 'inline-flex', gap: '2px', color: '#F59E0B' }}>
+      {[1,2,3,4,5].map((n) => (
+        <Icons.Star key={n} size={size} fill={n <= value ? 'currentColor' : 'none'} />
+      ))}
+    </span>
+  );
+}
 
 const REVIEW_KEYS = { list: () => ['customer','reviews'] as const };
 
@@ -43,10 +53,10 @@ function StarRating({
     <div style={{ display:'flex', gap:'var(--space-1)' }}>
       {[1,2,3,4,5].map((n) => (
         <button key={n} type="button"
-          style={{ fontSize: size, color: n <= (hover||value) ? '#F59E0B' : 'var(--color-border)', background:'none', border:'none', cursor:'pointer', lineHeight:1, padding:0 }}
+          style={{ color: n <= (hover||value) ? '#F59E0B' : 'var(--color-border)', background:'none', border:'none', cursor:'pointer', lineHeight:1, padding:0, display: 'flex' }}
           onMouseEnter={() => setHover(n)} onMouseLeave={() => setHover(0)}
           onClick={() => onChange(n)} aria-label={`${n} star${n!==1?'s':''}`}>
-          ★
+          <Icons.Star size={size} fill={n <= (hover||value) ? 'currentColor' : 'none'} />
         </button>
       ))}
     </div>
@@ -117,7 +127,7 @@ export default function ReviewsPage(): React.ReactElement {
       <div data-page>
         <button type="button" onClick={() => setView('list')}
           style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', color:'var(--color-text-secondary)', fontSize:'var(--text-sm)', marginBottom:'var(--space-4)', cursor:'pointer' }}>
-          ← Back to reviews
+          <Icons.ChevronLeft size={16} /> Back to reviews
         </button>
 
         <h1 data-page-title>Write a review</h1>
@@ -228,7 +238,9 @@ export default function ReviewsPage(): React.ReactElement {
           <h1 data-page-title>Reviews</h1>
           <p data-page-subtitle>Reviews you have written about your stays</p>
         </div>
-        <button type="button" data-btn-primary onClick={() => setView('new')}>+ Write a review</button>
+        <button type="button" data-btn-primary onClick={() => setView('new')} style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <Icons.Plus size={16} /> Write a review
+        </button>
       </div>
 
       {isLoading ? <SkeletonLoader rows={4} /> : all.length === 0 ? (
@@ -256,8 +268,8 @@ export default function ReviewsPage(): React.ReactElement {
                     <div style={{ fontSize:'var(--text-xs)', color:'var(--color-text-muted)', marginTop:2 }}>{date}</div>
                   </div>
                   <div style={{ display:'flex', alignItems:'center', gap:'var(--space-3)' }}>
-                    <span style={{ fontSize:'var(--text-lg)', color:'#F59E0B' }}>
-                      {'★'.repeat(ratings?.['overall'] ?? 0)}{'☆'.repeat(5-(ratings?.['overall'] ?? 0))}
+                    <span style={{ display: 'flex' }}>
+                      <StarDisplay value={ratings?.['overall'] ?? 0} size={18} />
                     </span>
                     <span data-status-badge data-status={status==='approved'?'confirmed':status}
                       style={{ fontSize:'var(--text-xs)' }}>
@@ -281,7 +293,7 @@ export default function ReviewsPage(): React.ReactElement {
                   <div style={{ display:'flex', flexWrap:'wrap', gap:'var(--space-4)', marginTop:'var(--space-4)', paddingTop:'var(--space-4)', borderTop:'1px solid var(--color-border)' }}>
                     {RATING_CATEGORIES.filter((cat) => ratings[cat.key]).map((cat) => (
                       <div key={cat.key} style={{ fontSize:'var(--text-xs)', color:'var(--color-text-secondary)' }}>
-                        {cat.label}: <span style={{ color:'#F59E0B' }}>{'★'.repeat(ratings[cat.key] ?? 0)}</span>
+                        {cat.label}: <StarDisplay value={ratings[cat.key] ?? 0} size={12} />
                       </div>
                     ))}
                   </div>

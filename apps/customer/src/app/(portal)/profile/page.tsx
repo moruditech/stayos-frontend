@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { PiiField, ConfirmDialog, useToast, InlineError, SkeletonLoader } from '@stayos/ui';
+import { PiiField, ConfirmDialog, useToast, InlineError, SkeletonLoader, Icons } from '@stayos/ui';
 import { profileKeys } from '@/lib/query-keys';
 
 export default function ProfilePage(): React.ReactElement {
@@ -162,8 +162,8 @@ export default function ProfilePage(): React.ReactElement {
               Download a copy of your personal data — profile, bookings, payments, reviews, complaints, loyalty account, and all consent records held for your account.
             </p>
             {exportDone ? (
-              <div style={{ padding:'var(--space-4)', background:'var(--color-success-bg)', borderRadius:'var(--radius-md)', fontSize:'var(--text-sm)', color:'var(--color-success)', fontWeight:'var(--font-medium)' }}>
-                ✓ Export requested. You will receive an email with a download link within 24 hours.
+              <div style={{ padding:'var(--space-4)', background:'var(--color-success-bg)', borderRadius:'var(--radius-md)', fontSize:'var(--text-sm)', color:'var(--color-success)', fontWeight:'var(--font-medium)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                <Icons.CheckCircle2 size={16} /> Export requested. You will receive an email with a download link within 24 hours.
               </div>
             ) : (
               <button type="button" data-btn-secondary disabled={exportMutation.isPending} onClick={() => exportMutation.mutate()}>

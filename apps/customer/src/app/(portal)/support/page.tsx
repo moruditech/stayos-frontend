@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { SkeletonLoader, EmptyState, StatusBadge, useToast, InlineError } from '@stayos/ui';
+import { SkeletonLoader, EmptyState, StatusBadge, useToast, InlineError, Icons } from '@stayos/ui';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -89,7 +89,7 @@ export default function SupportPage(): React.ReactElement {
       <div data-page>
         <button type="button" onClick={() => setView('list')}
           style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', color:'var(--color-text-secondary)', fontSize:'var(--text-sm)', marginBottom:'var(--space-4)', cursor:'pointer' }}>
-          ← Back to support
+          <Icons.ChevronLeft size={16} /> Back to support
         </button>
         <h1 data-page-title>New support request</h1>
         <form onSubmit={form.handleSubmit((v) => void createMutation.mutate(v))} noValidate
@@ -136,7 +136,7 @@ export default function SupportPage(): React.ReactElement {
       <div data-page>
         <button type="button" onClick={() => setView('list')}
           style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', color:'var(--color-text-secondary)', fontSize:'var(--text-sm)', marginBottom:'var(--space-4)', cursor:'pointer' }}>
-          ← Back to support
+          <Icons.ChevronLeft size={16} /> Back to support
         </button>
         {detailLoading ? <SkeletonLoader rows={4} /> : (
           <>
@@ -221,8 +221,8 @@ export default function SupportPage(): React.ReactElement {
           <h1 data-page-title>Support</h1>
           <p data-page-subtitle>Your support requests with StayOS</p>
         </div>
-        <button type="button" data-btn-primary onClick={() => setView('new')}>
-          + New request
+        <button type="button" data-btn-primary onClick={() => setView('new')} style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <Icons.Plus size={16} /> New request
         </button>
       </div>
 
@@ -256,14 +256,14 @@ export default function SupportPage(): React.ReactElement {
 
       <div data-support-callout style={{ marginTop:'var(--space-8)' }}>
         <div data-support-callout-text>
-          <span data-support-callout-icon>🌐</span>
+          <span data-support-callout-icon><Icons.BookOpen size={20} /></span>
           <div>
             <strong>Help Centre</strong>
             <p>Browse guides, FAQs and troubleshooting articles.</p>
           </div>
         </div>
-        <a href="https://stayos.co.za/help" target="_blank" rel="noopener noreferrer" data-btn-secondary>
-          Visit Help Centre →
+        <a href="https://stayos.co.za/help" target="_blank" rel="noopener noreferrer" data-btn-secondary style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          Visit Help Centre <Icons.ExternalLink size={16} />
         </a>
       </div>
     </div>

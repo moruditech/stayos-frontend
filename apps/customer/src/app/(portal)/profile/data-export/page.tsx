@@ -4,7 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { useToast } from '@stayos/ui';
+import { useToast, Icons } from '@stayos/ui';
 
 // GET /customers/me/data-export — POPIA DSAR per TAD 07 §5
 export default function DataExportPage(): React.ReactElement {
@@ -38,7 +38,7 @@ export default function DataExportPage(): React.ReactElement {
   return (
     <div data-page>
       <a href="/profile" data-link style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', fontSize:'var(--text-sm)', marginBottom:'var(--space-5)', textDecoration:'none', color:'var(--color-text-secondary)' }}>
-        ← Back to profile
+        <Icons.ChevronLeft size={16} /> Back to profile
       </a>
 
       <h1 data-page-title>Export my data</h1>
@@ -52,7 +52,7 @@ export default function DataExportPage(): React.ReactElement {
           <ul style={{ display:'flex', flexDirection:'column', gap:'var(--space-2)' }}>
             {WHAT_IS_INCLUDED.map((item) => (
               <li key={item} style={{ display:'flex', gap:'var(--space-2)', fontSize:'var(--text-sm)', color:'var(--color-text-secondary)' }}>
-                <span style={{ color:'var(--color-primary)', fontWeight:'var(--font-bold)', flexShrink:0 }}>✓</span>
+                <span style={{ color:'var(--color-primary)', flexShrink:0, display:'flex' }}><Icons.Check size={16} /></span>
                 {item}
               </li>
             ))}
@@ -73,7 +73,7 @@ export default function DataExportPage(): React.ReactElement {
 
         {done ? (
           <div style={{ padding:'var(--space-6)', background:'var(--color-success-bg)', borderRadius:'var(--radius-lg)', textAlign:'center' }}>
-            <div style={{ fontSize:'var(--text-3xl)', marginBottom:'var(--space-3)' }}>✅</div>
+            <div style={{ display:'flex', justifyContent:'center', color:'var(--color-success)', marginBottom:'var(--space-3)' }}><Icons.CheckCircle2 size={32} /></div>
             <h3 style={{ fontSize:'var(--text-base)', fontWeight:'var(--font-bold)', color:'var(--color-success)', marginBottom:'var(--space-2)' }}>
               Export requested
             </h3>

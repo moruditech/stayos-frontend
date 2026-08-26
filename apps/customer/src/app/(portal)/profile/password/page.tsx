@@ -7,7 +7,7 @@ import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
 import { changePasswordSchema } from '@stayos/validators';
 import type { ChangePasswordInput } from '@stayos/validators';
-import { InlineError, applyServerErrors } from '@stayos/ui';
+import { InlineError, applyServerErrors, Icons } from '@stayos/ui';
 
 // PATCH /customers/me/password — signs out all other sessions on success
 export default function ChangePasswordPage(): React.ReactElement {
@@ -47,7 +47,7 @@ export default function ChangePasswordPage(): React.ReactElement {
       <div data-page>
         <div style={{ maxWidth:480 }}>
           <div style={{ padding:'var(--space-8)', background:'var(--color-success-bg)', borderRadius:'var(--radius-xl)', textAlign:'center' }}>
-            <div style={{ fontSize:'var(--text-4xl)', marginBottom:'var(--space-4)' }}>✅</div>
+            <div style={{ display:'flex', justifyContent:'center', color:'var(--color-success)', marginBottom:'var(--space-4)' }}><Icons.CheckCircle2 size={40} /></div>
             <h2 style={{ fontSize:'var(--text-lg)', fontWeight:'var(--font-bold)', color:'var(--color-success)', marginBottom:'var(--space-2)' }}>Password updated</h2>
             <p style={{ fontSize:'var(--text-sm)', color:'var(--color-success)', marginBottom:'var(--space-6)' }}>
               All other active sessions have been signed out. You remain signed in on this device.
@@ -64,7 +64,7 @@ export default function ChangePasswordPage(): React.ReactElement {
   return (
     <div data-page>
       <a href="/profile" data-link style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', fontSize:'var(--text-sm)', marginBottom:'var(--space-5)', textDecoration:'none', color:'var(--color-text-secondary)' }}>
-        ← Back to profile
+        <Icons.ChevronLeft size={16} /> Back to profile
       </a>
 
       <h1 data-page-title>Change password</h1>

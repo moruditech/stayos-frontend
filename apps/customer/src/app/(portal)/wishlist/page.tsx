@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { SkeletonLoader, EmptyState, useToast } from '@stayos/ui';
+import { SkeletonLoader, EmptyState, useToast, Icons } from '@stayos/ui';
 
 const WISHLIST_KEYS = { list: () => ['customer','wishlist'] as const };
 
@@ -39,12 +39,12 @@ export default function WishlistPage(): React.ReactElement {
           action={<a href="/accommodation" data-btn-primary>Browse accommodation</a>}
         />
       ) : (
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:'var(--space-5)' }}>
+        <div data-property-list>
           {all.map((item) => {
             const p = item as Record<string,unknown>;
             const rating = p['rating'] as number | undefined;
             return (
-              <div key={p['_id'] as string} data-property-card>
+              <div key={p['_id'] as string} data-property-card data-property-list-item>
                 <div data-property-card-image>
                   {/* /images/properties/[slug]-thumb.jpg */}
                   <img src={`/images/properties/${p['slug'] as string}-thumb.jpg`} alt={p['name'] as string}
@@ -54,7 +54,7 @@ export default function WishlistPage(): React.ReactElement {
                   <button type="button" data-property-card-wishlist data-saved=""
                     aria-label="Remove from saved"
                     onClick={() => removeMutation.mutate(p['_id'] as string)}>
-                    ♥
+                    <Icons.Heart size={16} fill="currentColor" />
                   </button>
                 </div>
                 <div data-property-card-body>
@@ -62,9 +62,9 @@ export default function WishlistPage(): React.ReactElement {
                     <a href={`/accommodation/${p['slug'] as string}`} data-property-card-name style={{ textDecoration:'none' }}>
                       {p['name'] as string}
                     </a>
-                    {rating && <span data-property-card-rating>★ {rating.toFixed(1)}</span>}
+                    {rating && <span data-property-card-rating><Icons.Star size={14} fill="currentColor" /> {rating.toFixed(1)}</span>}
                   </div>
-                  <div data-property-card-location>📍 {p['city'] as string}</div>
+                  <div data-property-card-location><Icons.MapPin size={14} /> {p['city'] as string}</div>
                   <div data-property-card-pricing>
                     <div>
                       <span data-property-rate>R{((p['baseRate'] as number) ?? 0).toLocaleString()}</span>

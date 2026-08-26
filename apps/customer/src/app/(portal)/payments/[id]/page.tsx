@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
-import { SkeletonLoader, StatusBadge, CopyButton } from '@stayos/ui';
+import { SkeletonLoader, StatusBadge, CopyButton, Icons } from '@stayos/ui';
 import { paymentKeys } from '@/lib/query-keys';
 
 interface Props { params: { id: string } }
@@ -30,7 +30,7 @@ export default function PaymentDetailPage({ params }: Props): React.ReactElement
     <div data-page>
       <button type="button" onClick={() => router.back()}
         style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-4)', cursor: 'pointer' }}>
-        ← Back to payments
+        <Icons.ChevronLeft size={16} /> Back to payments
       </button>
       <h1 data-page-title>Payment details</h1>
 
@@ -74,10 +74,12 @@ export default function PaymentDetailPage({ params }: Props): React.ReactElement
       )}
 
       <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-        <a href={`/api/v1/payments/${params.id}/receipt`} target="_blank" rel="noopener noreferrer" data-btn-ghost style={{ flex: 1 }}>
-          🧾 Download receipt
+        <a href={`/api/v1/payments/${params.id}/receipt`} target="_blank" rel="noopener noreferrer" data-btn-ghost style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}>
+          <Icons.FileText size={16} /> Download receipt
         </a>
-        <a href="/support" data-btn-ghost style={{ flex: 1 }}>💬 Query payment</a>
+        <a href="/support" data-btn-ghost style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}>
+          <Icons.MessageCircle size={16} /> Query payment
+        </a>
       </div>
     </div>
   );

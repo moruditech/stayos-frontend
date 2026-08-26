@@ -5,7 +5,7 @@ import { useSession } from '@stayos/auth';
 import { useSessionContext } from '@stayos/auth';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { ConfirmDialog, useToast } from '@stayos/ui';
+import { ConfirmDialog, useToast, Icons } from '@stayos/ui';
 
 // DELETE /customers/me — POPIA erasure per TAD 07 §4
 // Copy is honest: DataSharingConsent is hard-retained permanently (no deletedAt on the model).
@@ -34,7 +34,7 @@ export default function DeleteAccountPage(): React.ReactElement {
   return (
     <div data-page>
       <a href="/profile" data-link style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', fontSize:'var(--text-sm)', marginBottom:'var(--space-5)', textDecoration:'none', color:'var(--color-text-secondary)' }}>
-        ← Back to profile
+        <Icons.ChevronLeft size={16} /> Back to profile
       </a>
 
       <h1 data-page-title>Delete account</h1>
@@ -49,23 +49,23 @@ export default function DeleteAccountPage(): React.ReactElement {
           </h2>
           <div style={{ display:'flex', flexDirection:'column', gap:'var(--space-3)' }}>
             {[
-              { icon:'🔒', label:'Immediate effects', items:[
+              { icon:Icons.Lock, label:'Immediate effects', items:[
                 'Your account is deactivated immediately.',
                 'All active sessions are revoked across all devices.',
                 'You will be signed out of the platform.',
               ]},
-              { icon:'📅', label:'Within 30 days', items:[
+              { icon:Icons.Calendar, label:'Within 30 days', items:[
                 'Your profile, booking history, payment records and personal data are removed from active records.',
                 'Your reviews and complaints are anonymised — the content may remain visible but will no longer be linked to your identity.',
               ]},
-              { icon:'📋', label:'Retained permanently (required by law)', items:[
+              { icon:Icons.ClipboardList, label:'Retained permanently (required by law)', items:[
                 'A record of data-sharing consents you gave is retained permanently. This cannot be removed — it is required to demonstrate the lawfulness of processing that occurred under each consent, in accordance with POPIA and in the event of a dispute. This record does not identify you by name after your account is deleted.',
                 'Financial transaction records are retained for 5 years as required by South African financial regulations.',
               ]},
             ].map((section) => (
               <div key={section.label}>
                 <div style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', fontWeight:'var(--font-semibold)', fontSize:'var(--text-sm)', marginBottom:'var(--space-2)' }}>
-                  <span>{section.icon}</span>{section.label}
+                  <span style={{ display: 'flex', color: 'var(--color-primary)' }}><section.icon size={16} /></span>{section.label}
                 </div>
                 <ul style={{ paddingLeft:'var(--space-5)', display:'flex', flexDirection:'column', gap:'var(--space-1)' }}>
                   {section.items.map((item) => (
@@ -79,8 +79,8 @@ export default function DeleteAccountPage(): React.ReactElement {
 
         {/* Things to do first */}
         <div data-card-padded style={{ background:'var(--color-warning-bg)', borderColor:'var(--color-warning)' }}>
-          <h3 style={{ fontSize:'var(--text-sm)', fontWeight:'var(--font-bold)', color:'var(--color-warning)', marginBottom:'var(--space-3)' }}>
-            ⚠ Before you delete
+          <h3 style={{ fontSize:'var(--text-sm)', fontWeight:'var(--font-bold)', color:'var(--color-warning)', marginBottom:'var(--space-3)', display:'flex', alignItems:'center', gap:'var(--space-2)' }}>
+            <Icons.AlertTriangle size={16} /> Before you delete
           </h3>
           <ul style={{ paddingLeft:'var(--space-5)', display:'flex', flexDirection:'column', gap:'var(--space-2)', fontSize:'var(--text-sm)', color:'var(--color-text-secondary)' }}>
             <li>Make sure you have no upcoming bookings — deletion will not automatically cancel them.</li>

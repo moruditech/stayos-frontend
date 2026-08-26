@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { SkeletonLoader, useToast } from '@stayos/ui';
+import { SkeletonLoader, useToast, Icons, type LucideIcon } from '@stayos/ui';
 import { profileKeys } from '@/lib/query-keys';
 
 // PATCH /customers/me/communication-prefs
@@ -12,11 +12,11 @@ import { profileKeys } from '@/lib/query-keys';
 // Confirmed against commPrefsSchema in customers.routes.js
 type Channel = 'email' | 'sms' | 'whatsapp' | 'push';
 
-const CHANNELS: { id: Channel; label: string; desc: string; icon: string }[] = [
-  { id:'email',    label:'Email',            desc:'Booking confirmations, receipts, application updates and newsletters.', icon:'✉️' },
-  { id:'sms',      label:'SMS',              desc:'Booking reminders and urgent account alerts. Standard message rates apply.', icon:'💬' },
-  { id:'whatsapp', label:'WhatsApp',         desc:'Booking updates and support messages via WhatsApp.', icon:'📱' },
-  { id:'push',     label:'Push notifications', desc:'Real-time alerts on your device when using the StayOS app.', icon:'🔔' },
+const CHANNELS: { id: Channel; label: string; desc: string; icon: LucideIcon }[] = [
+  { id:'email',    label:'Email',            desc:'Booking confirmations, receipts, application updates and newsletters.', icon:Icons.Mail },
+  { id:'sms',      label:'SMS',              desc:'Booking reminders and urgent account alerts. Standard message rates apply.', icon:Icons.MessageCircle },
+  { id:'whatsapp', label:'WhatsApp',         desc:'Booking updates and support messages via WhatsApp.', icon:Icons.Smartphone },
+  { id:'push',     label:'Push notifications', desc:'Real-time alerts on your device when using the StayOS app.', icon:Icons.Bell },
 ];
 
 export default function CommPrefsPage(): React.ReactElement {
@@ -51,7 +51,7 @@ export default function CommPrefsPage(): React.ReactElement {
   return (
     <div data-page>
       <a href="/profile" data-link style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', fontSize:'var(--text-sm)', marginBottom:'var(--space-5)', textDecoration:'none', color:'var(--color-text-secondary)' }}>
-        ← Back to profile
+        <Icons.ChevronLeft size={16} /> Back to profile
       </a>
 
       <h1 data-page-title>Communication preferences</h1>
@@ -78,7 +78,7 @@ export default function CommPrefsPage(): React.ReactElement {
                   borderBottom: i < CHANNELS.length-1 ? '1px solid var(--color-border)' : 'none',
                 }}>
                   <div style={{ display:'flex', alignItems:'flex-start', gap:'var(--space-4)' }}>
-                    <span style={{ fontSize:'var(--text-xl)', width:40, height:40, background:'var(--color-surface-muted)', borderRadius:'var(--radius-md)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>{ch.icon}</span>
+                    <span style={{ width:40, height:40, background:'var(--color-surface-muted)', borderRadius:'var(--radius-md)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, color:'var(--color-primary)' }}><ch.icon size={20} /></span>
                     <div>
                       <div style={{ fontSize:'var(--text-sm)', fontWeight:'var(--font-semibold)', marginBottom:4 }}>{ch.label}</div>
                       <div style={{ fontSize:'var(--text-xs)', color:'var(--color-text-secondary)', lineHeight:'var(--leading-relaxed)' }}>{ch.desc}</div>
