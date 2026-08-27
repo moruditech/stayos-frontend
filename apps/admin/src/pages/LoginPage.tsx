@@ -36,7 +36,7 @@ export default function LoginPage(): React.ReactElement {
         setSubmitting(false);
         return;
       }
-      await setSession(result.accessToken);
+      await setSession(result.accessToken, result.refreshToken);
       navigate(redirect, { replace: true });
     } catch (err) {
       const apiErr = err as ApiError;
@@ -54,8 +54,8 @@ export default function LoginPage(): React.ReactElement {
           <MfaStep
             tempToken={mfaState.tempToken}
             loginValues={mfaState.loginValues}
-            onSuccess={async (token) => {
-              await setSession(token);
+            onSuccess={async (token, refreshToken) => {
+              await setSession(token, refreshToken);
               navigate(redirect, { replace: true });
             }}
           />

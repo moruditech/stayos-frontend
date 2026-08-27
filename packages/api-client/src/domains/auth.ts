@@ -10,12 +10,17 @@ import type {
 
 export interface LoginResponse {
   accessToken: string;
+  // Present alongside the HttpOnly cookie so localStorage-based clients
+  // (e.g. the admin portal, which can't rely on a cross-site cookie
+  // surviving third-party-cookie blocking) can store and send it explicitly.
+  refreshToken?: string;
   mfaRequired?: boolean;
   tempToken?: string; // 1-minute token — only present when mfaRequired is true
 }
 
 export interface RefreshResponse {
   accessToken: string;
+  refreshToken?: string;
 }
 
 export const authApi = {
@@ -25,7 +30,17 @@ export const authApi = {
   // skipRefreshCheck: true — the refresh endpoint must never trigger
   // ensureFreshToken() on itself. See client.ts skipRefreshCheck for the
   // full explanation of why this would otherwise cause a deadlock.
-  refresh: () => client.post<RefreshResponse>('/auth/refresh', undefined, { skipRefreshCheck: true }),
+  //
+  // storedRefreshToken: pass the localStorage-held token explicitly for
+  // clients that use that flow (see packages/auth/token-store.ts). Sent in
+  // the body; the server falls back to the cookie if this is omitted, so
+  // cookie-based portals (customer/property) are unaffected.
+  refresh: (storedRefreshToken?: string) =>
+    client.post<RefreshResponse>(
+      '/auth/refresh',
+      storedRefreshToken ? { refreshToken: storedRefreshToken } : undefined,
+      { skipRefreshCheck: true }
+    ),
 
   logout: () => client.post<void>('/auth/logout'),
 

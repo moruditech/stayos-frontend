@@ -8,7 +8,10 @@ import type { ApiError } from '@stayos/api-client';
 interface MfaStepProps {
   tempToken: string;
   loginValues: LoginInput;
-  onSuccess: (accessToken: string) => void;
+  // refreshToken is only present for portals that use the localStorage-based
+  // refresh flow (see @stayos/auth token-store.ts) — most callers can ignore
+  // the second argument entirely.
+  onSuccess: (accessToken: string, refreshToken?: string) => void;
 }
 
 /**
@@ -44,7 +47,7 @@ export function MfaStep({ tempToken: initialTempToken, loginValues, onSuccess }:
     setError('');
     try {
       const result = await api.auth.mfaVerify({ tempToken, totpCode: code });
-      onSuccess(result.accessToken);
+      onSuccess(result.accessToken, result.refreshToken);
     } catch (err) {
       const apiErr = err as ApiError;
       setError(

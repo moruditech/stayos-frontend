@@ -16,6 +16,8 @@ import {
   setOwnerToken,
   getOwnerToken,
   clearAllTokens,
+  getStoredRefreshToken,
+  setStoredRefreshToken,
 } from './token-store';
 import { decodeToken, isTokenExpired } from './decode';
 import { resolvePermissions } from './permissions';
@@ -36,7 +38,7 @@ interface SessionContextValue {
   clearSession: () => void;
   // Used by property-entry flows (owner enters property, agency callback)
   // to swap the active token and rebuild session without a full re-mount.
-  setSession: (token: string) => Promise<void>;
+  setSession: (token: string, refreshToken?: string) => Promise<void>;
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -57,6 +59,20 @@ interface SessionProviderProps {
    * Owner Portal on a white-label domain. Not a pattern to use elsewhere.
    */
   customDomain?: boolean;
+  /**
+   * When true, the refresh token is sent explicitly (in the request body)
+   * and persisted in localStorage, instead of relying solely on the
+   * HttpOnly cookie. For portals with no server of their own to proxy
+   * through (e.g. the admin portal, a static SPA on a different domain
+   * than the API) — the cookie is cross-site there and gets dropped by
+   * third-party-cookie blocking in Safari/Chrome regardless of SameSite.
+   *
+   * Trade-off: unlike the cookie, this token is readable by any JS on the
+   * page, so an XSS bug can read it directly. Only enable this where the
+   * portal can't put the frontend and API on the same registrable domain
+   * (the alternative that avoids the trade-off entirely).
+   */
+  useStoredRefreshToken?: boolean;
   onUnauthenticated: (redirectPath?: string) => void;
   onDisconnect?: () => void;
 }
@@ -65,6 +81,7 @@ export function SessionProvider({
   children,
   onUnauthenticated,
   onDisconnect,
+  useStoredRefreshToken = false,
 }: SessionProviderProps): React.ReactElement {
   const [session, setSessionState] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -115,18 +132,30 @@ export function SessionProvider({
   // Races against a timeout so a slow/asleep backend (e.g. free-tier cold
   // start) can't hold the app on a blank screen indefinitely — after 8s we
   // give up and treat it as unauthenticated, same as any other failure.
+  //
+  // When useStoredRefreshToken is set, the stored token is sent explicitly
+  // in the body and the rotated token returned is written back to storage —
+  // this is what makes refresh work at all for a portal whose refresh cookie
+  // is cross-site and gets dropped by browser third-party-cookie blocking.
   const doRefresh = useCallback(async (): Promise<string | null> => {
     try {
       const { api } = await import('@stayos/api-client');
       const timeout = new Promise<never>((_, reject) => {
         setTimeout(() => reject(new Error('refresh timed out')), 8000);
       });
-      const { accessToken } = await Promise.race([api.auth.refresh(), timeout]);
+      const storedToken = useStoredRefreshToken ? getStoredRefreshToken() ?? undefined : undefined;
+      const { accessToken, refreshToken } = await Promise.race([
+        api.auth.refresh(storedToken),
+        timeout,
+      ]);
+      if (useStoredRefreshToken && refreshToken) {
+        setStoredRefreshToken(refreshToken);
+      }
       return accessToken;
     } catch {
       return null;
     }
-  }, []);
+  }, [useStoredRefreshToken]);
 
   // ── Shared refresh function injected into api-client ──────────────────────
   const sharedRefresh = useCallback(async (): Promise<void> => {
@@ -147,13 +176,19 @@ export function SessionProvider({
     return refreshInFlight;
   }, [doRefresh, onUnauthenticated, onDisconnect]);
 
-  // ── Public setSession — used by property-entry flows ──────────────────────
-  const setSession = useCallback(async (token: string): Promise<void> => {
+  // ── Public setSession — used by login and property-entry flows ────────────
+  // refreshToken is only passed by callers using the localStorage flow
+  // (see useStoredRefreshToken above); other callers omit it and this is a
+  // no-op for that part.
+  const setSession = useCallback(async (token: string, refreshToken?: string): Promise<void> => {
     setActiveToken(token);
+    if (useStoredRefreshToken && refreshToken) {
+      setStoredRefreshToken(refreshToken);
+    }
     writeMarkerCookie(decodeToken(token)?.scope ?? '');
     const built = await buildSession(token);
     setSessionState(built);
-  }, [buildSession]);
+  }, [buildSession, useStoredRefreshToken]);
 
   // ── clearSession — used by logout and refresh failure ─────────────────────
   const clearSession = useCallback((): void => {

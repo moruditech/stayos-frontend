@@ -15,6 +15,38 @@
 let activeToken: string | null = null;
 let ownerToken: string | null = null;
 
+// ── Refresh token (localStorage) ───────────────────────────────────────────
+// Opt-in, used only by portals that can't rely on the HttpOnly cross-site
+// cookie surviving third-party-cookie blocking (e.g. the admin portal — a
+// static SPA on a different domain than the API, with no server-side proxy
+// available to make the cookie first-party). Cookie-based portals
+// (customer, property) never call these and are unaffected.
+//
+// Trade-off, spelled out: unlike the HttpOnly cookie, this is readable by
+// any JS on the page, so an XSS bug here can lift the refresh token
+// directly. Kept only for portals where the alternative (staying logged
+// out) was worse for the deployment as it stands; the durable fix is still
+// putting the frontend and API on the same registrable domain so the
+// cookie can be first-party (see auth.controller.js COOKIE_DOMAIN).
+const REFRESH_TOKEN_KEY = 'stayos_refresh_token';
+
+export function getStoredRefreshToken(): string | null {
+  try {
+    return window.localStorage.getItem(REFRESH_TOKEN_KEY);
+  } catch {
+    return null; // storage unavailable (privacy mode, SSR, etc.)
+  }
+}
+
+export function setStoredRefreshToken(token: string | null): void {
+  try {
+    if (token) window.localStorage.setItem(REFRESH_TOKEN_KEY, token);
+    else window.localStorage.removeItem(REFRESH_TOKEN_KEY);
+  } catch {
+    // storage unavailable — silently no-op, same as read
+  }
+}
+
 export function getActiveToken(): string | null {
   return activeToken;
 }
@@ -34,4 +66,5 @@ export function setOwnerToken(token: string | null): void {
 export function clearAllTokens(): void {
   activeToken = null;
   ownerToken = null;
+  setStoredRefreshToken(null);
 }

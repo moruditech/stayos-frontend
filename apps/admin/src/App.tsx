@@ -127,6 +127,7 @@ function AppWithAuth(): React.ReactElement {
   return (
     <SessionProvider
       portalUserType="platform"
+      useStoredRefreshToken
       onUnauthenticated={(redirect) => {
         navigate(redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : '/login', {
           replace: true,
