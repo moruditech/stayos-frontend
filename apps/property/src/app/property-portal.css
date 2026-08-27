@@ -21,6 +21,39 @@
   color: var(--color-accent);
 }
 
+/* ── Form wrap / heading / card — property's globals.css only defines the
+   two-column [data-login-left]/[data-login-right] split; it never had the
+   heading + bordered card treatment customer uses above the form, so that's
+   added here to match. ───────────────────────────────────────────────────── */
+[data-login-form-wrap] {
+  width: 100%;
+  max-width: 26rem;
+  margin: 0 auto;
+}
+
+[data-login-heading] {
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+[data-login-heading] h2 {
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+}
+[data-login-heading] p {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+[data-login-card] {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  box-shadow: var(--shadow-sm);
+}
+
 /* ── Icon-wrapped form inputs ─────────────────────────────────────────────── */
 [data-input-icon] {
   position: relative;

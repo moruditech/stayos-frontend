@@ -48,6 +48,10 @@ export type { NavItem } from './nav';
 export * as Icons from './icons';
 export type { LucideIcon } from './icons';
 
+// Real multi-color Google "G" mark for OAuth buttons — shared so apps don't
+// each fake their own placeholder icon.
+export { GoogleIcon } from './GoogleIcon';
+
 // Chart primitives — dependency-free SVG, render only what's passed in.
 export { AreaLineChart, HorizontalBarChart, DonutChart } from './charts';
 export type { AreaChartPoint, BarChartItem, DonutSlice } from './charts';

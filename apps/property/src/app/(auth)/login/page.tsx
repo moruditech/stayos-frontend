@@ -9,7 +9,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@stayos/api-client';
 import { useSessionContext, useSessionLoading } from '@stayos/auth';
 import { loginSchema } from '@stayos/validators';
-import { InlineError, applyServerErrors, Icons } from '@stayos/ui';
+import { InlineError, applyServerErrors, Icons, GoogleIcon } from '@stayos/ui';
 import type { LoginInput } from '@stayos/validators';
 import type { ApiError } from '@stayos/api-client';
 
@@ -225,6 +225,13 @@ function LoginPageInner(): React.ReactElement {
 
       {/* Right panel — form */}
       <div data-login-right>
+        <div data-login-form-wrap>
+          <div data-login-heading>
+            <h2>Welcome back</h2>
+            <p>Sign in to access your dashboard</p>
+          </div>
+
+          <div data-login-card>
         <form
           onSubmit={form.handleSubmit((v) => void handleLogin(v))}
           data-login-form
@@ -299,7 +306,7 @@ function LoginPageInner(): React.ReactElement {
             data-btn-oauth
             data-btn-full
           >
-            <span data-google-icon aria-hidden="true" />
+            <GoogleIcon />
             Continue with Google
           </a>
 
@@ -312,6 +319,8 @@ function LoginPageInner(): React.ReactElement {
             <a href={PUBLIC_SIGNUP_URL} data-link>
               Create account <Icons.ArrowRight aria-hidden="true" />
             </a>
+          </div>
+        </form>
           </div>
 
           <div data-login-trust-row>
@@ -334,7 +343,7 @@ function LoginPageInner(): React.ReactElement {
           <div data-login-footer>
             © {new Date().getFullYear()} StayOS. All rights reserved.
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
