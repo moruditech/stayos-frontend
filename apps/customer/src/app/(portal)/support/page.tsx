@@ -9,6 +9,8 @@ import { SkeletonLoader, EmptyState, StatusBadge, useToast, InlineError, Icons }
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 
+const PUBLIC_SITE_URL = process.env['NEXT_PUBLIC_PUBLIC_SITE_URL'] ?? 'https://stayos.co.za';
+
 const SUPPORT_KEYS = {
   list:     () => ['support','tickets','mine'] as const,
   detail:   (id: string) => ['support','ticket', id] as const,
@@ -16,9 +18,9 @@ const SUPPORT_KEYS = {
 };
 
 const newTicketSchema = z.object({
-  subject:  z.string().min(5, 'Subject is required'),
-  message:  z.string().min(10, 'Please describe your issue'),
-  category: z.enum(['booking','payment','account','application','other']),
+  subject:     z.string().min(5, 'Subject is required'),
+  description: z.string().min(10, 'Please describe your issue'),
+  category:    z.enum(['billing', 'booking', 'technical', 'complaint', 'account', 'other']),
 });
 type NewTicketInput = z.infer<typeof newTicketSchema>;
 
@@ -50,7 +52,7 @@ export default function SupportPage(): React.ReactElement {
 
   const form = useForm<NewTicketInput>({
     resolver: zodResolver(newTicketSchema),
-    defaultValues: { subject:'', message:'', category:'booking' },
+    defaultValues: { subject:'', description:'', category:'booking' },
   });
 
   const createMutation = useMutation({
@@ -98,8 +100,9 @@ export default function SupportPage(): React.ReactElement {
             <label htmlFor="cat">Category</label>
             <select id="cat" {...form.register('category')}>
               <option value="booking">Booking issue</option>
-              <option value="payment">Payment issue</option>
-              <option value="application">Application issue</option>
+              <option value="billing">Billing issue</option>
+              <option value="technical">Technical issue</option>
+              <option value="complaint">Complaint</option>
               <option value="account">Account / profile</option>
               <option value="other">Other</option>
             </select>
@@ -110,9 +113,9 @@ export default function SupportPage(): React.ReactElement {
             <InlineError message={form.formState.errors.subject?.message} />
           </div>
           <div data-form-group>
-            <label htmlFor="msg">Message</label>
-            <textarea id="msg" rows={6} placeholder="Describe your issue in detail. Include booking numbers or reference IDs where relevant." {...form.register('message')} />
-            <InlineError message={form.formState.errors.message?.message} />
+            <label htmlFor="desc">Message</label>
+            <textarea id="desc" rows={6} placeholder="Describe your issue in detail. Include booking numbers or reference IDs where relevant." {...form.register('description')} />
+            <InlineError message={form.formState.errors.description?.message} />
           </div>
           <div style={{ display:'flex', gap:'var(--space-3)' }}>
             <button type="button" data-btn-ghost onClick={() => setView('list')}>Cancel</button>
@@ -262,7 +265,7 @@ export default function SupportPage(): React.ReactElement {
             <p>Browse guides, FAQs and troubleshooting articles.</p>
           </div>
         </div>
-        <a href="https://stayos.co.za/help" target="_blank" rel="noopener noreferrer" data-btn-secondary style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+        <a href={`${PUBLIC_SITE_URL}/help`} target="_blank" rel="noopener noreferrer" data-btn-secondary style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           Visit Help Centre <Icons.ExternalLink size={16} />
         </a>
       </div>
