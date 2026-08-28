@@ -18,8 +18,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { RoleGate, Icons } from '@stayos/ui';
-import { PERMISSIONS } from '@stayos/constants';
+import { RoleGate, PlanGate, Icons } from '@stayos/ui';
+import { PERMISSIONS, PLAN_FEATURES } from '@stayos/constants';
 
 interface ReportEntry {
   id: string;
@@ -33,7 +33,7 @@ const REPORTS: ReportEntry[] = [
   {
     id: 'occupancy',
     title: 'Occupancy',
-    description: 'Daily and monthly occupancy rates, ADR, RevPAR.',
+    description: 'Room occupancy rates, available vs. booked room-nights.',
     href: '/reports/occupancy',
     perm: PERMISSIONS.REPORT_READ,
   },
@@ -79,14 +79,6 @@ const REPORTS: ReportEntry[] = [
     href: '/reports/finance?view=night-audit',
     perm: PERMISSIONS.REPORT_FINANCE_READ,
   },
-  {
-    id: 'students',
-    title: 'Student financials',
-    description: 'Invoice status, NSFAS funding, outstanding balances by student.',
-    href: '/reports/students',
-    // property:* — explicitly different from report:* (TAD 11 §15)
-    perm: PERMISSIONS.PROPERTY_ALL,
-  },
 ];
 
 export default function ReportsPage(): React.ReactElement {
@@ -109,6 +101,22 @@ export default function ReportsPage(): React.ReactElement {
             </Link>
           </RoleGate>
         ))}
+
+        {/* Student financials — property:* is explicitly different from report:*
+            (TAD 11 §15), and the underlying university module is itself
+            plan-gated, so this card needs both checks rather than joining
+            the generic REPORTS loop above. */}
+        <RoleGate perm={PERMISSIONS.PROPERTY_ALL}>
+          <PlanGate feature={PLAN_FEATURES.UNIVERSITY_MODULE}>
+            <Link href="/reports/students" data-report-card>
+              <h2 data-report-title>Student financials</h2>
+              <p data-report-description>
+                Invoice status, NSFAS funding, outstanding balances by student.
+              </p>
+              <span data-report-link>View report <Icons.ArrowRight aria-hidden="true" /></span>
+            </Link>
+          </PlanGate>
+        </RoleGate>
       </div>
     </div>
   );

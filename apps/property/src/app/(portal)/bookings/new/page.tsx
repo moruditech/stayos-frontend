@@ -31,6 +31,13 @@ import { InlineError, applyServerErrors, useToast, Icons } from '@stayos/ui';
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
+// Must match the backend `staffCreateBookingSchema` enum exactly
+// (src/modules/bookings/bookings.validation.js).
+const BOOKING_SOURCES = [
+  'direct', 'walk_in', 'phone', 'agency', 'corporate',
+  'ota_airbnb', 'ota_booking', 'ota_agoda', 'ota_lekkeslaap', 'ota_safarinow', 'ota_other',
+] as const;
+
 const newGuestSchema = z.object({
   guestMode:  z.literal('new'),
   firstName:  z.string().min(1, 'First name is required'),
@@ -42,7 +49,7 @@ const newGuestSchema = z.object({
   checkOut:   z.string().min(1, 'Check-out date is required'),
   adults:     z.coerce.number().min(1).default(1),
   children:   z.coerce.number().min(0).default(0),
-  source:     z.string().default('front_desk'),
+  source:     z.enum(BOOKING_SOURCES).default('direct'),
   notes:      z.string().optional(),
   promoCode:  z.string().optional(),
 });
@@ -55,7 +62,7 @@ const existingGuestSchema = z.object({
   checkOut:   z.string().min(1, 'Check-out date is required'),
   adults:     z.coerce.number().min(1).default(1),
   children:   z.coerce.number().min(0).default(0),
-  source:     z.string().default('front_desk'),
+  source:     z.enum(BOOKING_SOURCES).default('direct'),
   notes:      z.string().optional(),
   promoCode:  z.string().optional(),
 });
@@ -94,19 +101,22 @@ export default function NewBookingPage(): React.ReactElement {
 
   const newForm = useForm<NewGuestInput>({
     resolver: zodResolver(newGuestSchema),
-    defaultValues: { guestMode: 'new', adults: 1, children: 0, source: 'front_desk' },
+    defaultValues: { guestMode: 'new', adults: 1, children: 0, source: 'direct' },
   });
 
   const existingForm = useForm<ExistingGuestInput>({
     resolver: zodResolver(existingGuestSchema),
-    defaultValues: { guestMode: 'existing', adults: 1, children: 0, source: 'front_desk' },
+    defaultValues: { guestMode: 'existing', adults: 1, children: 0, source: 'direct' },
   });
 
   const createMutation = useMutation({
     mutationFn: (input: Record<string, unknown>) => api.bookings.create(input as Parameters<typeof api.bookings.create>[0]),
     onSuccess: (booking) => {
-      const status = (booking as unknown as Record<string, unknown>)['status'];
-      if (status === 'pending_confirmation') {
+      // The backend never sets `status` to 'pending_confirmation' — the
+      // waiting-for-guest state lives in the separate `guestConfirmationStatus`
+      // field, while `status` itself stays 'pending'.
+      const guestConfirmationStatus = (booking as unknown as Record<string, unknown>)['guestConfirmationStatus'];
+      if (guestConfirmationStatus === 'pending') {
         setPendingConfirm(true);
       } else {
         toast('Booking created and confirmed.', 'success');
@@ -123,16 +133,37 @@ export default function NewBookingPage(): React.ReactElement {
     },
   });
 
-  function handleNewGuestSubmit(values: NewGuestInput): void {
-    const { guestMode: _m, ...rest } = values;
-    void _m;
-    createMutation.mutate({ ...rest });
+  // Resolves the human-readable promo code the staff member typed into a
+  // promotionId (ObjectId) the backend actually accepts. The backend silently
+  // ignores an unknown `promoCode` field, so this must happen client-side.
+  async function resolvePromotionId(
+    promoCode: string | undefined,
+    form: UseFormReturn<FieldValues>
+  ): Promise<{ promotionId?: string; ok: boolean }> {
+    if (!promoCode) return { ok: true };
+    try {
+      const promo = await api.promotions.lookup(promoCode);
+      return { promotionId: promo._id, ok: true };
+    } catch {
+      form.setError('promoCode' as never, { message: 'Promo code not found or no longer valid.' });
+      return { ok: false };
+    }
   }
 
-  function handleExistingGuestSubmit(values: ExistingGuestInput): void {
-    const { guestMode: _m, ...rest } = values;
+  async function handleNewGuestSubmit(values: NewGuestInput): Promise<void> {
+    const { guestMode: _m, promoCode, ...rest } = values;
     void _m;
-    createMutation.mutate({ ...rest });
+    const { promotionId, ok } = await resolvePromotionId(promoCode, newForm as unknown as UseFormReturn<FieldValues>);
+    if (!ok) return;
+    createMutation.mutate({ ...rest, ...(promotionId ? { promotionId } : {}) });
+  }
+
+  async function handleExistingGuestSubmit(values: ExistingGuestInput): Promise<void> {
+    const { guestMode: _m, promoCode, ...rest } = values;
+    void _m;
+    const { promotionId, ok } = await resolvePromotionId(promoCode, existingForm as unknown as UseFormReturn<FieldValues>);
+    if (!ok) return;
+    createMutation.mutate({ ...rest, ...(promotionId ? { promotionId } : {}) });
   }
 
   if (pendingConfirm) {
@@ -202,11 +233,16 @@ export default function NewBookingPage(): React.ReactElement {
       <div data-form-group>
         <label htmlFor="source">Booking source</label>
         <select id="source" {...form.register('source')}>
-          <option value="front_desk">Front desk</option>
-          <option value="phone">Phone</option>
+          <option value="direct">Direct / In-person</option>
           <option value="walk_in">Walk-in</option>
-          <option value="email">Email</option>
-          <option value="ota">OTA (other)</option>
+          <option value="phone">Phone</option>
+          <option value="corporate">Corporate</option>
+          <option value="ota_airbnb">Airbnb</option>
+          <option value="ota_booking">Booking.com</option>
+          <option value="ota_agoda">Agoda</option>
+          <option value="ota_lekkeslaap">LekkeSlaap</option>
+          <option value="ota_safarinow">SafariNow</option>
+          <option value="ota_other">OTA (other)</option>
         </select>
       </div>
 

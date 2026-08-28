@@ -54,9 +54,15 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
   // ── Property ──────────────────────────────────────────────────────────
   property_owner: [
     'property:*',
+    'booking:*', 'room:*', 'folio:*',
+    'housekeeping:*', 'maintenance:*',
+    'report:read', 'report:revenue:read', 'report:finance:read', 'report:export',
+    'guest:manage', 'payment:read',
     'staff:manage', 'staff:permissions:manage', 'payroll_export:read',
     'access:manage', 'procurement:manage',
     'expense:approve', 'pettycash:manage', 'channel:manage',
+    'promotion:manage', 'rate:*', 'availability:*',
+    'billing:manage',
   ],
   property_admin: [
     'booking:*', 'room:*', 'staff:manage', 'staff:permissions:manage',
@@ -73,7 +79,7 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
   ],
   front_desk_manager: [
     'booking:*', 'room:status:write', 'guest:manage', 'folio:manage',
-    'checkin:*', 'report:basic:read', 'staff:roster:manage',
+    'checkin:*', 'report:read', 'staff:roster:manage',
     'access:manage', 'complaint:manage', 'messaging:manage',
   ],
   receptionist: [

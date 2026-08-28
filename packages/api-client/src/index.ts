@@ -21,6 +21,7 @@ import {
   staffchatApi,
   channelsApi,
   staffApi,
+  guestregisterApi,
 } from './domains/property-ops';
 import {
   discoveryApi,
@@ -64,6 +65,7 @@ export const api = {
   staffchat:     staffchatApi,
   channels:      channelsApi,
   staff:         staffApi,
+  guestregister: guestregisterApi,
 
   // ── Customer Portal (Next.js — my.stayos.co.za) ───────────────────────
   discovery:     discoveryApi,

@@ -26,7 +26,7 @@ export const pricingApi = {
   updateDynamicRules: (input: Record<string, unknown>) =>
     client.patch<Record<string, unknown>>('/pricing/dynamic-rules', input),
   calculate: (params: Record<string, unknown>) =>
-    client.get<{ rate: number; breakdown: Record<string, number> }>('/pricing/calculate', {
+    client.get<{ ratePerNight: number; nights: number; subTotal: number }>('/pricing/calculate', {
       params: params as Record<string, string | number | boolean | undefined>,
     }),
 };
@@ -42,8 +42,16 @@ export const promotionsApi = {
     client.patch<Record<string, unknown>>(`/promotions/${id}`, input),
   delete: (id: string) => client.delete<{ message: string }>(`/promotions/${id}`),
   getUsage: (id: string) => client.get<Record<string, unknown>>(`/promotions/${id}/usage`),
+  // Customer-scope only — a property-staff (tenant scope) session will get a 403
+  // from this route. Staff-facing code should use `lookup` instead.
   validate: (code: string) =>
     client.get<{ valid: boolean; promotion?: Record<string, unknown> }>(`/promotions/${code}/validate`),
+  // Tenant-scope: resolves a human-readable code to a promotion for staff use
+  // (e.g. the new-booking form), returning the ObjectId the booking endpoint expects.
+  lookup: (code: string, subTotal?: number) =>
+    client.get<{ _id: string; description?: string; value: number; type: string }>('/promotions/lookup', {
+      params: { code, subTotal } as Record<string, string | number | boolean | undefined>,
+    }),
 };
 
 // ── Access Control ─────────────────────────────────────────────────────────────
@@ -150,8 +158,10 @@ export const expensesApi = {
     client.get<Record<string, unknown>[]>('/expenses/pettycash/floats'),
   createFloat: (input: Record<string, unknown>) =>
     client.post<Record<string, unknown>>('/expenses/pettycash/floats', input),
-  getFloatLedger: (id: string) =>
-    client.get<Record<string, unknown>>(`/expenses/pettycash/floats/${id}/ledger`),
+  getFloatLedger: (id: string, params?: Record<string, unknown>) =>
+    client.get<Record<string, unknown>>(`/expenses/pettycash/floats/${id}/ledger`, {
+      params: params as Record<string, string | number | boolean | undefined>,
+    }),
   reconcileFloat: (id: string, input: Record<string, unknown>) =>
     client.post<Record<string, unknown>>(`/expenses/pettycash/floats/${id}/reconcile`, input),
 };
@@ -286,16 +296,76 @@ export const staffchatApi = {
 // ── Channels (iCal sync) ──────────────────────────────────────────────────────
 
 export const channelsApi = {
-  // Channel management routes are under /channels/ical/*
-  // Specific endpoints depend on the ical.routes.js implementation.
-  // The module handles both import and export configuration.
-  list: () => client.get<Record<string, unknown>[]>('/channels/ical'),
+  // Channel management routes are under /channels/ical/subscriptions/*
+  // Confirmed against src/modules/channels/ical.routes.js.
+  list: () => client.get<Record<string, unknown>[]>('/channels/ical/subscriptions'),
   connect: (input: Record<string, unknown>) =>
-    client.post<Record<string, unknown>>('/channels/ical', input),
+    client.post<Record<string, unknown>>('/channels/ical/subscriptions', input),
   sync: (id: string) =>
-    client.post<{ message: string }>(`/channels/ical/${id}/sync`),
+    client.post<{ message: string }>(`/channels/ical/subscriptions/${id}/sync-now`),
   disconnect: (id: string) =>
-    client.delete<{ message: string }>(`/channels/ical/${id}`),
+    client.delete<{ message: string }>(`/channels/ical/subscriptions/${id}`),
+};
+
+// ── Guest Register (Property Ops) ────────────────────────────────────────────
+// Backend routes: src/modules/guestregister/guestregister.routes.js
+// Check-in is blocked with a 422 (GUEST_REGISTER_REQUIRED) until an entry
+// exists for the booking — see stayos-audit-report.md G-02.
+
+export interface GuestRegisterEntry {
+  _id: string;
+  bookingId: string;
+  fullName: string;
+  documentType: 'sa_id' | 'passport' | 'other';
+  residenceStatus: string;
+  nationality: string;
+  residentialAddress: string;
+  checkInAt: string;
+  capturedVia: string;
+}
+
+export interface GuestRegisterCaptureInput {
+  fullName: string;
+  idOrPassportNumber: string;
+  documentType: 'sa_id' | 'passport' | 'other';
+  residenceStatus: string;
+  nationality: string;
+  residentialAddress: string;
+  signatureData: string; // base64
+  idDocument: File;
+}
+
+export const guestregisterApi = {
+  // GET /guestregister/booking/:bookingId — null if no entry exists yet
+  getByBooking: (bookingId: string) =>
+    client.get<GuestRegisterEntry | null>(`/guestregister/booking/${bookingId}`),
+
+  // POST /guestregister/:bookingId — multipart (idDocument file + form fields)
+  capture: (bookingId: string, input: GuestRegisterCaptureInput) => {
+    const form = new FormData();
+    form.append('idDocument', input.idDocument);
+    form.append('fullName', input.fullName);
+    form.append('idOrPassportNumber', input.idOrPassportNumber);
+    form.append('documentType', input.documentType);
+    form.append('residenceStatus', input.residenceStatus);
+    form.append('nationality', input.nationality);
+    form.append('residentialAddress', input.residentialAddress);
+    form.append('signatureData', input.signatureData);
+    return client.post<GuestRegisterEntry>(`/guestregister/${bookingId}`, form);
+  },
+
+  list: (params?: { from?: string; to?: string; page?: number; limit?: number }) =>
+    client.get<GuestRegisterEntry[]>('/guestregister', {
+      params: params as Record<string, string | number | boolean | undefined>,
+    }),
+
+  export: (params?: { from?: string; to?: string }) =>
+    client.get<GuestRegisterEntry[]>('/guestregister/export', {
+      params: params as Record<string, string | number | boolean | undefined>,
+    }),
+
+  getDocumentUrl: (entryId: string) =>
+    client.get<{ url: string }>(`/guestregister/${entryId}/document`),
 };
 
 // ── Tenant Staff ──────────────────────────────────────────────────────────────

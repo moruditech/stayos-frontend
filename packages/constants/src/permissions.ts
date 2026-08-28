@@ -33,6 +33,7 @@ export const PERMISSIONS = {
   CHANNEL_MANAGE: 'channel:manage',
 
   CHECKIN_PROCESS: 'checkin:process',
+  CHECKIN_ALL: 'checkin:*',
 
   COMPLAINT_MANAGE: 'complaint:manage',
 
@@ -49,6 +50,11 @@ export const PERMISSIONS = {
   HOUSEKEEPING_ALL: 'housekeeping:*',
   HOUSEKEEPING_TASK_READ: 'housekeeping:task:read',
   HOUSEKEEPING_TASK_UPDATE: 'housekeeping:task:update',
+
+  HR_PROFILE_MANAGE: 'hr:profile:manage',
+  HR_DOCUMENT_MANAGE: 'hr:document:manage',
+  HR_DISCIPLINARY_MANAGE: 'hr:disciplinary:manage',
+  HR_PROBATION_MANAGE: 'hr:probation:manage',
 
   INSTAY_ORDER_FULFILLMENT_UPDATE: 'instay_order:fulfillment:update',
   INSTAY_ORDER_READ: 'instay_order:read',

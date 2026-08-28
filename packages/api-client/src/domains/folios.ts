@@ -4,7 +4,7 @@ export interface FolioLineItem {
   _id: string;
   date: string;
   description: string;
-  department: string;
+  type: string;
   quantity: number;
   unitPrice: number;
   amount: number;
@@ -56,10 +56,11 @@ export const foliosApi = {
   // POST /folios/:id/charge
   postCharge: (id: string, input: {
     description: string;
-    department: string;
+    type: string;
     quantity: number;
     unitPrice: number;
     date?: string;
+    vatRate?: number;
   }) => client.post<Folio>(`/folios/${id}/charge`, input),
 
   // POST /folios/:id/void/:lineItemId

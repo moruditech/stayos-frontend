@@ -14,6 +14,7 @@ export interface Booking {
   taxAmount: number;
   totalAmount: number;
   status: string;
+  folioId?: string | null;
   externalUid: string | null; // iCal import identifier
   externalFeedId: string | null;
   // Present on the model but NOT enforced by PATCH /bookings/:id today —

@@ -97,6 +97,13 @@ export const NAV_CONFIG: NavGroup[] = [
         icon: Icons.ShieldCheck,
         requiresPerm: [PERMISSIONS.ACCESS_MANAGE],
       },
+      {
+        id: 'channels',
+        label: 'Channel Sync',
+        path: '/channels',
+        icon: Icons.Plug,
+        requiresPerm: [PERMISSIONS.CHANNEL_MANAGE],
+      },
     ],
   },
 
@@ -118,7 +125,7 @@ export const NAV_CONFIG: NavGroup[] = [
         label: 'HR',
         path: '/hr',
         icon: Icons.Users,
-        requiresPerm: [PERMISSIONS.STAFF_MANAGE],
+        requiresPerm: [PERMISSIONS.STAFF_MANAGE, PERMISSIONS.HR_PROFILE_MANAGE],
       },
       {
         id: 'chat',
@@ -154,6 +161,13 @@ export const NAV_CONFIG: NavGroup[] = [
         path: '/procurement/suppliers',
         icon: Icons.Building2,
         requiresPerm: [PERMISSIONS.PROCUREMENT_MANAGE],
+      },
+      {
+        id: 'pettycash',
+        label: 'Petty Cash',
+        path: '/pettycash/floats',
+        icon: Icons.Coins,
+        requiresPerm: [PERMISSIONS.PETTYCASH_MANAGE],
       },
     ],
   },

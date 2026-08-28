@@ -41,6 +41,11 @@ export const bookingsApi = {
   // POST /bookings/:id/no-show
   noShow: (id: string) => client.post<Booking>(`/bookings/${id}/no-show`),
 
+  // POST /bookings/:id/check-in — blocked with a 422 GUEST_REGISTER_REQUIRED
+  // error until a guest register entry exists for this booking; see
+  // guestregisterApi below and stayos-audit-report.md G-02.
+  checkIn: (id: string) => client.post<Booking>(`/bookings/${id}/check-in`),
+
   // GET /customers/me/bookings — customer's own bookings
   listMine: () => client.get<Booking[]>('/customers/me/bookings'),
 

@@ -12,6 +12,8 @@ import {
   ReadOnlyField,
   useToast,
   ConfirmDialog,
+  Modal,
+  InlineError,
   RoleGate,
   Icons,
 } from '@stayos/ui';
@@ -27,6 +29,146 @@ function fmtCurrency(n: number): string {
   return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(n);
 }
 
+const RESIDENCE_STATUSES = [
+  { value: 'citizen', label: 'SA citizen' },
+  { value: 'permanent_resident', label: 'Permanent resident' },
+  { value: 'visitor_visa', label: 'Visitor visa' },
+  { value: 'work_visa', label: 'Work visa' },
+  { value: 'study_visa', label: 'Study visa' },
+  { value: 'asylum', label: 'Asylum seeker' },
+  { value: 'other', label: 'Other' },
+];
+
+// Guest register capture form — required before check-in (see
+// stayos-audit-report.md G-02). Kept in this file rather than split out
+// since it's tightly coupled to the one flow that needs it.
+function GuestRegisterCaptureForm({
+  bookingId,
+  onCaptured,
+}: {
+  bookingId: string;
+  onCaptured: () => void;
+}): React.ReactElement {
+  const { toast } = useToast();
+  const [fullName, setFullName] = useState('');
+  const [idOrPassportNumber, setIdNumber] = useState('');
+  const [documentType, setDocumentType] = useState<'sa_id' | 'passport' | 'other'>('sa_id');
+  const [residenceStatus, setResidenceStatus] = useState('citizen');
+  const [nationality, setNationality] = useState('');
+  const [residentialAddress, setResidentialAddress] = useState('');
+  const [idDocument, setIdDocument] = useState<File | null>(null);
+  const [signatureAcknowledged, setSignatureAcknowledged] = useState(false);
+  const [error, setError] = useState<string | undefined>();
+
+  const captureMutation = useMutation({
+    mutationFn: () => {
+      if (!idDocument) throw new Error('ID document image is required.');
+      // A typed signature stands in for a captured signature pad image —
+      // the backend stores whatever base64 payload is sent as signatureData.
+      const signatureData = btoa(`${fullName}|${new Date().toISOString()}`);
+      return api.guestregister.capture(bookingId, {
+        fullName,
+        idOrPassportNumber,
+        documentType,
+        residenceStatus,
+        nationality,
+        residentialAddress,
+        signatureData,
+        idDocument,
+      });
+    },
+    onSuccess: () => {
+      toast('Guest register entry captured.', 'success');
+      onCaptured();
+    },
+    onError: (err: ApiError | Error) => {
+      const message = 'message' in err ? err.message : 'Failed to capture guest register entry.';
+      setError(message);
+    },
+  });
+
+  return (
+    <form
+      data-form
+      onSubmit={(e) => {
+        e.preventDefault();
+        setError(undefined);
+        if (!signatureAcknowledged) {
+          setError('Guest must acknowledge and sign before continuing.');
+          return;
+        }
+        captureMutation.mutate();
+      }}
+    >
+      <div data-form-group>
+        <label htmlFor="gr-fullName">Full name</label>
+        <input id="gr-fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+      </div>
+      <div data-form-row>
+        <div data-form-group>
+          <label htmlFor="gr-docType">Document type</label>
+          <select id="gr-docType" value={documentType} onChange={(e) => setDocumentType(e.target.value as typeof documentType)}>
+            <option value="sa_id">SA ID</option>
+            <option value="passport">Passport</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div data-form-group>
+          <label htmlFor="gr-idNumber">ID / passport number</label>
+          <input id="gr-idNumber" value={idOrPassportNumber} onChange={(e) => setIdNumber(e.target.value)} required />
+        </div>
+      </div>
+      <div data-form-row>
+        <div data-form-group>
+          <label htmlFor="gr-residence">Residence status</label>
+          <select id="gr-residence" value={residenceStatus} onChange={(e) => setResidenceStatus(e.target.value)}>
+            {RESIDENCE_STATUSES.map((s) => (
+              <option key={s.value} value={s.value}>{s.label}</option>
+            ))}
+          </select>
+        </div>
+        <div data-form-group>
+          <label htmlFor="gr-nationality">Nationality</label>
+          <input id="gr-nationality" value={nationality} onChange={(e) => setNationality(e.target.value)} required />
+        </div>
+      </div>
+      <div data-form-group>
+        <label htmlFor="gr-address">Residential address</label>
+        <input id="gr-address" value={residentialAddress} onChange={(e) => setResidentialAddress(e.target.value)} required />
+      </div>
+      <div data-form-group>
+        <label htmlFor="gr-idDoc">ID document photo</label>
+        <input
+          id="gr-idDoc"
+          type="file"
+          accept="image/*"
+          onChange={(e) => setIdDocument(e.target.files?.[0] ?? null)}
+          required
+        />
+      </div>
+      <div data-form-group data-checkbox-group>
+        <label htmlFor="gr-sign">
+          <input
+            id="gr-sign"
+            type="checkbox"
+            checked={signatureAcknowledged}
+            onChange={(e) => setSignatureAcknowledged(e.target.checked)}
+          />
+          {' '}Guest confirms the details above are correct and consents to this record.
+        </label>
+      </div>
+
+      <InlineError message={error} />
+
+      <div data-form-actions>
+        <button type="submit" data-btn-primary disabled={captureMutation.isPending}>
+          {captureMutation.isPending ? 'Saving…' : 'Save and continue'}
+        </button>
+      </div>
+    </form>
+  );
+}
+
 export default function BookingDetailPage(): React.ReactElement {
   const params = useParams<{ id: string }>();
   const id = params.id;
@@ -34,6 +176,7 @@ export default function BookingDetailPage(): React.ReactElement {
   const queryClient = useQueryClient();
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [confirmNoShow, setConfirmNoShow] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
 
   const { data: booking, isLoading } = useQuery({
     queryKey: bookingKeys.detail(id),
@@ -44,6 +187,14 @@ export default function BookingDetailPage(): React.ReactElement {
     queryKey: bookingKeys.folio(id),
     queryFn: () => api.bookings.getFolio(id),
     enabled: !!booking,
+  });
+
+  // Only relevant once the booking is confirmed and check-in becomes
+  // possible — avoids an extra request on every booking detail view.
+  const { data: registerEntry, isLoading: isLoadingRegister } = useQuery({
+    queryKey: ['guestregister', 'booking', id],
+    queryFn: () => api.guestregister.getByBooking(id),
+    enabled: !!booking && booking.status === 'confirmed',
   });
 
   const cancelMutation = useMutation({
@@ -66,12 +217,35 @@ export default function BookingDetailPage(): React.ReactElement {
     onError: (err: ApiError) => toast(err.message ?? 'Failed.', 'error'),
   });
 
+  const checkInMutation = useMutation({
+    mutationFn: () => api.bookings.checkIn(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: bookingKeys.detail(id) });
+      toast('Guest checked in.', 'success');
+    },
+    onError: (err: ApiError) => {
+      if (err.code === 'GUEST_REGISTER_REQUIRED') {
+        // Shouldn't normally hit this — the button is disabled until
+        // registerEntry exists — but handle it defensively in case of a
+        // race (e.g. another tab already checked in).
+        setShowRegisterModal(true);
+      } else {
+        toast(err.message ?? 'Failed to check in.', 'error');
+      }
+    },
+  });
+
   if (isLoading) return <SkeletonLoader rows={6} />;
   if (!booking) return <p>Booking not found.</p>;
 
   const b = booking as unknown as Record<string, unknown>;
-  const isPendingConfirm = booking.status === 'pending_confirmation';
-  const isCancellable = ['confirmed', 'pending_confirmation'].includes(booking.status);
+  // The backend never sets `status` to 'pending_confirmation' — the
+  // waiting-for-guest state lives in the separate `guestConfirmationStatus`
+  // field (see stayos-audit-report.md M-13, same underlying bug here).
+  const isPendingConfirm = b['guestConfirmationStatus'] === 'pending';
+  const isCancellable = ['confirmed', 'pending'].includes(booking.status);
+  const isCheckInEligible = booking.status === 'confirmed';
+  const hasRegisterEntry = Boolean(registerEntry);
   const f = folio as unknown as Record<string, unknown> | undefined;
 
   return (
@@ -135,6 +309,38 @@ export default function BookingDetailPage(): React.ReactElement {
         </section>
       </div>
 
+      {/* Check-in — blocked until the guest register entry exists */}
+      {isCheckInEligible && (
+        <RoleGate perm={PERMISSIONS.CHECKIN_PROCESS}>
+          <section data-detail-section>
+            <h2>Check-in</h2>
+            {isLoadingRegister ? (
+              <SkeletonLoader rows={1} />
+            ) : hasRegisterEntry ? (
+              <div data-action-bar>
+                <button
+                  type="button"
+                  data-btn-primary
+                  onClick={() => checkInMutation.mutate()}
+                  disabled={checkInMutation.isPending}
+                >
+                  {checkInMutation.isPending ? 'Checking in…' : 'Check in guest'}
+                </button>
+              </div>
+            ) : (
+              <>
+                <p data-notice>
+                  A guest register entry is required before this guest can be checked in.
+                </p>
+                <button type="button" data-btn-primary onClick={() => setShowRegisterModal(true)}>
+                  Capture guest register
+                </button>
+              </>
+            )}
+          </section>
+        </RoleGate>
+      )}
+
       {/* Actions */}
       <RoleGate perm={PERMISSIONS.BOOKING_MANAGE}>
         <div data-action-bar>
@@ -177,6 +383,21 @@ export default function BookingDetailPage(): React.ReactElement {
         onConfirm={() => noShowMutation.mutate()}
         onCancel={() => setConfirmNoShow(false)}
       />
+
+      <Modal
+        open={showRegisterModal}
+        onClose={() => setShowRegisterModal(false)}
+        title="Capture guest register"
+      >
+        <GuestRegisterCaptureForm
+          bookingId={id}
+          onCaptured={() => {
+            setShowRegisterModal(false);
+            void queryClient.invalidateQueries({ queryKey: ['guestregister', 'booking', id] });
+          }}
+        />
+      </Modal>
     </div>
   );
 }
+

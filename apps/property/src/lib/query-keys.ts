@@ -77,6 +77,7 @@ export const expenseKeys = {
   list:   () => ['expenses'] as const,
   detail: (id: string) => ['expenses', id] as const,
   floats: () => ['expenses', 'pettycash', 'floats'] as const,
+  ledger: (id: string, params: Record<string, unknown>) => ['expenses', 'pettycash', 'floats', id, 'ledger', params] as const,
 };
 
 export const procurementKeys = {

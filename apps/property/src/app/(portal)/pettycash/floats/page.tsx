@@ -16,6 +16,7 @@ const floatSchema = z.object({
   name:         z.string().min(1, 'Float name is required'),
   openingBalance: z.coerce.number().min(0, 'Opening balance required'),
   currency:     z.string().default('ZAR'),
+  custodianId:  z.string().min(1, 'Custodian is required'),
 });
 type FloatInput = z.infer<typeof floatSchema>;
 
@@ -38,6 +39,14 @@ export default function PettyCashFloatsPage(): React.ReactElement {
   const { data: floats, isLoading } = useQuery({
     queryKey: expenseKeys.floats(),
     queryFn: () => api.expenses.listFloats(),
+    staleTime: 120_000,
+  });
+
+  // Needed for the custodian picker — the backend requires `custodianId`
+  // on every float (see stayos-audit-report.md M-02).
+  const { data: staff } = useQuery({
+    queryKey: ['staff', 'list'],
+    queryFn: () => api.staff.list(),
     staleTime: 120_000,
   });
 
@@ -135,6 +144,16 @@ export default function PettyCashFloatsPage(): React.ReactElement {
             <label htmlFor="fl-balance">Opening balance (ZAR)</label>
             <input id="fl-balance" type="number" min={0} step="0.01" {...form.register('openingBalance')} />
             <InlineError message={form.formState.errors.openingBalance?.message} />
+          </div>
+          <div data-form-group>
+            <label htmlFor="fl-custodian">Custodian</label>
+            <select id="fl-custodian" {...form.register('custodianId')} defaultValue="">
+              <option value="" disabled>Select a staff member…</option>
+              {(staff ?? []).map((s) => (
+                <option key={s._id} value={s._id}>{s.firstName} {s.lastName}</option>
+              ))}
+            </select>
+            <InlineError message={form.formState.errors.custodianId?.message} />
           </div>
           <div data-modal-actions>
             <button type="button" data-btn-ghost onClick={() => setShowNew(false)}>Cancel</button>

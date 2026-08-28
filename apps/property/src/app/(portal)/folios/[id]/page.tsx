@@ -42,9 +42,17 @@ function fmtCurrency(n: number): string {
   return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(n);
 }
 
+// Must match backend FOLIO_LINE_ITEM_TYPE (src/utils/constants.js) exactly —
+// the backend reads `type`, not `department`, from the charge request body.
+const FOLIO_LINE_ITEM_TYPES = [
+  'room_charge', 'extra_service', 'damage', 'late_checkout_fee',
+  'discount', 'tax', 'deposit', 'refund', 'adjustment',
+  'minibar', 'food_and_beverage', 'spa', 'activity',
+] as const;
+
 const chargeSchema = z.object({
   description: z.string().min(1, 'Description is required'),
-  department:  z.string().min(1, 'Department is required'),
+  type:        z.enum(FOLIO_LINE_ITEM_TYPES, { errorMap: () => ({ message: 'Type is required' }) }),
   quantity:    z.coerce.number().min(1).default(1),
   unitPrice:   z.coerce.number().min(0, 'Price must be positive'),
 });
@@ -186,7 +194,7 @@ export default function FolioDetailPage(): React.ReactElement {
               <tr>
                 <th>Date</th>
                 <th>Description</th>
-                <th>Dept</th>
+                <th>Type</th>
                 <th>Qty</th>
                 <th>Unit</th>
                 <th>Amount</th>
@@ -198,7 +206,7 @@ export default function FolioDetailPage(): React.ReactElement {
                 <tr key={item._id} data-line-item data-voided={item.voided || undefined}>
                   <td>{new Date(item.date).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })}</td>
                   <td>{item.description}</td>
-                  <td data-dept>{item.department}</td>
+                  <td data-line-type>{item.type}</td>
                   <td>{item.quantity}</td>
                   <td>{fmtCurrency(item.unitPrice)}</td>
                   <td data-amount>{fmtCurrency(item.amount)}</td>
@@ -336,15 +344,24 @@ export default function FolioDetailPage(): React.ReactElement {
             <InlineError message={chargeForm.formState.errors.description?.message} />
           </div>
           <div data-form-group>
-            <label htmlFor="chargeDept">Department</label>
-            <select id="chargeDept" {...chargeForm.register('department')}>
-              <option value="">Select…</option>
-              <option value="Room Revenue">Room Revenue</option>
-              <option value="Food &amp; Beverage">Food &amp; Beverage</option>
-              <option value="Guest Services">Guest Services</option>
-              <option value="Miscellaneous">Miscellaneous</option>
+            <label htmlFor="chargeType">Type</label>
+            <select id="chargeType" {...chargeForm.register('type')} defaultValue="">
+              <option value="" disabled>Select…</option>
+              <option value="room_charge">Room charge</option>
+              <option value="extra_service">Extra service</option>
+              <option value="minibar">Minibar</option>
+              <option value="food_and_beverage">Food &amp; beverage</option>
+              <option value="spa">Spa</option>
+              <option value="activity">Activity</option>
+              <option value="late_checkout_fee">Late checkout fee</option>
+              <option value="damage">Damage</option>
+              <option value="deposit">Deposit</option>
+              <option value="discount">Discount</option>
+              <option value="tax">Tax</option>
+              <option value="adjustment">Adjustment</option>
+              <option value="refund">Refund</option>
             </select>
-            <InlineError message={chargeForm.formState.errors.department?.message} />
+            <InlineError message={chargeForm.formState.errors.type?.message} />
           </div>
           <div data-form-row>
             <div data-form-group>

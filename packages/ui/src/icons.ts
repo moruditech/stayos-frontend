@@ -136,6 +136,8 @@ export {
   List,
   Wrench,
   DoorClosed,
+  Plug,
+  Coins,
 } from 'lucide-react';
 
 export type { LucideIcon, LucideProps } from 'lucide-react';
