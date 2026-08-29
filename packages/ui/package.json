@@ -7,7 +7,7 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./design-tokens.css": "./src/design-tokens.css"
+    "./design-system.css": "./src/design-system.css"
   },
   "dependencies": {
     "@stayos/auth": "workspace:*",

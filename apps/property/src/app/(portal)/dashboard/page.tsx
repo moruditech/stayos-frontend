@@ -1,10 +1,10 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
-import { SkeletonLoader, StatusBadge } from '@stayos/ui';
+import { SkeletonLoader, StatusBadge, Icons, PageHeader, StatCard, Panel, LinkArrow } from '@stayos/ui';
 import { dashboardKeys, bookingKeys, roomKeys } from '@/lib/query-keys';
 
 // tenants.service.js#getDashboard only ever returns these four counts —
@@ -17,6 +17,8 @@ interface DashboardSummary {
 }
 
 export default function DashboardPage(): React.ReactElement {
+  const router = useRouter();
+
   const { data: dashboard, isLoading } = useQuery({
     queryKey: dashboardKeys.summary(),
     queryFn: () => api.tenants.getDashboard() as unknown as Promise<DashboardSummary>,
@@ -44,40 +46,54 @@ export default function DashboardPage(): React.ReactElement {
   const occupancyRate =
     d && d.totalRooms > 0 ? Math.round((d.currentGuests / d.totalRooms) * 100) : null;
 
-  const metrics = [
-    { label: 'Occupancy', value: occupancyRate != null ? `${occupancyRate}%` : '—' },
-    { label: 'Arrivals today', value: d?.arrivalsToday ?? '—' },
-    { label: 'Departures today', value: d?.departuresToday ?? '—' },
-    { label: 'In house', value: d?.currentGuests ?? '—' },
-    // Not available yet — backend has no room-rate revenue rollup.
-    { label: 'Room revenue', value: '—' },
-    { label: 'RevPAR', value: '—' },
-  ];
-
   return (
     <div data-page="dashboard">
-      <div data-page-header>
-        <h1>Dashboard</h1>
-        <Link href="/rooms/calendar" data-btn-ghost>View calendar</Link>
-      </div>
+      <PageHeader
+        title="Dashboard"
+        actions={
+          <button type="button" data-btn-ghost onClick={() => router.push('/rooms/calendar')}>
+            View calendar
+          </button>
+        }
+      />
 
       {/* Key metrics */}
-      <div data-metric-row>
-        {metrics.map((m) => (
-          <div key={m.label} data-metric-card>
-            <span data-metric-label>{m.label}</span>
-            <span data-metric-value>{String(m.value)}</span>
-          </div>
-        ))}
+      <div data-stat-grid>
+        <StatCard
+          icon={Icons.Percent}
+          tone="green"
+          label="Occupancy"
+          value={occupancyRate != null ? `${occupancyRate}%` : '—'}
+        />
+        <StatCard
+          icon={Icons.CalendarCheck2}
+          tone="blue"
+          label="Arrivals today"
+          value={d?.arrivalsToday ?? '—'}
+        />
+        <StatCard
+          icon={Icons.DoorClosed}
+          tone="amber"
+          label="Departures today"
+          value={d?.departuresToday ?? '—'}
+        />
+        <StatCard
+          icon={Icons.Bed}
+          tone="purple"
+          label="In house"
+          value={d?.currentGuests ?? '—'}
+        />
+        {/* Not available yet — backend has no room-rate revenue rollup. */}
+        <StatCard icon={Icons.Banknote} tone="teal" label="Room revenue" value="—" />
+        <StatCard icon={Icons.TrendingUp} tone="rose" label="RevPAR" value="—" />
       </div>
 
       <div data-dashboard-grid>
         {/* Today's arrivals */}
-        <section data-dashboard-section>
-          <div data-section-header>
-            <h2>Arrivals today</h2>
-            <Link href="/bookings?checkIn=today" data-link-action>View all</Link>
-          </div>
+        <Panel
+          title="Arrivals today"
+          headerActions={<LinkArrow onClick={() => router.push('/bookings?checkIn=today')}>View all</LinkArrow>}
+        >
           {!arrivals?.length ? (
             <p data-empty-note>No arrivals today.</p>
           ) : (
@@ -91,19 +107,20 @@ export default function DashboardPage(): React.ReactElement {
                     <span data-guest-room>Room {booking.roomId?.roomNumber ?? '—'}</span>
                   </div>
                   <StatusBadge status={booking.status} />
-                  <Link href={`/bookings/${booking._id}`} data-btn-ghost data-btn-sm>View</Link>
+                  <button type="button" data-btn-ghost data-btn-sm onClick={() => router.push(`/bookings/${booking._id}`)}>
+                    View
+                  </button>
                 </div>
               ))}
             </div>
           )}
-        </section>
+        </Panel>
 
         {/* Room status snapshot */}
-        <section data-dashboard-section>
-          <div data-section-header>
-            <h2>Room status</h2>
-            <Link href="/rooms" data-link-action>Status board</Link>
-          </div>
+        <Panel
+          title="Room status"
+          headerActions={<LinkArrow onClick={() => router.push('/rooms')}>Status board</LinkArrow>}
+        >
           {!statusBoard?.length ? (
             <p data-empty-note>No rooms configured.</p>
           ) : (
@@ -118,7 +135,7 @@ export default function DashboardPage(): React.ReactElement {
               ))}
             </div>
           )}
-        </section>
+        </Panel>
       </div>
     </div>
   );

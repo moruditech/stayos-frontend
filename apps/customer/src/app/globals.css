@@ -3,7 +3,7 @@
    Mobile-first. Breakpoints: 768px (tablet), 1024px (desktop)
    ───────────────────────────────────────────────────────────────────────────── */
 
-@import '@stayos/ui/design-tokens.css';
+@import '@stayos/ui/design-system.css';
 
 /* ── App-specific layout tokens ──────────────────────────────────────────── */
 :root {

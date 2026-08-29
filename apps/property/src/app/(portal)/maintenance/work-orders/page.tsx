@@ -30,6 +30,8 @@ import {
   Modal,
   InlineError,
   applyServerErrors,
+  StatCard,
+  Icons,
 } from '@stayos/ui';
 import { maintenanceKeys } from '@/lib/query-keys';
 
@@ -92,13 +94,13 @@ export default function MaintenancePage(): React.ReactElement {
   });
 
   const a = analytics as unknown as Record<string, unknown> ?? {};
-  const metrics = [
-    { label: 'Open', value: a['openWorkOrders'] ?? '—', key: 'open' },
-    { label: 'In progress', value: a['inProgress'] ?? '—', key: 'in_progress' },
-    { label: 'High priority', value: a['highPriority'] ?? '—', key: 'high' },
-    { label: 'Completed today', value: a['completedToday'] ?? '—', key: 'done' },
-    { label: 'Overdue', value: a['overdue'] ?? '—', key: 'overdue' },
-    { label: 'Total assets', value: a['totalAssets'] ?? '—', key: 'assets' },
+  const metrics: Array<{ label: string; value: unknown; icon: keyof typeof Icons; tone: 'amber' | 'blue' | 'rose' | 'green' | 'purple' }> = [
+    { label: 'Open', value: a['openWorkOrders'] ?? '—', icon: 'Wrench', tone: 'amber' },
+    { label: 'In progress', value: a['inProgress'] ?? '—', icon: 'Clock', tone: 'blue' },
+    { label: 'High priority', value: a['highPriority'] ?? '—', icon: 'AlertTriangle', tone: 'rose' },
+    { label: 'Completed today', value: a['completedToday'] ?? '—', icon: 'CheckCircle2', tone: 'green' },
+    { label: 'Overdue', value: a['overdue'] ?? '—', icon: 'AlertCircle', tone: 'rose' },
+    { label: 'Total assets', value: a['totalAssets'] ?? '—', icon: 'ClipboardList', tone: 'purple' },
   ];
 
   return (
@@ -121,12 +123,9 @@ export default function MaintenancePage(): React.ReactElement {
       </div>
 
       {/* Metrics */}
-      <div data-metric-row>
+      <div data-stat-grid>
         {metrics.map((m) => (
-          <div key={m.key} data-metric-card>
-            <span data-metric-label>{m.label}</span>
-            <span data-metric-value>{String(m.value)}</span>
-          </div>
+          <StatCard key={m.label} icon={Icons[m.icon]} tone={m.tone} label={m.label} value={String(m.value)} />
         ))}
       </div>
 
