@@ -10,7 +10,10 @@ import { accommodationKeys } from '@/lib/query-keys';
 
 interface Props { params: { slug: string } }
 
-const CUSTOMER_PORTAL = process.env['NEXT_PUBLIC_CUSTOMER_PORTAL_URL'] ?? 'https://my.stayos.co.za';
+const PROVINCE_LABELS: Record<string, string> = {
+  GP: 'Gauteng', WC: 'Western Cape', KZN: 'KwaZulu-Natal', EC: 'Eastern Cape',
+  FS: 'Free State', LP: 'Limpopo', MP: 'Mpumalanga', NW: 'North West', NC: 'Northern Cape',
+};
 
 export default function PropertyDetailPage({ params }: Props): React.ReactElement {
   const router        = useRouter();
@@ -44,15 +47,32 @@ export default function PropertyDetailPage({ params }: Props): React.ReactElemen
   const isStudent = (p['type'] as string) === 'student_housing';
   const roomList  = (rooms as Record<string, unknown>[] | undefined) ?? [];
   const reviewList = (reviews as Record<string, unknown>[] | undefined) ?? [];
-  const rating = p['rating'] as number | undefined;
+  const ratings = p['ratings'] as Record<string, unknown> | undefined;
+  const rating = ratings?.['overall'] as number | undefined;
+  const reviewCount = ratings?.['totalReviews'] as number | undefined;
   const description = p['description'] as string | undefined;
+  const address = p['address'] as Record<string, unknown> | undefined;
+  const city = address?.['city'] as string | undefined;
+  const province = address?.['province'] as string | undefined;
+  // getPropertyRooms is sorted ascending by baseRate on the backend, so the
+  // first room is always the cheapest — this is real data, unlike a
+  // nonexistent p['baseRate'] on the property itself.
+  const fromRate = roomList[0]?.['baseRate'] as number | undefined;
+  const datesSet = !!checkIn && !!checkOut;
 
-  // CTA per TAD 09 §4 / TAD 10 §3:
-  // student_housing → "Apply now" → /accommodation/[slug]/apply (no login required)
-  // all others → "Book now" → redirect to my.stayos.co.za/login?redirect=... if not authenticated
+  // The /book page already guards its own auth (redirects internally to
+  // /login?redirect=... if needed) — this page doesn't need to bounce the
+  // user through an external domain first. That was always redundant for
+  // an already-authenticated customer-portal user, and used a full page
+  // reload (window.location.href) instead of client-side navigation.
   function handleBookNow(roomId?: string): void {
-    const redirectPath = `/accommodation/${params.slug}/book${roomId ? `?room=${roomId}` : ''}${checkIn ? `&checkIn=${checkIn}` : ''}${checkOut ? `&checkOut=${checkOut}` : ''}`;
-    window.location.href = `${CUSTOMER_PORTAL}/login?redirect=${encodeURIComponent(redirectPath)}`;
+    if (!datesSet) return;
+    const params_ = new URLSearchParams();
+    if (roomId) params_.set('room', roomId);
+    params_.set('checkIn', checkIn);
+    params_.set('checkOut', checkOut);
+    params_.set('guests', String(guests));
+    router.push(`/accommodation/${params.slug}/book?${params_.toString()}`);
   }
 
   return (
@@ -88,12 +108,12 @@ export default function PropertyDetailPage({ params }: Props): React.ReactElemen
                 {p['name'] as string}
               </h1>
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', marginTop: 'var(--space-2)', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}><Icons.MapPin size={14} /> {p['city'] as string}, {p['province'] as string}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}><Icons.MapPin size={14} /> {city ?? '—'}{province ? `, ${PROVINCE_LABELS[province] ?? province}` : ''}</span>
                 {rating && (
                   <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', color: 'var(--color-text-primary)', fontWeight: 'var(--font-semibold)' }}>
                     <Icons.Star size={14} fill="currentColor" /> {rating.toFixed(1)}
                     <span style={{ color: 'var(--color-text-muted)', fontWeight: 'var(--font-normal)' }}>
-                      ({p['reviewCount'] as number ?? 0} reviews)
+                      ({reviewCount ?? 0} reviews)
                     </span>
                   </span>
                 )}
@@ -153,10 +173,18 @@ export default function PropertyDetailPage({ params }: Props): React.ReactElemen
                               Apply now
                             </Link>
                           ) : (
-                            <button type="button" data-btn-primary style={{ padding: 'var(--space-2) var(--space-5)' }}
-                              onClick={() => handleBookNow(room['_id'] as string)}>
-                              Book now
-                            </button>
+                            <div style={{ textAlign: 'right' }}>
+                              <button type="button" data-btn-primary style={{ padding: 'var(--space-2) var(--space-5)' }}
+                                disabled={!datesSet}
+                                onClick={() => handleBookNow(room['_id'] as string)}>
+                                Book now
+                              </button>
+                              {!datesSet && (
+                                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+                                  Select dates below first
+                                </div>
+                              )}
+                            </div>
                           )}
                         </div>
                       </div>
@@ -208,7 +236,7 @@ export default function PropertyDetailPage({ params }: Props): React.ReactElemen
           ) : (
             <>
               <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-4)' }}>
-                From <span style={{ color: 'var(--color-primary)' }}>R{(p['baseRate'] as number ?? 0).toLocaleString()}</span> / night
+                From <span style={{ color: 'var(--color-primary)' }}>{fromRate ? `R${fromRate.toLocaleString()}` : '—'}</span> / night
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', marginBottom: 'var(--space-4)' }}>
                 <div data-form-group>
@@ -230,7 +258,12 @@ export default function PropertyDetailPage({ params }: Props): React.ReactElemen
                   </select>
                 </div>
               </div>
-              <button type="button" data-btn-primary data-btn-full onClick={() => handleBookNow()}>Book now →</button>
+              <button type="button" data-btn-primary data-btn-full disabled={!datesSet} onClick={() => handleBookNow()}>Book now →</button>
+              {!datesSet && (
+                <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-warning)', textAlign: 'center', marginTop: 'var(--space-2)' }}>
+                  Select check-in and check-out dates to continue.
+                </p>
+              )}
               <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', textAlign: 'center', marginTop: 'var(--space-3)' }}>
                 You won&apos;t be charged yet
               </p>

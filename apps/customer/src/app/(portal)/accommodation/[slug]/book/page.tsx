@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -26,13 +26,19 @@ export default function BookingFormPage({ params }: Props): React.ReactElement {
   const [consented, setConsented] = useState(false);
   const [formError, setFormError] = useState('');
 
-  const roomId   = searchParams.get('room') ?? '';
-  const checkIn  = searchParams.get('checkIn') ?? '';
-  const checkOut = searchParams.get('checkOut') ?? '';
+  const initialRoomId = searchParams.get('room') ?? '';
+  const [checkIn, setCheckIn]   = useState(searchParams.get('checkIn') ?? '');
+  const [checkOut, setCheckOut] = useState(searchParams.get('checkOut') ?? '');
 
   const { data: property, isLoading: propLoading } = useQuery({
     queryKey: accommodationKeys.detail(params.slug),
     queryFn:  () => api.discovery.getProperty(params.slug),
+  });
+
+  const { data: rooms } = useQuery({
+    queryKey: accommodationKeys.rooms(params.slug),
+    queryFn:  () => api.discovery.getPropertyRooms(params.slug),
+    enabled:  !!property,
   });
 
   const { data: availability } = useQuery({
@@ -44,7 +50,7 @@ export default function BookingFormPage({ params }: Props): React.ReactElement {
   const form = useForm<PublicBookingInput>({
     resolver: zodResolver(publicBookingSchema),
     defaultValues: {
-      roomId:    roomId,
+      roomId:    initialRoomId,
       checkIn:   checkIn,
       checkOut:  checkOut,
       adults:    1,
@@ -56,6 +62,24 @@ export default function BookingFormPage({ params }: Props): React.ReactElement {
       },
     },
   });
+
+  const roomList = (rooms as Record<string, unknown>[] | undefined) ?? [];
+  const selectedRoomId = form.watch('roomId');
+
+  // If no room was pre-selected (e.g. the general "Book now" CTA rather than
+  // a specific room's button), default to the first — cheapest — room once
+  // the list loads, instead of silently submitting an empty roomId, which
+  // the backend rejects as "Room is required" / not found.
+  useEffect(() => {
+    if (!form.getValues('roomId') && roomList.length > 0) {
+      form.setValue('roomId', roomList[0]?.['_id'] as string);
+    }
+  }, [roomList]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Keep the hidden checkIn/checkOut form fields in sync with the editable
+  // date inputs below, since react-hook-form's defaultValues only apply once.
+  useEffect(() => { form.setValue('checkIn', checkIn); }, [checkIn]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { form.setValue('checkOut', checkOut); }, [checkOut]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const createMutation = useMutation({
     mutationFn: (input: PublicBookingInput) => api.bookings.createPublic(input),
@@ -87,8 +111,10 @@ export default function BookingFormPage({ params }: Props): React.ReactElement {
     ? Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86400000)
     : 0;
 
+  const address = p['address'] as Record<string, unknown> | undefined;
+  const selectedRoom = roomList.find((r) => r['_id'] === selectedRoomId);
   const rate = (availability as Record<string, unknown>)?.['ratePerNight'] as number
-    ?? (p['baseRate'] as number ?? 0);
+    ?? (selectedRoom?.['baseRate'] as number ?? 0);
 
   const subtotal = rate * nights;
   const tax      = Math.round(subtotal * 0.15); // 15% VAT — displayed only; backend calculates authoritatively
@@ -135,23 +161,36 @@ export default function BookingFormPage({ params }: Props): React.ReactElement {
             <div>
               <div style={{ fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-1)' }}>{p['name'] as string}</div>
               <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
-                <Icons.MapPin size={14} /> {p['city'] as string}
+                <Icons.MapPin size={14} /> {address?.['city'] as string ?? '—'}
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)', marginBottom: 'var(--space-4)' }}>
-            <div>
-              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Check-in</div>
-              <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-semibold)' }}>
-                {checkIn ? new Date(checkIn).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
-              </div>
+          {roomList.length > 0 && (
+            <div data-form-group style={{ marginBottom: 'var(--space-4)' }}>
+              <label htmlFor="roomSelect">Room type</label>
+              <select id="roomSelect" value={selectedRoomId} onChange={(e) => form.setValue('roomId', e.target.value)}>
+                {roomList.map((r) => (
+                  <option key={r['_id'] as string} value={r['_id'] as string}>
+                    {r['name'] as string} — R{(r['baseRate'] as number ?? 0).toLocaleString()} / night
+                  </option>
+                ))}
+              </select>
             </div>
-            <div>
-              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Check-out</div>
-              <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-semibold)' }}>
-                {checkOut ? new Date(checkOut).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
-              </div>
+          )}
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)', marginBottom: 'var(--space-4)' }}>
+            <div data-form-group>
+              <label htmlFor="checkInDetail">Check-in</label>
+              <input id="checkInDetail" type="date" value={checkIn}
+                min={new Date().toISOString().split('T')[0]}
+                onChange={(e) => setCheckIn(e.target.value)} />
+            </div>
+            <div data-form-group>
+              <label htmlFor="checkOutDetail">Check-out</label>
+              <input id="checkOutDetail" type="date" value={checkOut}
+                min={checkIn || new Date().toISOString().split('T')[0]}
+                onChange={(e) => setCheckOut(e.target.value)} />
             </div>
           </div>
 
@@ -227,12 +266,17 @@ export default function BookingFormPage({ params }: Props): React.ReactElement {
 
             <button
               type="submit"
-              disabled={createMutation.isPending || !consented}
+              disabled={createMutation.isPending || !consented || !selectedRoomId || nights <= 0}
               data-btn-primary
               data-btn-full
             >
               {createMutation.isPending ? 'Confirming booking…' : 'Confirm booking'}
             </button>
+            {(!selectedRoomId || nights <= 0) && (
+              <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-warning)', textAlign: 'center' }}>
+                {!selectedRoomId ? 'Select a room type above.' : 'Select valid check-in and check-out dates above.'}
+              </p>
+            )}
 
             <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', textAlign: 'center' }}>
               By confirming, you agree to the property&apos;s cancellation policy and our{' '}
