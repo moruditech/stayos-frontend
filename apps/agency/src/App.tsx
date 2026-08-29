@@ -9,7 +9,7 @@ import {
   useParams,
 } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { SessionProvider, useSession } from '@stayos/auth';
+import { SessionProvider, useSession, useSessionLoading } from '@stayos/auth';
 import { SocketProvider, ToastStack, ForgotPasswordPage, ResetPasswordPage } from '@stayos/ui';
 import AppShell from './components/AppShell';
 
@@ -41,7 +41,10 @@ const queryClient = new QueryClient({
 // in-memory session directly. See Document 02 §8.2 / Document 00 §4.
 function RequireAuth(): React.ReactElement {
   const session = useSession();
+  const isLoading = useSessionLoading();
   const location = useLocation();
+
+  if (isLoading) return <></>;
 
   if (!session) {
     return (
@@ -117,6 +120,7 @@ export default function App(): React.ReactElement {
         <SessionProvider
           portalUserType="agency"
           onUnauthenticated={(redirect) => {
+            if (window.location.pathname === '/login') return;
             window.location.href = `/login${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''}`;
           }}
         >
