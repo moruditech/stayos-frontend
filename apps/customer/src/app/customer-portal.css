@@ -1030,16 +1030,14 @@
    from the underline-style [data-search-tab] above. Mobile-first: stacks
    to equal-width columns on narrow screens, stays inline from 480px up. */
 [data-stay-mode-tabs] {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--space-1);
   background: var(--color-surface-muted);
   border-radius: var(--radius-md);
   padding: var(--space-1);
   margin-bottom: var(--space-4);
-  overflow-x: auto;
-  scrollbar-width: none;
 }
-[data-stay-mode-tabs]::-webkit-scrollbar { display: none; }
 @media (min-width: 480px) {
   [data-stay-mode-tabs] { display: inline-flex; width: fit-content; }
 }
@@ -1054,7 +1052,6 @@
   font-weight: var(--font-medium);
   color: var(--color-text-secondary);
   white-space: nowrap;
-  flex-shrink: 0;
   transition: background var(--transition-fast), color var(--transition-fast);
 }
 [data-stay-mode-tab][data-active] {
@@ -1225,51 +1222,6 @@
   margin-bottom: var(--space-4);
 }
 [data-filter-bar]::-webkit-scrollbar { display: none; }
-
-/* Working filter dropdowns (Sort / Price / Amenities) — same popover
-   pattern as GuestsRoomsField, so the interaction feels consistent. */
-[data-filter-chip-wrap] { position: relative; flex-shrink: 0; }
-[data-filter-popover] {
-  position: absolute;
-  top: calc(100% + var(--space-2));
-  left: 0;
-  min-width: 220px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
-  padding: var(--space-3);
-  z-index: 50;
-}
-[data-filter-popover-option] {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  width: 100%;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-sm);
-  color: var(--color-text-primary);
-  cursor: pointer;
-  text-align: left;
-  background: none;
-  border: none;
-}
-[data-filter-popover-option]:hover { background: var(--color-primary-light); color: var(--color-primary); }
-[data-filter-popover-option][data-active] { color: var(--color-primary); font-weight: var(--font-semibold); }
-[data-filter-popover-row] {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-[data-filter-popover-input] {
-  width: 100%;
-  padding: var(--space-2) var(--space-3);
-  border: 1.5px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-sm);
-  background: var(--color-bg);
-}
 [data-filter-chip] {
   display: flex;
   align-items: center;

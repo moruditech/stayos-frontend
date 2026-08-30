@@ -5,31 +5,25 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { PublicHeader, PublicFooter } from '@/components/PublicLayout';
-import PageBanner from '@/components/PageBanner';
-
-export const metadata = {
-  title: 'Services — StayOS',
-  description: 'Discover how StayOS serves hospitality operators and student housing providers across South Africa.',
-};
 
 const HOSPITALITY_FEATURES: { icon: LucideIcon; title: string; desc: string }[] = [
-  { icon: Calendar,   title: 'Booking management',         desc: 'Direct bookings with real-time availability, conflict detection and automated confirmations.'        },
-  { icon: Hotel,      title: 'Room & rate management',      desc: 'Manage room types, pricing rules, promotions and seasonal rates from one dashboard.'                 },
-  { icon: RefreshCcw, title: 'Channel manager & iCal sync', desc: 'Sync your calendar with Airbnb, Booking.com and other OTAs to prevent double bookings.'              },
-  { icon: Users,      title: 'Guest management',            desc: 'Guest profiles, check-in/out, digital keys, ID verification and communication tools.'                },
-  { icon: CreditCard, title: 'Payments & invoicing',        desc: 'Accept PayFast, Ozow and Stripe. Automated invoicing and folio management.'                          },
-  { icon: Sparkles,   title: 'Housekeeping & maintenance',  desc: 'Task boards, staff schedules, work orders and real-time status updates.'                              },
-  { icon: BarChart3,  title: 'Reports & analytics',         desc: 'Occupancy, revenue, ADR, booking source analysis and financial reporting.'                           },
-  { icon: Landmark,   title: 'Agency mandates',             desc: 'Owner portal with mandate management for properties run by agencies.'                                 },
+  { icon: Calendar,   title:'Booking management',          desc:'Direct bookings with real-time availability, conflict detection and automated confirmations.' },
+  { icon: Hotel,      title:'Room & rate management',       desc:'Manage room types, pricing rules, promotions and seasonal rates from one dashboard.' },
+  { icon: RefreshCcw, title:'Channel manager & iCal sync', desc:'Sync your calendar with Airbnb, Booking.com and other OTAs to prevent double bookings.' },
+  { icon: Users,      title:'Guest management',             desc:'Guest profiles, check-in/out, digital keys, ID verification and communication tools.' },
+  { icon: CreditCard, title:'Payments & invoicing',         desc:'Accept PayFast, Ozow and Stripe. Automated invoicing and folio management.' },
+  { icon: Sparkles,   title:'Housekeeping & maintenance',   desc:'Task boards, staff schedules, work orders and real-time status updates.' },
+  { icon: BarChart3,  title:'Reports & analytics',          desc:'Occupancy, revenue, ADR, booking source analysis and financial reporting.' },
+  { icon: Landmark,   title:'Agency mandates',              desc:'Owner portal with mandate management for properties run by agencies.' },
 ];
 
 const STUDENT_FEATURES: { icon: LucideIcon; title: string; desc: string }[] = [
-  { icon: ClipboardList, title: 'Online applications',    desc: 'Customisable application forms with document uploads, closing dates and automated status notifications.' },
-  { icon: BedDouble,     title: 'Room & bed management',  desc: 'Manage capacity, bed types, room assignments and occupancy at the granular level.'                        },
-  { icon: Receipt,       title: 'Student billing',         desc: 'Invoicing with line items for tuition, accommodation, laundry and admin fees. NSFAS and bursary support.' },
-  { icon: PencilLine,    title: 'Digital leases',          desc: 'Issue, sign and store lease agreements digitally. Every access logged for compliance.'                    },
-  { icon: TrendingUp,    title: 'Reporting',               desc: 'Financial, occupancy and student status reporting for management and compliance.'                         },
-  { icon: GraduationCap, title: 'Multi-provider support',  desc: 'Built for universities, private providers and mixed portfolios.'                                          },
+  { icon: ClipboardList, title:'Online applications',       desc:'Customisable application forms with document uploads, closing dates and automated status notifications.' },
+  { icon: BedDouble,     title:'Room & bed management',     desc:'Manage capacity, bed types, room assignments and occupancy at the granular level.' },
+  { icon: Receipt,       title:'Student billing',           desc:'Invoicing with line items for tuition, accommodation, laundry and admin fees. NSFAS and bursary support.' },
+  { icon: PencilLine,    title:'Digital leases',            desc:'Issue, sign and store lease agreements digitally. Every access logged for compliance.' },
+  { icon: TrendingUp,    title:'Reporting',                  desc:'Financial, occupancy and student status reporting for management and compliance.' },
+  { icon: GraduationCap, title:'Multi-provider support',     desc:'Built for universities, private providers and mixed portfolios.' },
 ];
 
 export default function ServicesPage(): React.ReactElement {
@@ -37,102 +31,111 @@ export default function ServicesPage(): React.ReactElement {
     <>
       <PublicHeader activePage="/services" />
 
-      <PageBanner
-        label="Services"
-        heading="Solutions that work for you."
-        sub="Whether you run a guesthouse, hotel, student residence or agency portfolio — StayOS has the tools to help you operate smarter."
-      />
+      {/* Hero */}
+      <section style={{ background:'var(--color-primary)', color:'white', padding:'var(--space-20) var(--page-padding-x)', textAlign:'center' }}>
+        <div data-container>
+          <span style={{ fontSize:'var(--text-xs)', fontWeight:'var(--font-bold)', letterSpacing:'0.1em', textTransform:'uppercase', opacity:0.7, display:'block', marginBottom:'var(--space-4)' }}>
+            BUILT FOR TWO AUDIENCES
+          </span>
+          <h1 style={{ fontSize:'clamp(2rem,5vw,3.5rem)', fontWeight:'var(--font-bold)', lineHeight:'var(--leading-tight)', marginBottom:'var(--space-6)' }}>
+            Solutions that work for you
+          </h1>
+          <p style={{ fontSize:'var(--text-lg)', opacity:0.9, maxWidth:560, margin:'0 auto var(--space-8)', lineHeight:'var(--leading-relaxed)' }}>
+            Whether you run a guesthouse, hotel, student residence or agency portfolio — StayOS has the tools to help you operate smarter.
+          </p>
+          <div style={{ display:'flex', gap:'var(--space-4)', justifyContent:'center', flexWrap:'wrap' }}>
+            <a href="#hospitality" style={{ padding:'var(--space-3) var(--space-6)', background:'white', color:'var(--color-primary)', borderRadius:'var(--radius-md)', fontWeight:'var(--font-semibold)', fontSize:'var(--text-sm)', textDecoration:'none' }}>
+              Hospitality operators
+            </a>
+            <a href="#student" style={{ padding:'var(--space-3) var(--space-6)', background:'rgba(255,255,255,0.15)', color:'white', border:'1.5px solid rgba(255,255,255,0.4)', borderRadius:'var(--radius-md)', fontWeight:'var(--font-semibold)', fontSize:'var(--text-sm)', textDecoration:'none' }}>
+              Student housing
+            </a>
+          </div>
+        </div>
+      </section>
 
-      {/* ── Hospitality ───────────────────────────────────────────────────── */}
+      {/* Hospitality */}
       <section id="hospitality" data-section>
         <div data-container>
-          <div data-cols-2-lg>
+          <div data-cols-2-lg style={{ gap:'var(--space-12)', alignItems:'center', marginBottom:'var(--space-12)' }}>
             <div>
               <span data-section-label>FOR HOSPITALITY OPERATORS</span>
               <h2 data-section-heading>More bookings, less admin.</h2>
-              <p data-section-intro>
-                Direct bookings, real-time availability, automated payments and staff
-                coordination — all in one platform built for South African hospitality
-                businesses.
+              <p data-section-intro style={{ fontSize:'var(--text-base)' }}>
+                Direct bookings, real-time availability, automated payments and staff coordination — all in one platform built for South African hospitality businesses.
               </p>
-              <div data-cta-actions data-start>
-                <a href="/signup/property" data-btn-primary>
-                  List your property <ArrowRight size={16} aria-hidden="true" />
-                </a>
+              <div style={{ display:'flex', gap:'var(--space-4)', marginTop:'var(--space-8)', flexWrap:'wrap' }}>
+                <a href="/signup/property" data-btn-primary>List your property <ArrowRight size={16} aria-hidden="true" /></a>
                 <a href="/pricing" data-btn-secondary>View pricing</a>
               </div>
             </div>
-            <div data-section-media>
+            <div style={{ aspectRatio:'4/3', background:'var(--color-surface-muted)', borderRadius:'var(--radius-xl)', overflow:'hidden' }}>
+              {/* /images/services-hospitality-detail.jpg */}
               <img
-                src="/images/public/services-hospitality-detail.jpg"
+                src="/images/services-hospitality-detail.jpg"
                 alt="Hotel management"
+                style={{ width:'100%', height:'100%', objectFit:'cover' }}
                 loading="lazy"
               />
             </div>
           </div>
-
-          <div data-features-grid>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(260px, 1fr))', gap:'var(--space-5)' }}>
             {HOSPITALITY_FEATURES.map((f) => (
-              <div key={f.title} data-feature-item>
-                <div data-feature-icon aria-hidden="true"><f.icon size={24} /></div>
-                <h3 data-feature-title>{f.title}</h3>
-                <p data-feature-desc>{f.desc}</p>
+              <div key={f.title} data-card-padded>
+                <div style={{ fontSize:'var(--text-2xl)', marginBottom:'var(--space-3)', color:'var(--color-primary)' }}><f.icon size={28} /></div>
+                <h3 style={{ fontSize:'var(--text-base)', fontWeight:'var(--font-bold)', marginBottom:'var(--space-2)' }}>{f.title}</h3>
+                <p style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', lineHeight:'var(--leading-relaxed)' }}>{f.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Student housing ───────────────────────────────────────────────── */}
-      <section id="student" data-section data-white>
+      {/* Student housing */}
+      <section id="student" data-section style={{ background:'var(--color-surface)' }}>
         <div data-container>
-          <div data-cols-2-lg>
-            <div data-section-media>
+          <div data-cols-2-lg style={{ gap:'var(--space-12)', alignItems:'center', marginBottom:'var(--space-12)' }}>
+            <div style={{ aspectRatio:'4/3', background:'var(--color-surface-muted)', borderRadius:'var(--radius-xl)', overflow:'hidden' }}>
+              {/* /images/services-student-detail.jpg */}
               <img
-                src="/images/public/services-student-detail.jpg"
+                src="/images/services-student-detail.jpg"
                 alt="Student accommodation"
+                style={{ width:'100%', height:'100%', objectFit:'cover' }}
                 loading="lazy"
               />
             </div>
             <div>
               <span data-section-label>FOR STUDENT HOUSING OPERATORS</span>
               <h2 data-section-heading>Built for universities and private providers.</h2>
-              <p data-section-intro>
-                Manage applications, leases, billing and occupancy for student
-                accommodation — with tools for self-paying students, NSFAS and
-                bursary recipients.
+              <p data-section-intro style={{ fontSize:'var(--text-base)' }}>
+                Manage applications, leases, billing and occupancy for student accommodation — with tools for self-paying students, NSFAS and bursary recipients.
               </p>
-              <div data-cta-actions data-start>
-                <a href="/signup/property" data-btn-primary>
-                  Get started <ArrowRight size={16} aria-hidden="true" />
-                </a>
+              <div style={{ display:'flex', gap:'var(--space-4)', marginTop:'var(--space-8)', flexWrap:'wrap' }}>
+                <a href="/signup/property" data-btn-primary>Get started <ArrowRight size={16} aria-hidden="true" /></a>
                 <a href="/contact" data-btn-secondary>Talk to sales</a>
               </div>
             </div>
           </div>
-
-          <div data-features-grid>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(260px, 1fr))', gap:'var(--space-5)' }}>
             {STUDENT_FEATURES.map((f) => (
-              <div key={f.title} data-feature-item>
-                <div data-feature-icon aria-hidden="true"><f.icon size={24} /></div>
-                <h3 data-feature-title>{f.title}</h3>
-                <p data-feature-desc>{f.desc}</p>
+              <div key={f.title} data-card-padded>
+                <div style={{ fontSize:'var(--text-2xl)', marginBottom:'var(--space-3)', color:'var(--color-primary)' }}><f.icon size={28} /></div>
+                <h3 style={{ fontSize:'var(--text-base)', fontWeight:'var(--font-bold)', marginBottom:'var(--space-2)' }}>{f.title}</h3>
+                <p style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', lineHeight:'var(--leading-relaxed)' }}>{f.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── CTA ───────────────────────────────────────────────────────────── */}
+      {/* CTA */}
       <div data-cta-section>
-        <div data-container>
+        <div data-container style={{ textAlign:'center' }}>
           <h2 data-section-heading>Ready to get started?</h2>
-          <p data-section-intro>
-            Join thousands of operators across South Africa on StayOS.
-          </p>
+          <p data-section-intro style={{ margin:'0 auto' }}>Join thousands of operators across South Africa on StayOS.</p>
           <div data-cta-actions>
-            <a href="/signup/property" data-btn-white>List your property</a>
-            <a href="/contact" data-btn-outline-white>Talk to our team</a>
+            <a href="/signup/property" data-btn-primary>List your property</a>
+            <a href="/contact" data-btn-secondary>Talk to our team</a>
           </div>
         </div>
       </div>
