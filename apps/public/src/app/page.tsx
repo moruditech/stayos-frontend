@@ -60,46 +60,22 @@ export default function HomePage(): React.ReactElement {
 
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
       <section data-hero>
-        <div data-hero-inner>
-          <div data-hero-content>
-            <h1 data-hero-headline>
-              One platform.<br />Every stay.
-            </h1>
-            <p data-hero-sub>
-              StayOS connects people to the right place to stay and helps property
-              operators run their business smarter, every day.
-            </p>
-            <div data-hero-actions>
-              <a href="/search" data-btn-primary>
-                Find a place to stay <ArrowRight size={16} aria-hidden="true" />
-              </a>
-              <a href="/signup/property" data-btn-secondary>
-                <Building2 size={16} aria-hidden="true" /> List your property
-              </a>
-            </div>
-            <div data-hero-stats>
-              <div data-hero-stat>
-                <strong>2,000+</strong>
-                <small>Verified properties</small>
-              </div>
-              <div data-hero-stat>
-                <strong>10,000+</strong>
-                <small>Happy guests</small>
-              </div>
-              <div data-hero-stat>
-                <strong>Secure &amp; trusted</strong>
-                <small>Always</small>
-              </div>
-            </div>
-          </div>
-
-          <div data-hero-media>
-            <img
-              data-hero-image
-              src="/images/public/hero-bg.jpg"
-              alt="Luxury accommodation"
-              loading="eager"
-            />
+        <div data-hero-overlay aria-hidden="true" />
+        <div data-hero-content>
+          <h1 data-hero-headline>
+            One platform.<br />Every stay.
+          </h1>
+          <p data-hero-sub>
+            StayOS connects people to the right place to stay and helps property
+            operators run their business smarter, every day.
+          </p>
+          <div data-hero-actions>
+            <a href="/search" data-btn-primary>
+              Find a place to stay <ArrowRight size={16} aria-hidden="true" />
+            </a>
+            <a href="/signup/property" data-btn-secondary>
+              <Building2 size={16} aria-hidden="true" /> List your property
+            </a>
           </div>
         </div>
 
