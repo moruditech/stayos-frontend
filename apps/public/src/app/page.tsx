@@ -31,10 +31,10 @@ const STATS = [
 ];
 
 const PLANS = [
-  { name: 'Starter',      price: 'R349',   for: 'Up to 5 rooms'   },
-  { name: 'Professional', price: 'R799',   for: 'Up to 30 rooms',  featured: true },
-  { name: 'Business',     price: 'R1,499', for: 'Up to 100 rooms' },
-  { name: 'Enterprise',   price: 'Custom', for: 'Unlimited rooms'  },
+  { name: 'Starter',    price: 'R499',   for: 'Up to 10 rooms'  },
+  { name: 'Growth',     price: 'R1,099', for: 'Up to 30 rooms', featured: true },
+  { name: 'Pro',        price: 'R2,199', for: 'Up to 100 rooms' },
+  { name: 'Enterprise', price: 'Custom', for: 'Unlimited rooms'  },
 ];
 
 export default function HomePage(): React.ReactElement {
@@ -185,7 +185,7 @@ export default function HomePage(): React.ReactElement {
               </div>
               <div data-service-row-media>
                 <img
-                  src="/images/services-student.jpg"
+                  src="/images/public/services-student.jpg"
                   alt="Student accommodation"
                   loading="lazy"
                 />
@@ -213,7 +213,7 @@ export default function HomePage(): React.ReactElement {
               </div>
               <div data-service-row-media>
                 <img
-                  src="/images/services-hospitality.jpg"
+                  src="/images/public/services-hospitality.jpg"
                   alt="Hotel operations"
                   loading="lazy"
                 />
