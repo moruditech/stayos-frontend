@@ -159,8 +159,8 @@ function PlanGrid({ plans }: { plans: typeof HOSPITALITY_PLANS }): React.ReactEl
           {plan.annual && (
             <div data-plan-billing>R{plan.annual}/mo billed annually</div>
           )}
-          {'onboarding' in plan && plan.onboarding && (
-            <div data-plan-onboarding>{plan.onboarding}</div>
+          {(plan as { onboarding?: string }).onboarding && (
+            <div data-plan-onboarding>{(plan as { onboarding?: string }).onboarding}</div>
           )}
           <ul data-plan-features>
             {plan.features.map((f) => (
