@@ -99,7 +99,6 @@ export default function AboutPage(): React.ReactElement {
           src="/images/public/about-hero.jpg"
           alt="South African hospitality"
           loading="eager"
-          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
         />
         <div data-page-hero-overlay aria-hidden="true" />
         <div data-page-hero-content>

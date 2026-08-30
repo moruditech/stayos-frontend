@@ -94,7 +94,6 @@ export default function ContactPage(): React.ReactElement {
           src="/images/public/contact-hero.jpg"
           alt="StayOS support team"
           loading="eager"
-          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
         />
         <div data-page-hero-overlay aria-hidden="true" />
         <div data-page-hero-content>

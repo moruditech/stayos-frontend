@@ -99,7 +99,6 @@ export default function HomePage(): React.ReactElement {
               src="/images/public/hero-bg.jpg"
               alt="Luxury accommodation"
               loading="eager"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
             />
           </div>
         </div>
@@ -213,7 +212,6 @@ export default function HomePage(): React.ReactElement {
                   src="/images/public/services-student.jpg"
                   alt="Student accommodation"
                   loading="lazy"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 />
               </div>
             </div>
@@ -242,7 +240,6 @@ export default function HomePage(): React.ReactElement {
                   src="/images/public/services-hospitality.jpg"
                   alt="Hotel operations"
                   loading="lazy"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 />
               </div>
             </div>

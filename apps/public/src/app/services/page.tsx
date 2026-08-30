@@ -76,7 +76,6 @@ export default function ServicesPage(): React.ReactElement {
                 src="/images/public/services-hospitality-detail.jpg"
                 alt="Hotel management"
                 loading="lazy"
-                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
               />
             </div>
           </div>
@@ -102,7 +101,6 @@ export default function ServicesPage(): React.ReactElement {
                 src="/images/public/services-student-detail.jpg"
                 alt="Student accommodation"
                 loading="lazy"
-                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
               />
             </div>
             <div>
