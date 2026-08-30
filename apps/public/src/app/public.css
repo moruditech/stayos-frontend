@@ -488,7 +488,7 @@
 
 @media (min-width: 768px) {
   [data-search-panel] {
-    padding: var(--space-7) var(--space-8);
+    padding: var(--space-6) var(--space-8);
   }
 }
 
@@ -497,7 +497,7 @@
     margin-inline: auto;
     width: calc(100% - (var(--page-padding-x) * 2));
     max-width: 900px;
-    padding: var(--space-7) var(--space-8);
+    padding: var(--space-6) var(--space-8);
   }
 }
 
@@ -1123,7 +1123,7 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  padding: var(--space-16) var(--page-padding-x) var(--space-14);
+  padding: var(--space-16) var(--page-padding-x) var(--space-12);
 }
 
 [data-banner-overlay] {
@@ -1170,7 +1170,7 @@
 }
 
 [data-banner-extra] {
-  margin-top: var(--space-7);
+  margin-top: var(--space-6);
 }
 
 /* Search bar inside banner (help page) */
