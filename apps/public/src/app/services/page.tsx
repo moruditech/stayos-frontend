@@ -5,6 +5,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { PublicHeader, PublicFooter } from '@/components/PublicLayout';
+import PageBanner from '@/components/PageBanner';
 
 export const metadata = {
   title: 'Services — StayOS',
@@ -36,21 +37,11 @@ export default function ServicesPage(): React.ReactElement {
     <>
       <PublicHeader activePage="/services" />
 
-      {/* ── Hero ──────────────────────────────────────────────────────────── */}
-      <div data-solid-hero>
-        <div data-container>
-          <span data-section-label>BUILT FOR TWO AUDIENCES</span>
-          <h1 data-section-heading>Solutions that work for you</h1>
-          <p data-section-intro>
-            Whether you run a guesthouse, hotel, student residence or agency portfolio —
-            StayOS has the tools to help you operate smarter.
-          </p>
-          <div data-solid-hero-actions>
-            <a href="#hospitality" data-btn-white>Hospitality operators</a>
-            <a href="#student" data-btn-outline-white>Student housing</a>
-          </div>
-        </div>
-      </div>
+      <PageBanner
+        label="Services"
+        heading="Solutions that work for you."
+        sub="Whether you run a guesthouse, hotel, student residence or agency portfolio — StayOS has the tools to help you operate smarter."
+      />
 
       {/* ── Hospitality ───────────────────────────────────────────────────── */}
       <section id="hospitality" data-section>

@@ -3,13 +3,14 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PublicHeader, PublicFooter } from '@/components/PublicLayout';
+import PageBanner from '@/components/PageBanner';
 import { contactSchema } from '@stayos/validators';
 import type { ContactInput } from '@stayos/validators';
 import { InlineError } from '@stayos/ui';
 import {
   Mail, Headphones, Building2, Users, Phone, MessageSquare,
   BookOpen, MapPin, CheckCircle2, ChevronDown, ArrowRight,
-  Zap, ShieldCheck,
+
   type LucideIcon,
 } from 'lucide-react';
 
@@ -87,41 +88,11 @@ export default function ContactPage(): React.ReactElement {
     <>
       <PublicHeader activePage="/contact" />
 
-      {/* ── Hero ──────────────────────────────────────────────────────────── */}
-      <section data-page-hero>
-        <img
-          data-page-hero-bg
-          src="/images/public/contact-hero.jpg"
-          alt="StayOS support team"
-          loading="eager"
-        />
-        <div data-page-hero-overlay aria-hidden="true" />
-        <div data-page-hero-content>
-          <span data-page-hero-label>CONTACT US</span>
-          <h1 data-page-hero-heading>
-            We&apos;re here to help you succeed.
-          </h1>
-          <p data-page-hero-sub>
-            Whether you&apos;re a guest, student, property owner or agency, our team is
-            ready to assist. Reach out using any of the options below.
-          </p>
-          <div data-page-hero-trust>
-            {[
-              { icon: Zap,         title: 'Fast & Friendly Support', sub: 'We typically respond within one business day.'   },
-              { icon: ShieldCheck, title: 'Trusted & Secure',        sub: 'Your data is protected and never shared.'        },
-              { icon: Users,       title: 'Real People, Real Help',  sub: 'No bots. Just our dedicated team.'               },
-            ].map((f) => (
-              <div key={f.title} data-page-hero-trust-item>
-                <f.icon size={18} aria-hidden="true" data-trust-icon />
-                <div>
-                  <span data-trust-title>{f.title}</span>
-                  <span data-trust-sub>{f.sub}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <PageBanner
+        label="Contact us"
+        heading="Get in touch."
+        sub="Whether you are a guest, student, property owner or agency, our team is ready to assist. Reach out using any of the options below."
+      />
 
       {/* ── Contact form section ──────────────────────────────────────────── */}
       <section data-section data-white>

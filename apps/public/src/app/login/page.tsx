@@ -12,6 +12,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { PublicHeader, PublicFooter } from '@/components/PublicLayout';
+import PageBanner from '@/components/PageBanner';
 
 export const metadata = {
   title: 'Log in — StayOS',
@@ -86,15 +87,11 @@ export default function LoginPickerPage(): React.ReactElement {
     <div data-picker-page>
       <PublicHeader />
 
-      {/* ── Picker hero ───────────────────────────────────────────────────── */}
-      <div data-picker-hero>
-        <h1>Welcome back to StayOS</h1>
-        <p data-picker-subtitle>Choose your portal to continue</p>
-        <p data-picker-description>
-          StayOS has separate portals for guests, property operators and agencies.
-          Select the one that applies to you.
-        </p>
-      </div>
+      <PageBanner
+        label="Portals"
+        heading="Welcome back to StayOS."
+        sub="StayOS has separate portals for guests, property operators and agencies. Select the one that applies to you."
+      />
 
       {/* ── Portal cards ──────────────────────────────────────────────────── */}
       <div data-portal-grid>

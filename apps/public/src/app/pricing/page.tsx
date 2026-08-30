@@ -1,6 +1,7 @@
 import React from 'react';
 import { Check, Minus, ArrowRight, ChevronDown } from 'lucide-react';
 import { PublicHeader, PublicFooter } from '@/components/PublicLayout';
+import PageBanner from '@/components/PageBanner';
 
 export const metadata = {
   title: 'Pricing — StayOS',
@@ -72,17 +73,11 @@ export default function PricingPage(): React.ReactElement {
     <>
       <PublicHeader activePage="/pricing" />
 
-      {/* ── Hero ──────────────────────────────────────────────────────────── */}
-      <div data-simple-hero>
-        <div data-container>
-          <span data-section-label>FAIR PRICING, REAL VALUE</span>
-          <h1 data-section-heading>Plans that grow with your business</h1>
-          <p data-section-intro>
-            Choose the plan that fits you today, with the flexibility to scale tomorrow.
-            All prices in ZAR, excl. VAT.
-          </p>
-        </div>
-      </div>
+      <PageBanner
+        label="Pricing"
+        heading="Plans that grow with your business."
+        sub="Choose the plan that fits you today, with the flexibility to scale tomorrow. All prices in ZAR, excl. VAT."
+      />
 
       {/* ── Plan cards ────────────────────────────────────────────────────── */}
       <section data-section>

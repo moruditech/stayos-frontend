@@ -16,6 +16,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { PublicHeader, PublicFooter } from '@/components/PublicLayout';
+import PageBanner from '@/components/PageBanner';
 
 export const metadata = {
   title: 'Help Centre — StayOS',
@@ -60,28 +61,20 @@ export default function HelpCentrePage(): React.ReactElement {
     <>
       <PublicHeader activePage="/help" />
 
-      {/* ── Hero ──────────────────────────────────────────────────────────── */}
-      <div data-help-hero>
-        <div data-container>
-          <span data-section-label>HELP CENTRE</span>
-          <h1 data-section-heading>How can we help you?</h1>
-          <p data-section-intro>
-            Guides, FAQs and troubleshooting articles for guests, students, property
-            owners and agencies.
-          </p>
-          <div data-help-search-bar>
-            <input
-              type="search"
-              placeholder="Search the help centre…"
-              aria-label="Search help articles"
-            />
-            <button type="button" data-btn-primary>
-              <Search size={16} aria-hidden="true" />
-              Search
-            </button>
-          </div>
+      <PageBanner
+        label="Help centre"
+        heading="How can we help?"
+        sub="Guides, FAQs and troubleshooting articles for guests, students, property owners and agencies."
+      >
+        <div data-banner-search>
+          <input
+            type="search"
+            placeholder="Search the help centre…"
+            aria-label="Search help articles"
+          />
+          <button type="button">Search</button>
         </div>
-      </div>
+      </PageBanner>
 
       {/* ── Categories ────────────────────────────────────────────────────── */}
       <section data-section>

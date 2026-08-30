@@ -10,10 +10,10 @@ import {
   Check,
   ChevronDown,
   Home as HomeIcon,
-  Play,
   type LucideIcon,
 } from 'lucide-react';
 import { PublicHeader, PublicFooter } from '@/components/PublicLayout';
+import PageBanner from '@/components/PageBanner';
 
 export const metadata = {
   title: 'About StayOS — Technology built for every stay',
@@ -92,34 +92,11 @@ export default function AboutPage(): React.ReactElement {
     <>
       <PublicHeader activePage="/about" />
 
-      {/* ── Hero ──────────────────────────────────────────────────────────── */}
-      <section data-page-hero>
-        <img
-          data-page-hero-bg
-          src="/images/public/about-hero.jpg"
-          alt="South African hospitality"
-          loading="eager"
-        />
-        <div data-page-hero-overlay aria-hidden="true" />
-        <div data-page-hero-content>
-          <span data-page-hero-label>ABOUT STAYOS</span>
-          <h1 data-page-hero-heading>Technology built for every stay.</h1>
-          <p data-page-hero-sub>
-            StayOS is South Africa&apos;s all-in-one accommodation platform connecting
-            guests, students, property owners and agencies with seamless technology,
-            trusted data and real human support.
-          </p>
-          <div data-page-hero-actions>
-            <a href="/search" data-btn-primary>Explore our platform</a>
-            <button
-              type="button"
-              data-btn-outline-white
-            >
-              <Play size={14} fill="currentColor" aria-hidden="true" /> Watch overview
-            </button>
-          </div>
-        </div>
-      </section>
+      <PageBanner
+        label="About StayOS"
+        heading="Technology built for every stay."
+        sub="South Africa's all-in-one accommodation platform connecting guests, students, property owners and agencies with seamless technology, trusted data and real human support."
+      />
 
       {/* ── Our Story ─────────────────────────────────────────────────────── */}
       <section data-section data-white>
