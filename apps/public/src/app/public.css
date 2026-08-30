@@ -413,10 +413,11 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+  padding-bottom: var(--space-16);
 }
 
 @media (min-width: 1024px) {
-  [data-hero] { min-height: 640px; justify-content: center; }
+  [data-hero] { min-height: 640px; justify-content: center; padding-bottom: var(--space-20); }
 }
 
 [data-hero-overlay] {
@@ -474,9 +475,23 @@
    ════════════════════════════════════════════════════════════════════════════ */
 
 [data-search-panel] {
+  position: relative;
+  z-index: 10;
+  margin-top: -4rem;
+  margin-inline: var(--page-padding-x);
   background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
-  padding: var(--space-6) var(--page-padding-x);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl, 16px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  padding: var(--space-6);
+}
+
+@media (min-width: 768px) {
+  [data-search-panel] {
+    margin-inline: auto;
+    max-width: 860px;
+    padding: var(--space-7) var(--space-8);
+  }
 }
 
 [data-search-panel] [data-container] {
@@ -569,6 +584,7 @@
   border-bottom: 1px solid var(--color-border);
   padding-block: var(--space-5);
   padding-inline: var(--page-padding-x);
+  margin-top: var(--space-8);
 }
 
 [data-trust-bar] [data-container] {

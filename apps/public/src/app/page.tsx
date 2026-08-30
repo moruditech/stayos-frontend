@@ -78,68 +78,68 @@ export default function HomePage(): React.ReactElement {
             </a>
           </div>
         </div>
+      </section>
 
-        {/* Search panel — sits below the hero grid, full width */}
-        <div data-search-panel>
-          <div data-container>
-            <p data-search-title>Find your next stay</p>
-            <div data-search-tabs>
-              {SEARCH_TABS.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  data-search-tab
-                  data-active={searchTab === t.id ? '' : undefined}
-                  onClick={() => setSearchTab(t.id)}
-                >
-                  <t.icon size={16} aria-hidden="true" />
-                  <span>{t.label}</span>
-                </button>
-              ))}
-            </div>
-            <div data-search-fields>
-              <div data-form-group data-input-with-icon>
-                <MapPin size={16} aria-hidden="true" data-input-icon />
-                <input
-                  type="text"
-                  placeholder="Where are you going?"
-                  value={destination}
-                  onChange={(e) => setDest(e.target.value)}
-                />
-              </div>
-              <div data-form-group>
-                <label>Check-in</label>
-                <input
-                  type="date"
-                  value={checkIn}
-                  min={new Date().toISOString().split('T')[0]}
-                  onChange={(e) => setCheckIn(e.target.value)}
-                />
-              </div>
-              <div data-form-group>
-                <label>Check-out</label>
-                <input
-                  type="date"
-                  value={checkOut}
-                  min={checkIn || new Date().toISOString().split('T')[0]}
-                  onChange={(e) => setCheckOut(e.target.value)}
-                />
-              </div>
-              <div data-form-group>
-                <label>Guests</label>
-                <select value={guests} onChange={(e) => setGuests(e.target.value)}>
-                  {['1 guest', '2 guests', '3 guests', '4+ guests'].map((g) => (
-                    <option key={g}>{g}</option>
-                  ))}
-                </select>
-              </div>
-              <button type="button" data-btn-primary onClick={handleSearch}>
-                Search <ArrowRight size={16} aria-hidden="true" />
+      {/* Search panel — floats over the bottom edge of the hero */}
+      <div data-search-panel>
+        <div data-container>
+          <p data-search-title>Find your next stay</p>
+          <div data-search-tabs>
+            {SEARCH_TABS.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                data-search-tab
+                data-active={searchTab === t.id ? '' : undefined}
+                onClick={() => setSearchTab(t.id)}
+              >
+                <t.icon size={16} aria-hidden="true" />
+                <span>{t.label}</span>
               </button>
+            ))}
+          </div>
+          <div data-search-fields>
+            <div data-form-group data-input-with-icon>
+              <MapPin size={16} aria-hidden="true" data-input-icon />
+              <input
+                type="text"
+                placeholder="Where are you going?"
+                value={destination}
+                onChange={(e) => setDest(e.target.value)}
+              />
             </div>
+            <div data-form-group>
+              <label>Check-in</label>
+              <input
+                type="date"
+                value={checkIn}
+                min={new Date().toISOString().split('T')[0]}
+                onChange={(e) => setCheckIn(e.target.value)}
+              />
+            </div>
+            <div data-form-group>
+              <label>Check-out</label>
+              <input
+                type="date"
+                value={checkOut}
+                min={checkIn || new Date().toISOString().split('T')[0]}
+                onChange={(e) => setCheckOut(e.target.value)}
+              />
+            </div>
+            <div data-form-group>
+              <label>Guests</label>
+              <select value={guests} onChange={(e) => setGuests(e.target.value)}>
+                {['1 guest', '2 guests', '3 guests', '4+ guests'].map((g) => (
+                  <option key={g}>{g}</option>
+                ))}
+              </select>
+            </div>
+            <button type="button" data-btn-primary onClick={handleSearch}>
+              Search <ArrowRight size={16} aria-hidden="true" />
+            </button>
           </div>
         </div>
-      </section>
+      </div>
 
       {/* ── Trust bar ─────────────────────────────────────────────────────── */}
       <div data-trust-bar>
