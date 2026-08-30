@@ -488,8 +488,15 @@
 
 @media (min-width: 768px) {
   [data-search-panel] {
+    padding: var(--space-7) var(--space-8);
+  }
+}
+
+@media (min-width: 1024px) {
+  [data-search-panel] {
     margin-inline: auto;
-    max-width: 860px;
+    width: calc(100% - (var(--page-padding-x) * 2));
+    max-width: 900px;
     padding: var(--space-7) var(--space-8);
   }
 }
