@@ -23,14 +23,12 @@ import {
   Youtube,
 } from 'lucide-react';
 
-// ── Shared nav / portal data ────────────────────────────────────────────────
-
 const NAV_LINKS = [
   { label: 'Services', path: '/services', icon: Building2 },
-  { label: 'Pricing', path: '/pricing', icon: Tag },
-  { label: 'Search', path: '/search', icon: Search },
-  { label: 'About', path: '/about', icon: Info },
-  { label: 'Contact', path: '/contact', icon: Mail },
+  { label: 'Pricing',  path: '/pricing',  icon: Tag       },
+  { label: 'Search',   path: '/search',   icon: Search    },
+  { label: 'About',    path: '/about',    icon: Info      },
+  { label: 'Contact',  path: '/contact',  icon: Mail      },
 ];
 
 const PORTALS = [
@@ -57,8 +55,6 @@ const PORTALS = [
   },
 ];
 
-// ── Public Header ─────────────────────────────────────────────────────────────
-
 interface PublicHeaderProps {
   activePage?: string;
 }
@@ -66,7 +62,6 @@ interface PublicHeaderProps {
 export function PublicHeader({ activePage }: PublicHeaderProps): React.ReactElement {
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Lock page scroll while the mobile drawer is open, and allow Escape to close it.
   useEffect(() => {
     if (!menuOpen) return;
     const previousOverflow = document.body.style.overflow;
@@ -116,8 +111,12 @@ export function PublicHeader({ activePage }: PublicHeaderProps): React.ReactElem
         </button>
       </div>
 
-      {/* ── Mobile drawer ─────────────────────────────────────────────────── */}
-      <div data-mobile-menu-overlay data-open={menuOpen ? '' : undefined} onClick={() => setMenuOpen(false)}>
+      {/* Mobile drawer */}
+      <div
+        data-mobile-menu-overlay
+        data-open={menuOpen ? '' : undefined}
+        onClick={() => setMenuOpen(false)}
+      >
         <div
           data-mobile-menu-panel
           role="dialog"
@@ -129,10 +128,16 @@ export function PublicHeader({ activePage }: PublicHeaderProps): React.ReactElem
             <span data-logo-wordmark>
               Stay<span data-logo-accent>OS</span>
             </span>
-            <button type="button" aria-label="Close menu" data-menu-close onClick={() => setMenuOpen(false)}>
+            <button
+              type="button"
+              aria-label="Close menu"
+              data-menu-close
+              onClick={() => setMenuOpen(false)}
+            >
               <X size={22} aria-hidden="true" />
             </button>
           </div>
+
           <p data-mobile-menu-tagline>Built for hospitality. Designed for people.</p>
 
           <nav data-mobile-menu-nav aria-label="Main navigation">
@@ -178,13 +183,16 @@ export function PublicHeader({ activePage }: PublicHeaderProps): React.ReactElem
 
           <div data-mobile-menu-support>
             <a href="/contact" data-mobile-menu-support-link>
-              <MessageCircle size={16} aria-hidden="true" /> Contact Support <ArrowRight size={14} aria-hidden="true" />
+              <MessageCircle size={16} aria-hidden="true" /> Contact Support
+              <ArrowRight size={14} aria-hidden="true" />
             </a>
-            <a href="/contact#faq" data-mobile-menu-support-link>
-              <HelpCircle size={16} aria-hidden="true" /> View FAQs <ArrowRight size={14} aria-hidden="true" />
+            <a href="/help" data-mobile-menu-support-link>
+              <HelpCircle size={16} aria-hidden="true" /> Help Centre
+              <ArrowRight size={14} aria-hidden="true" />
             </a>
             <a href="/contact#email" data-mobile-menu-support-link>
-              <Send size={16} aria-hidden="true" /> Send us an Email <ArrowRight size={14} aria-hidden="true" />
+              <Send size={16} aria-hidden="true" /> Send us an Email
+              <ArrowRight size={14} aria-hidden="true" />
             </a>
           </div>
 
@@ -200,8 +208,6 @@ export function PublicHeader({ activePage }: PublicHeaderProps): React.ReactElem
   );
 }
 
-// ── Public Footer ─────────────────────────────────────────────────────────────
-
 export function PublicFooter(): React.ReactElement {
   const year = new Date().getFullYear();
 
@@ -211,7 +217,7 @@ export function PublicFooter(): React.ReactElement {
         {/* Brand */}
         <div data-footer-brand>
           <a href="/" data-logo>
-            <span data-logo-wordmark style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--font-bold)' }}>
+            <span data-logo-wordmark>
               Stay<span data-logo-accent>OS</span>
             </span>
           </a>
@@ -237,6 +243,7 @@ export function PublicFooter(): React.ReactElement {
           <strong>Company</strong>
           <a href="/about">About us</a>
           <a href="/contact">Contact</a>
+          <a href="/help">Help Centre</a>
         </div>
 
         {/* For Operators */}
@@ -247,14 +254,14 @@ export function PublicFooter(): React.ReactElement {
           <a href="https://agency.stayos.co.za/login">Agency login</a>
         </div>
 
-        {/* Legal + newsletter */}
+        {/* Legal + Newsletter */}
         <div data-footer-col>
           <strong>Legal</strong>
           <a href="/legal/privacy">Privacy Policy</a>
           <a href="/legal/terms">Terms of Service</a>
           <a href="/legal/cookies">Cookie Policy</a>
 
-          <div data-footer-newsletter style={{ marginTop: 'var(--space-6)' }}>
+          <div data-footer-newsletter>
             <strong>Stay in the loop</strong>
             <label htmlFor="newsletter-email">Get updates and industry insights.</label>
             <div data-footer-newsletter-form>
