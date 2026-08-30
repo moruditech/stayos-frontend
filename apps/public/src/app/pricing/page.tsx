@@ -8,8 +8,16 @@ export const metadata = {
   description: 'Fair, transparent pricing for hospitality operators and student housing providers in South Africa.',
 };
 
+type Plan = {
+  name: string; slug: string; price: string;
+  annual: string | null; sixMonth: string | null;
+  desc: string; limit: string;
+  onboarding?: string;
+  features: string[]; cta: string; href: string; featured: boolean;
+};
+
 // ── Hospitality plans ─────────────────────────────────────────────────────────
-const HOSPITALITY_PLANS = [
+const HOSPITALITY_PLANS: Plan[] = [
   {
     name: 'Starter', slug: 'starter',
     price: 'R499', annual: 'R399', sixMonth: 'R449',
@@ -62,7 +70,7 @@ const HOSPITALITY_ROWS: [string, ...string[]][] = [
 ];
 
 // ── PBSA / Student housing plans ──────────────────────────────────────────────
-const PBSA_PLANS = [
+const PBSA_PLANS: Plan[] = [
   {
     name: 'PBSA Starter', slug: 'pbsa-starter',
     price: 'R799', annual: 'R639', sixMonth: null,
@@ -142,7 +150,7 @@ function renderCell(v: string): React.ReactElement {
   return <>{v}</>;
 }
 
-function PlanGrid({ plans }: { plans: typeof HOSPITALITY_PLANS }): React.ReactElement {
+function PlanGrid({ plans }: { plans: Plan[] }): React.ReactElement {
   return (
     <div data-pricing-grid>
       {plans.map((plan) => (
@@ -159,8 +167,8 @@ function PlanGrid({ plans }: { plans: typeof HOSPITALITY_PLANS }): React.ReactEl
           {plan.annual && (
             <div data-plan-billing>R{plan.annual}/mo billed annually</div>
           )}
-          {(plan as { onboarding?: string }).onboarding && (
-            <div data-plan-onboarding>{(plan as { onboarding?: string }).onboarding}</div>
+          {plan.onboarding && (
+            <div data-plan-onboarding>{plan.onboarding}</div>
           )}
           <ul data-plan-features>
             {plan.features.map((f) => (
@@ -184,7 +192,7 @@ function PlanGrid({ plans }: { plans: typeof HOSPITALITY_PLANS }): React.ReactEl
   );
 }
 
-function ComparisonTable({ plans, rows }: { plans: typeof HOSPITALITY_PLANS; rows: [string, ...string[]][] }): React.ReactElement {
+function ComparisonTable({ plans, rows }: { plans: Plan[]; rows: [string, ...string[]][] }): React.ReactElement {
   return (
     <div data-comparison-table-wrap>
       <table data-comparison-table>
