@@ -185,7 +185,7 @@ export default function HomePage(): React.ReactElement {
               </div>
               <div data-service-row-media>
                 <img
-                  src="/images/public/services-student.jpg"
+                  src="/images/services-student.jpg"
                   alt="Student accommodation"
                   loading="lazy"
                 />
@@ -213,7 +213,7 @@ export default function HomePage(): React.ReactElement {
               </div>
               <div data-service-row-media>
                 <img
-                  src="/images/public/services-hospitality.jpg"
+                  src="/images/services-hospitality.jpg"
                   alt="Hotel operations"
                   loading="lazy"
                 />
