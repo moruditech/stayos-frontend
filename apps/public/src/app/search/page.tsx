@@ -6,6 +6,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { api } from '@stayos/api-client';
 import { MapPin, Map, ArrowRight, Search as SearchIcon, Star, Check } from 'lucide-react';
 import { PublicHeader, PublicFooter } from '@/components/PublicLayout';
+import PageBanner from '@/components/PageBanner';
 
 const CUSTOMER_PORTAL = process.env['NEXT_PUBLIC_CUSTOMER_PORTAL_URL'] ?? 'https://my.stayos.co.za';
 
@@ -199,6 +200,11 @@ export default function SearchPage(): React.ReactElement {
   return (
     <>
       <PublicHeader activePage="/search" />
+      <PageBanner
+        label="Search"
+        heading="Find your next stay."
+        sub="Search hotels, guesthouses, student housing and apartments across South Africa."
+      />
       <Suspense fallback={<div style={{ padding: 'var(--space-16)', textAlign: 'center' }}>Searching properties…</div>}>
         <SearchContent />
       </Suspense>
