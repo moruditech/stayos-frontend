@@ -132,16 +132,8 @@ export const hrApi = {
     client.get<Record<string, unknown>[]>('/hr/timesheets', {
       params: params as Record<string, string | number | boolean | undefined>,
     }),
-  // NOTE: the backend validates this route's payload against req.query
-  // (validateRequest(timesheetQuerySchema, 'query') in hr.routes.js), not
-  // the POST body — so the params are sent as a query string here rather
-  // than as a JSON body.
-  exportTimesheets: (input: { period: string; format?: 'csv' | 'pdf' }) => {
-    const qs = new URLSearchParams(
-      Object.entries(input).filter(([, v]) => v !== undefined) as [string, string][]
-    ).toString();
-    return client.post<Record<string, unknown>>(`/hr/timesheets/export?${qs}`);
-  },
+  exportTimesheets: (input: Record<string, unknown>) =>
+    client.post<{ exportId: string }>('/hr/timesheets/export', input),
   listTimesheetExports: () =>
     client.get<Record<string, unknown>[]>('/hr/timesheets/exports'),
 };
