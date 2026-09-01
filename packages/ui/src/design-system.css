@@ -445,10 +445,45 @@ svg { display: block; }
 
 [data-form-row] {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  gap: var(--space-4);
   margin-bottom: var(--space-4);
 }
+[data-form-row] > [data-form-group] {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+[data-header-actions] {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+/* Locked-feature overlay (PlanGate's default). The component intentionally
+   ships unstyled — "consuming app styles this via [data-plan-gate-overlay]" —
+   and neither admin nor property ever did, so the upgrade prompt rendered
+   with no backdrop, bleeding into whatever dimmed content sat behind it. */
+[data-plan-gate-overlay] {
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(1px);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  text-align: center;
+}
+[data-plan-gate-upgrade] {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-card);
+}
+[data-plan-gate-upgrade]:hover { background: var(--color-primary-hover); }
 
 [data-checkbox-label] {
   display: flex;
