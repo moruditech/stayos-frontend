@@ -184,7 +184,7 @@ export default function DynamicRulesPage(): React.ReactElement {
 
   useEffect(() => {
     if (!activePlanId && plans && plans.length > 0) {
-      setActivePlanId(plans[0]._id);
+      setActivePlanId(plans[0]!._id);
     }
   }, [plans, activePlanId]);
 
