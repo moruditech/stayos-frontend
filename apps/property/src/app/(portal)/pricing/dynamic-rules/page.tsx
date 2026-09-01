@@ -18,7 +18,7 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { SkeletonLoader, EmptyState, InlineError, ReadOnlyField, useToast, Icons } from '@stayos/ui';
+import { SkeletonLoader, EmptyState, ReadOnlyField, useToast, Icons } from '@stayos/ui';
 import { pricingKeys } from '@/lib/query-keys';
 
 const CONDITIONS = ['occupancy_above', 'occupancy_below', 'lead_time_within', 'lead_time_beyond'] as const;
