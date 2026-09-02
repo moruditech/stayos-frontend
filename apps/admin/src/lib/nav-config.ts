@@ -59,4 +59,11 @@ export const adminNav: NavSection[] = [
       { id: 'review-moderation', label: 'Review Moderation', path: '/moderation/reviews', requiresPerm: [PERMISSIONS.CONTENT_MANAGE] },
     ],
   },
+  {
+    label: 'Marketing',
+    items: [
+      { id: 'newsletter', label: 'Newsletter', path: '/newsletter', requiresPerm: [PERMISSIONS.NEWSLETTER_MANAGE] },
+      { id: 'mailbox', label: 'Mailbox', path: '/mailbox', requiresPerm: [PERMISSIONS.MAILBOX_MANAGE] },
+    ],
+  },
 ];

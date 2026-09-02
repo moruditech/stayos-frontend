@@ -33,3 +33,16 @@ export const supportKeys = {
 export const moderationKeys = {
   reviews: (params?: Record<string, unknown>) => ['moderation', 'reviews', params ?? {}] as const,
 };
+
+export const newsletterKeys = {
+  subscribers: (params?: Record<string, unknown>) => ['newsletter', 'subscribers', params ?? {}] as const,
+  stats:       () => ['newsletter', 'stats'] as const,
+  templates:   (params?: Record<string, unknown>) => ['newsletter', 'templates', params ?? {}] as const,
+  template:    (id: string) => ['newsletter', 'template', id] as const,
+  campaigns:   (params?: Record<string, unknown>) => ['newsletter', 'campaigns', params ?? {}] as const,
+};
+
+export const mailboxKeys = {
+  threads: (params?: Record<string, unknown>) => ['mailbox', 'threads', params ?? {}] as const,
+  thread:  (id: string) => ['mailbox', 'thread', id] as const,
+};

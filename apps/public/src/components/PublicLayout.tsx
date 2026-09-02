@@ -22,6 +22,7 @@ import {
   Linkedin,
   Youtube,
 } from 'lucide-react';
+import { api, ApiError } from '@stayos/api-client';
 
 const NAV_LINKS = [
   { label: 'Services', path: '/services', icon: Building2 },
@@ -211,8 +212,49 @@ export function PublicHeader({ activePage }: PublicHeaderProps): React.ReactElem
 export function PublicFooter(): React.ReactElement {
   const year = new Date().getFullYear();
 
+  const [newsletterEmail, setNewsletterEmail]         = useState('');
+  const [newsletterSubmitting, setNewsletterSubmitting] = useState(false);
+  const [newsletterPopup, setNewsletterPopup] = useState<{ kind: 'success' | 'error'; message: string } | null>(null);
+
+  async function handleNewsletterSubmit(e: React.FormEvent): Promise<void> {
+    e.preventDefault();
+    if (!newsletterEmail || newsletterSubmitting) return;
+
+    setNewsletterSubmitting(true);
+    try {
+      const result = await api.newsletter.subscribe({ email: newsletterEmail });
+      // Pop-up shows the backend's own message, never the HTTP status code.
+      setNewsletterPopup({ kind: 'success', message: result.message });
+      setNewsletterEmail('');
+    } catch (err) {
+      setNewsletterPopup({
+        kind: 'error',
+        message: err instanceof ApiError ? err.message : 'Something went wrong — please try again.',
+      });
+    } finally {
+      setNewsletterSubmitting(false);
+      setTimeout(() => setNewsletterPopup(null), 5000);
+    }
+  }
+
   return (
     <footer data-public-footer>
+      {newsletterPopup ? (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            position: 'fixed', bottom: 24, right: 24, zIndex: 200,
+            maxWidth: 320, padding: '14px 18px', borderRadius: 10,
+            fontSize: 14, lineHeight: 1.4, color: '#fff',
+            background: newsletterPopup.kind === 'success' ? '#1b7a4a' : '#a4302f',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+          }}
+        >
+          {newsletterPopup.message}
+        </div>
+      ) : null}
+
       <div data-footer-grid>
         {/* Brand */}
         <div data-footer-brand>
@@ -264,15 +306,21 @@ export function PublicFooter(): React.ReactElement {
           <div data-footer-newsletter>
             <strong>Stay in the loop</strong>
             <label htmlFor="newsletter-email">Get updates and industry insights.</label>
-            <div data-footer-newsletter-form>
+            <form data-footer-newsletter-form onSubmit={(e) => void handleNewsletterSubmit(e)}>
               <input
                 id="newsletter-email"
                 type="email"
+                required
                 placeholder="Your email address"
                 aria-label="Email address for newsletter"
+                value={newsletterEmail}
+                onChange={(e) => setNewsletterEmail(e.target.value)}
+                disabled={newsletterSubmitting}
               />
-              <button type="button" data-btn-primary>Subscribe</button>
-            </div>
+              <button type="submit" data-btn-primary disabled={newsletterSubmitting}>
+                {newsletterSubmitting ? 'Subscribing…' : 'Subscribe'}
+              </button>
+            </form>
           </div>
         </div>
       </div>

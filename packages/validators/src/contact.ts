@@ -1,9 +1,7 @@
 import { z } from 'zod';
 
-// POST /public/contact — schema specified in Document 09 §6.
-// The endpoint and ContactInquiry backend model do not yet exist — this schema
-// is ready but the api-client call for it is stubbed/feature-flagged off until
-// the backend route is built.
+// POST /public/contact — implemented in stayos-api-main
+// src/modules/mailbox (mailbox.validation.js contactSchema mirrors this).
 export const contactSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Valid email required'),

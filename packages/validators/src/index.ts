@@ -38,6 +38,9 @@ export type {
 export { contactSchema } from './contact';
 export type { ContactInput } from './contact';
 
+export { newsletterSubscribeSchema } from './newsletter';
+export type { NewsletterSubscribeInput } from './newsletter';
+
 export {
   updateAgencyProfileSchema,
   requestExistingMandateSchema,

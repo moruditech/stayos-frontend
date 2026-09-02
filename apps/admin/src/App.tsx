@@ -28,6 +28,8 @@ const CouponsPage      = React.lazy(() => import('./pages/CouponsPage'));
 const ReferralsPage    = React.lazy(() => import('./pages/ReferralsPage'));
 const VettingPage      = React.lazy(() => import('./pages/VettingPage'));
 const SupportPage      = React.lazy(() => import('./pages/SupportPage'));
+const NewsletterPage   = React.lazy(() => import('./pages/NewsletterPage'));
+const MailboxPage      = React.lazy(() => import('./pages/MailboxPage'));
 const ModerationPage   = React.lazy(() => import('./pages/ModerationPage'));
 const AuditLogsPage    = React.lazy(() => import('./pages/AuditLogsPage'));
 
@@ -105,6 +107,13 @@ function AppRoutes(): React.ReactElement {
             <Route path="/support/tickets/:id" element={<SupportPage />} />
 
             <Route path="/moderation/reviews" element={<ModerationPage />} />
+
+            <Route path="/newsletter" element={<NewsletterPage />} />
+            <Route path="/newsletter/templates/:id" element={<NewsletterPage />} />
+            <Route path="/newsletter/campaigns/:id" element={<NewsletterPage />} />
+
+            <Route path="/mailbox" element={<MailboxPage />} />
+            <Route path="/mailbox/:id" element={<MailboxPage />} />
 
             <Route path="/audit-logs" element={<AuditLogsPage />} />
           </Route>

@@ -7,6 +7,7 @@ import PageBanner from '@/components/PageBanner';
 import { contactSchema } from '@stayos/validators';
 import type { ContactInput } from '@stayos/validators';
 import { InlineError } from '@stayos/ui';
+import { api, ApiError } from '@stayos/api-client';
 import {
   Mail, Headphones, Building2, Users, Phone, MessageSquare,
   BookOpen, MapPin, CheckCircle2, ChevronDown, ArrowRight,
@@ -14,8 +15,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 
-// NOTE: POST /public/contact backend route is not yet implemented.
-// Form schema is ready; the api call is feature-flagged off until Phase 3.
+// POST /public/contact — see stayos-api-main src/modules/mailbox.
 
 const CATEGORIES: { id: string; icon: LucideIcon; label: string; desc: string }[] = [
   { id: 'sales',       icon: Mail,       label: 'General Enquiries',   desc: 'Questions about StayOS, our platform, or how we can help you.'        },
@@ -62,6 +62,7 @@ export default function ContactPage(): React.ReactElement {
   const [selectedCategory, setSelectedCategory] = useState<string>('sales');
   const [submitted, setSubmitted]               = useState(false);
   const [submitting, setSubmitting]             = useState(false);
+  const [submitError, setSubmitError]           = useState<string | null>(null);
 
   const form = useForm<ContactInput>({
     resolver: zodResolver(contactSchema),
@@ -75,10 +76,13 @@ export default function ContactPage(): React.ReactElement {
 
   async function handleSubmit(values: ContactInput): Promise<void> {
     setSubmitting(true);
+    setSubmitError(null);
     try {
-      await new Promise((r) => setTimeout(r, 800));
-      console.log('Contact form values (endpoint pending):', values);
+      await api.contact.submit(values);
       setSubmitted(true);
+    } catch (err) {
+      // Show the backend's message, not the HTTP status code.
+      setSubmitError(err instanceof ApiError ? err.message : 'Something went wrong — please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -191,6 +195,7 @@ export default function ContactPage(): React.ReactElement {
                     By submitting this form, you agree to our{' '}
                     <a href="/legal/privacy" data-link>Privacy Policy</a>.
                   </p>
+                  <InlineError message={submitError ?? undefined} />
                   <button type="submit" disabled={submitting} data-btn-primary data-btn-full>
                     {submitting ? 'Sending…' : (
                       <><Mail size={16} aria-hidden="true" /> Send message</>

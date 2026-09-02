@@ -138,6 +138,11 @@ export {
   DoorClosed,
   Plug,
   Coins,
+
+  // Newsletter & Contact Mailbox additions
+  Megaphone,
+  Inbox,
+  Archive,
 } from 'lucide-react';
 
 export type { LucideIcon, LucideProps } from 'lucide-react';

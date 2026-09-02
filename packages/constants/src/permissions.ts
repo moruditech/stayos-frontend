@@ -112,6 +112,9 @@ export const PERMISSIONS = {
 
   TICKET_MANAGE: 'ticket:manage',
 
+  NEWSLETTER_MANAGE: 'newsletter:manage',
+  MAILBOX_MANAGE: 'mailbox:manage',
+
   VETTING_MANAGE: 'vetting:manage',
 } as const;
 
