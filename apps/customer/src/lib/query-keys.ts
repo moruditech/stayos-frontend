@@ -11,6 +11,10 @@ export const accommodationKeys = {
   reviews: (slug: string, page?: number) => ['accommodation', 'reviews', slug, page ?? 1] as const,
 };
 
+export const wishlistKeys = {
+  list: () => ['customer', 'wishlist'] as const,
+};
+
 export const bookingKeys = {
   list: () => ['customer', 'bookings'] as const,
   detail: (id: string) => ['customer', 'bookings', id] as const,

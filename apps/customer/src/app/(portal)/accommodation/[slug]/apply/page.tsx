@@ -1,242 +1,353 @@
 'use client';
-
-import Link from 'next/link';
 import React, { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { useSession } from '@stayos/auth';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { SkeletonLoader, ConsentGate, Icons } from '@stayos/ui';
+import { SkeletonLoader, EmptyState, useToast, Icons } from '@stayos/ui';
+
+const FUNDING_TYPES: { id: string; label: string }[] = [
+  { id: 'self_paying', label: 'Self-paying' },
+  { id: 'nsfas',        label: 'NSFAS' },
+  { id: 'bursary',      label: 'Bursary' },
+  { id: 'partial',      label: 'Partial funding' },
+];
+
+const CONSENT_TEXT =
+  'I consent to my personal information being shared with this institution ' +
+  'for the purpose of processing my student accommodation application.';
+
+interface FormField {
+  fieldId: string;
+  type: 'text' | 'textarea' | 'select' | 'multiselect' | 'checkbox' | 'date' | 'file' | 'number';
+  label: string;
+  placeholder?: string;
+  required?: boolean;
+  options?: { label: string; value: string }[];
+  order?: number;
+}
 
 interface Props { params: { slug: string } }
 
-export default function ApplicationFormPage({ params }: Props): React.ReactElement {
-  const session   = useSession();
-  const [submitted, setSubmitted] = useState(false);
-  const [formError, setFormError] = useState('');
-  const [consented, setConsented]  = useState(false);
-  const [answers, setAnswers]      = useState<Record<string, string>>({});
-  const [termsAccepted, setTerms]  = useState(false);
+export default function ApplyPage({ params }: Props): React.ReactElement {
+  const slug          = params.slug;
+  const router        = useRouter();
+  const searchParams  = useSearchParams();
+  const roomId        = searchParams.get('roomId') ?? undefined;
+  const { toast }     = useToast();
 
-  // GET /university/forms/:slug/public — no auth required
-  const { data: formTemplate, isLoading } = useQuery({
-    queryKey: ['university', 'form', params.slug],
-    queryFn:  () => api.university.getForm(params.slug),
+  const [submitted, setSubmitted]     = useState<string | null>(null);
+  const [formError, setFormError]     = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const [applicant, setApplicant] = useState({
+    applicantFirstName: '', applicantLastName: '', applicantEmail: '', applicantPhone: '',
+    institutionName: '', studentNumber: '', faculty: '', course: '', yearOfStudy: '',
+    fundingType: '', bursaryFunder: '', nsfasReferenceNumber: '',
+    dietaryRequirements: '', specialNeeds: '',
+  });
+  const [customAnswers, setCustomAnswers] = useState<Record<string, string>>({});
+  const [agreed, setAgreed] = useState(false);
+
+  const { data: form, isLoading, error: loadError } = useQuery({
+    queryKey: ['accommodation', 'application-form', slug],
+    queryFn:  () => api.discovery.getApplicationForm(slug),
+    retry: false,
   });
 
   const submitMutation = useMutation({
-    mutationFn: (payload: Record<string, unknown>) =>
-      api.university.submitApplication(params.slug, payload),
-    onSuccess: () => setSubmitted(true),
+    mutationFn: (payload: Record<string, unknown>) => api.discovery.submitApplicationForProperty(slug, payload),
+    onSuccess:  (result) => {
+      setSubmitted((result as Record<string, unknown>)['applicationId'] as string ?? 'submitted');
+    },
     onError: (err: ApiError) => {
-      if (err.code === 'FORM_CLOSED') {
+      if (err.code === 'PROMOTION_EXPIRED') {
         setFormError('This application form is now closed.');
+      } else if (err.code === 'VALIDATION_ERROR' && err.fields?.length) {
+        const next: Record<string, string> = {};
+        err.fields.forEach((f) => { next[f.field] = f.message; });
+        setFieldErrors(next);
+        setFormError('Please fix the highlighted fields and try again.');
       } else {
-        setFormError(err.message ?? 'Submission failed. Please try again.');
+        toast(err.message ?? 'Failed to submit application.', 'error');
       }
     },
   });
 
-  if (isLoading) return <div data-page><SkeletonLoader rows={5} /></div>;
+  function updateApplicant(key: keyof typeof applicant, value: string): void {
+    setApplicant((prev) => ({ ...prev, [key]: value }));
+  }
 
-  const ft = formTemplate as Record<string, unknown> | undefined;
-  if (!ft) return <div data-page><p>Application form not found.</p></div>;
-
-  const fields      = (ft['fields'] as Record<string, unknown>[]) ?? [];
-  const closingDate = ft['closingDate'] ? new Date(ft['closingDate'] as string) : null;
-  const isClosed    = !!(closingDate && closingDate < new Date());
-  const requiredDocs= (ft['requiredDocuments'] as string[]) ?? [];
-  const propertyName = ft['propertyName'] as string;
-  const terms = ft['terms'] as string | undefined;
-
-  async function handleSubmit(e: React.FormEvent): Promise<void> {
+  function handleSubmit(e: React.FormEvent): void {
     e.preventDefault();
-    if (!termsAccepted) {
-      setFormError('You must accept the terms and conditions.');
-      return;
-    }
-    if (!consented) {
-      setFormError('You must accept the data sharing consent.');
-      return;
-    }
-    setFormError('');
+    setFormError(null);
+    setFieldErrors({});
 
-    const payload: Record<string, unknown> = {
-      answers,
+    if (!agreed) {
+      setFormError('You must accept the terms and consent to continue.');
+      return;
+    }
+
+    const template = (form as Record<string, unknown>) ?? {};
+    const templateFields = ((template['fields'] as FormField[] | undefined) ?? [])
+      .slice()
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+    const missingCustom = templateFields.filter((f) => f.required && !customAnswers[f.fieldId]);
+    if (!applicant.fundingType) {
+      setFormError('Please select how your studies are funded.');
+      return;
+    }
+    if (missingCustom.length > 0) {
+      const next: Record<string, string> = {};
+      missingCustom.forEach((f) => { next[f.fieldId] = `${f.label} is required`; });
+      setFieldErrors(next);
+      setFormError('Please fill in all required fields.');
+      return;
+    }
+
+    submitMutation.mutate({
+      applicantFirstName: applicant.applicantFirstName,
+      applicantLastName:  applicant.applicantLastName,
+      applicantEmail:     applicant.applicantEmail,
+      applicantPhone:     applicant.applicantPhone || undefined,
+      institutionName:    applicant.institutionName,
+      studentNumber:      applicant.studentNumber || undefined,
+      faculty:            applicant.faculty || undefined,
+      course:             applicant.course || undefined,
+      yearOfStudy:        applicant.yearOfStudy ? Number(applicant.yearOfStudy) : undefined,
+      fundingType:        applicant.fundingType,
+      bursaryFunder:      applicant.fundingType === 'bursary' ? (applicant.bursaryFunder || undefined) : undefined,
+      nsfasReferenceNumber: applicant.fundingType === 'nsfas' ? (applicant.nsfasReferenceNumber || undefined) : undefined,
+      dietaryRequirements: applicant.dietaryRequirements || undefined,
+      specialNeeds:        applicant.specialNeeds || undefined,
+      roomTypePreference:  roomId ? [roomId] : undefined,
+      customAnswers: templateFields.map((f) => ({
+        fieldId: f.fieldId, label: f.label, value: customAnswers[f.fieldId] ?? '',
+      })),
       termsAccepted: true,
-      consentSnapshot: {
-        acknowledged: true,
-        text: `By submitting this application, you agree to share your personal information with ${propertyName} for accommodation placement purposes in accordance with POPIA.`,
-      },
-    };
-    // If session exists, the backend links to the existing customer record automatically
-    submitMutation.mutate(payload);
+      consentSnapshot: { acknowledged: true, text: CONSENT_TEXT },
+    });
+  }
+
+  if (isLoading) {
+    return <div data-page><SkeletonLoader rows={6} /></div>;
+  }
+
+  if (loadError || !form) {
+    const err = loadError as ApiError | undefined;
+    return (
+      <div data-page>
+        <EmptyState
+          title={err?.code === 'NOT_FOUND' ? 'Application form not found' : 'Something went wrong'}
+          description="This property may not currently be accepting student housing applications."
+          action={<button type="button" data-btn-primary onClick={() => router.push(`/accommodation/${slug}`)}>Back to property</button>}
+        />
+      </div>
+    );
   }
 
   if (submitted) {
     return (
-      <div data-page>
-        <div data-card-padded style={{ textAlign: 'center', padding: 'var(--space-12)' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--color-success)', marginBottom: 'var(--space-5)' }}><Icons.CheckCircle2 size={56} /></div>
-          <h1 style={{ fontSize: '22px', fontWeight: '700', marginBottom: 'var(--space-3)' }}>
-            Application submitted!
-          </h1>
-          <p style={{ color: 'var(--color-text-secondary)', marginBottom: 'var(--space-8)' }}>
-            Your application to {ft['propertyName'] as string} has been received. We&apos;ll be in touch shortly.
-          </p>
-          {session ? (
-            <Link href="/applications" data-btn-primary>View my applications →</Link>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', alignItems: 'center' }}>
-              <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
-                Create an account to track your application status.
-              </p>
-              <Link href="/register" data-btn-primary>Create account →</Link>
-              <Link href="/" data-btn-ghost>Return to home</Link>
-            </div>
-          )}
+      <div data-page style={{ textAlign: 'center', maxWidth: '30rem', margin: '0 auto', padding: 'var(--space-10) 0' }}>
+        <Icons.CheckCircle2 size={48} style={{ color: 'var(--color-success)', marginBottom: 'var(--space-4)' }} />
+        <h1 data-page-title style={{ marginBottom: 'var(--space-2)' }}>Application submitted</h1>
+        <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-6)' }}>
+          We&apos;ve emailed you a confirmation. You can track the status of your application from your account.
+        </p>
+        <div style={{ display: 'flex', gap: 'var(--space-3)', justifyContent: 'center' }}>
+          <button type="button" data-btn-secondary onClick={() => router.push('/applications')}>View my applications</button>
+          <button type="button" data-btn-primary onClick={() => router.push('/accommodation')}>Back to search</button>
         </div>
       </div>
     );
   }
 
+  const template = form as Record<string, unknown>;
+  const templateFields = ((template['fields'] as FormField[] | undefined) ?? [])
+    .slice()
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  const closingDate = template['closingDate'] as string | undefined;
+  const isClosed = !!closingDate && new Date(closingDate) < new Date();
+
   return (
-    <div data-page>
-      <h1 data-page-title>Apply for accommodation</h1>
-      <p data-page-subtitle>{ft['propertyName'] as string}</p>
+    <div data-page style={{ maxWidth: '38rem' }}>
+      <button type="button" data-back-link
+        style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)', marginBottom: 'var(--space-4)' }}
+        onClick={() => router.push(`/accommodation/${slug}`)}>
+        <Icons.ChevronLeft size={16} /> Back to property
+      </button>
 
-      {isClosed && (
-        <div data-card-padded style={{ background: 'var(--color-danger-bg)', borderColor: 'var(--color-danger)', marginBottom: 'var(--space-5)' }}>
-          <strong style={{ color: 'var(--color-danger)', fontSize: '13px' }}>
-            Applications closed
-          </strong>
-          <p style={{ color: 'var(--color-danger)', fontSize: '13px', marginTop: 'var(--space-1)' }}>
-            The closing date for this application was {closingDate?.toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })}.
-          </p>
-        </div>
+      <h1 data-page-title>Apply for {template['propertyName'] as string}</h1>
+      {!!template['welcomeMessage'] && (
+        <p data-page-subtitle>{template['welcomeMessage'] as string}</p>
       )}
 
-      {closingDate && !isClosed && (
-        <div data-card-padded style={{ background: 'var(--color-warning-bg)', borderColor: 'var(--color-warning)', marginBottom: 'var(--space-5)' }}>
-          <strong style={{ color: 'var(--color-warning)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-            <Icons.Calendar size={16} /> Closing date: {closingDate.toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })}
-          </strong>
-        </div>
-      )}
-
-      {/* Account hint for unauthenticated applicants */}
-      {!session && (
-        <div data-card-padded style={{ background: 'var(--color-primary-tint)', marginBottom: 'var(--space-5)' }}>
-          <p style={{ fontSize: '13px', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-            <Icons.Lightbulb size={16} /> Already have an account?{' '}
-            <Link href={`/login?redirect=/accommodation/${params.slug}/apply`} data-link>Sign in</Link>{' '}
-            to pre-fill your details.
-          </p>
-        </div>
-      )}
-
-      <form onSubmit={(e) => void handleSubmit(e)} noValidate>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
-
-          {/* Dynamic form fields from template */}
-          {fields.map((field) => (
-            <DynamicField
-              key={field['name'] as string}
-              field={field}
-              value={answers[field['name'] as string] ?? ''}
-              onChange={(val) => setAnswers((prev) => ({ ...prev, [field['name'] as string]: val }))}
-            />
-          ))}
-
-          {/* Required documents list */}
-          {requiredDocs.length > 0 && (
-            <div data-card-padded style={{ background: 'var(--color-bg-sunk)' }}>
-              <h3 style={{ fontSize: '13px', fontWeight: '700', marginBottom: 'var(--space-3)' }}>
-                Required documents
-              </h3>
-              <ul style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-                {requiredDocs.map((doc) => (
-                  <li key={doc} style={{ fontSize: '13px', color: 'var(--color-text-secondary)', display: 'flex', gap: 'var(--space-2)' }}>
-                    <Icons.Paperclip size={14} /> {doc}
-                  </li>
-                ))}
-              </ul>
-              <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: 'var(--space-3)' }}>
-                Documents can be uploaded after submission from your applications dashboard.
-              </p>
-            </div>
+      {isClosed ? (
+        <EmptyState title="This application form is closed"
+          description="Applications for this academic year are no longer being accepted." />
+      ) : (
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)', marginTop: 'var(--space-6)' }}>
+          {formError && (
+            <div data-form-error role="alert">{formError}</div>
           )}
 
-          {/* Terms acceptance */}
-          {terms && (
-            <div data-card-padded style={{ background: 'var(--color-bg-sunk)' }}>
-              <h3 style={{ fontSize: '13px', fontWeight: '700', marginBottom: 'var(--space-3)' }}>Terms and conditions</h3>
-              <div style={{ maxHeight: '160px', overflowY: 'auto', fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: '1.65', marginBottom: 'var(--space-4)', padding: 'var(--space-3)', background: 'white', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
-                {terms}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+            <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: 'var(--space-3)' }}>Your details</h3>
+            <div data-form-grid-2>
+              <div data-form-group>
+                <label htmlFor="afn">First name *</label>
+                <input id="afn" required value={applicant.applicantFirstName}
+                  onChange={(e) => updateApplicant('applicantFirstName', e.target.value)} />
               </div>
-              <label data-checkbox-label>
-                <input type="checkbox" checked={termsAccepted} onChange={(e) => setTerms(e.target.checked)} />
-                I have read and agree to the terms and conditions
-              </label>
+              <div data-form-group>
+                <label htmlFor="aln">Last name *</label>
+                <input id="aln" required value={applicant.applicantLastName}
+                  onChange={(e) => updateApplicant('applicantLastName', e.target.value)} />
+              </div>
+            </div>
+            <div data-form-grid-2>
+              <div data-form-group>
+                <label htmlFor="aem">Email *</label>
+                <input id="aem" type="email" required value={applicant.applicantEmail}
+                  onChange={(e) => updateApplicant('applicantEmail', e.target.value)} />
+                {fieldErrors['applicantEmail'] && <span data-inline-error>{fieldErrors['applicantEmail']}</span>}
+              </div>
+              <div data-form-group>
+                <label htmlFor="aph">Phone</label>
+                <input id="aph" type="tel" value={applicant.applicantPhone}
+                  onChange={(e) => updateApplicant('applicantPhone', e.target.value)} />
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+            <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: 'var(--space-3)' }}>Studies</h3>
+            <div data-form-group>
+              <label htmlFor="inst">Institution name *</label>
+              <input id="inst" required value={applicant.institutionName}
+                onChange={(e) => updateApplicant('institutionName', e.target.value)} />
+              {fieldErrors['institutionName'] && <span data-inline-error>{fieldErrors['institutionName']}</span>}
+            </div>
+            <div data-form-grid-2>
+              <div data-form-group>
+                <label htmlFor="sn">Student number</label>
+                <input id="sn" value={applicant.studentNumber}
+                  onChange={(e) => updateApplicant('studentNumber', e.target.value)} />
+              </div>
+              <div data-form-group>
+                <label htmlFor="yos">Year of study</label>
+                <input id="yos" type="number" min={1} value={applicant.yearOfStudy}
+                  onChange={(e) => updateApplicant('yearOfStudy', e.target.value)} />
+              </div>
+            </div>
+            <div data-form-grid-2>
+              <div data-form-group>
+                <label htmlFor="fac">Faculty</label>
+                <input id="fac" value={applicant.faculty}
+                  onChange={(e) => updateApplicant('faculty', e.target.value)} />
+              </div>
+              <div data-form-group>
+                <label htmlFor="course">Course</label>
+                <input id="course" value={applicant.course}
+                  onChange={(e) => updateApplicant('course', e.target.value)} />
+              </div>
+            </div>
+            <div data-form-group>
+              <label htmlFor="funding">How are your studies funded? *</label>
+              <select id="funding" required value={applicant.fundingType}
+                onChange={(e) => updateApplicant('fundingType', e.target.value)}>
+                <option value="">Select an option</option>
+                {FUNDING_TYPES.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
+              </select>
+            </div>
+            {applicant.fundingType === 'bursary' && (
+              <div data-form-group>
+                <label htmlFor="bf">Bursary funder</label>
+                <input id="bf" value={applicant.bursaryFunder}
+                  onChange={(e) => updateApplicant('bursaryFunder', e.target.value)} />
+              </div>
+            )}
+            {applicant.fundingType === 'nsfas' && (
+              <div data-form-group>
+                <label htmlFor="nref">NSFAS reference number</label>
+                <input id="nref" value={applicant.nsfasReferenceNumber}
+                  onChange={(e) => updateApplicant('nsfasReferenceNumber', e.target.value)} />
+              </div>
+            )}
+          </div>
+
+          {templateFields.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+              <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: 'var(--space-3)' }}>Additional questions</h3>
+              {templateFields.map((f) => (
+                <DynamicField key={f.fieldId} field={f}
+                  value={customAnswers[f.fieldId] ?? ''}
+                  error={fieldErrors[f.fieldId]}
+                  onChange={(v) => setCustomAnswers((prev) => ({ ...prev, [f.fieldId]: v }))} />
+              ))}
             </div>
           )}
 
-          {/* Data sharing consent — never pre-checked (TAD 07 §3) */}
-          <ConsentGate
-            legalText={
-              <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: '1.65' }}>
-                By submitting this application, you agree to share your personal information with{' '}
-                <strong>{ft['propertyName'] as string}</strong> for accommodation placement purposes in accordance with POPIA and our Privacy Policy.
-              </p>
-            }
-            onConsent={setConsented}
-          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+            <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: 'var(--space-3)' }}>Anything else we should know?</h3>
+            <div data-form-group>
+              <label htmlFor="diet">Dietary requirements</label>
+              <input id="diet" value={applicant.dietaryRequirements}
+                onChange={(e) => updateApplicant('dietaryRequirements', e.target.value)} />
+            </div>
+            <div data-form-group>
+              <label htmlFor="needs">Special needs / accessibility requirements</label>
+              <textarea id="needs" rows={3} value={applicant.specialNeeds}
+                onChange={(e) => updateApplicant('specialNeeds', e.target.value)} />
+            </div>
+          </div>
 
-          {formError && <span role="alert" data-form-error>{formError}</span>}
+          <label data-checkbox-label>
+            <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
+            <span>I accept the terms and conditions, and {CONSENT_TEXT.charAt(0).toLowerCase() + CONSENT_TEXT.slice(1)}</span>
+          </label>
 
-          <button
-            type="submit"
-            disabled={submitMutation.isPending || isClosed}
-            data-btn-primary
-            data-btn-full
-          >
+          <button type="submit" data-btn-primary data-btn-full disabled={submitMutation.isPending}>
             {submitMutation.isPending ? 'Submitting…' : 'Submit application'}
           </button>
-        </div>
-      </form>
+        </form>
+      )}
     </div>
   );
 }
 
-function DynamicField({
-  field, value, onChange,
-}: {
-  field: Record<string, unknown>;
-  value: string;
-  onChange: (val: string) => void;
+function DynamicField({ field, value, error, onChange }: {
+  field: FormField; value: string; error?: string; onChange: (value: string) => void;
 }): React.ReactElement {
-  const name     = field['name'] as string;
-  const label    = field['label'] as string;
-  const type     = field['type'] as string;
-  const required = field['required'] as boolean;
-  const options  = field['options'] as string[] | undefined;
-
+  const id = `field-${field.fieldId}`;
   return (
     <div data-form-group>
-      <label htmlFor={name}>
-        {label} {required && <span style={{ color: 'var(--color-danger)' }}>*</span>}
-      </label>
-      {type === 'textarea' ? (
-        <textarea id={name} rows={4} value={value} required={required} onChange={(e) => onChange(e.target.value)} />
-      ) : type === 'select' && options ? (
-        <select id={name} value={value} required={required} onChange={(e) => onChange(e.target.value)}>
-          <option value="">Select…</option>
-          {options.map((o) => <option key={o} value={o}>{o}</option>)}
+      <label htmlFor={id}>{field.label}{field.required ? ' *' : ''}</label>
+      {field.type === 'textarea' ? (
+        <textarea id={id} rows={3} placeholder={field.placeholder} value={value}
+          onChange={(e) => onChange(e.target.value)} />
+      ) : field.type === 'select' ? (
+        <select id={id} value={value} onChange={(e) => onChange(e.target.value)}>
+          <option value="">Select an option</option>
+          {(field.options ?? []).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
         </select>
+      ) : field.type === 'checkbox' ? (
+        <label data-checkbox-label>
+          <input id={id} type="checkbox" checked={value === 'true'}
+            onChange={(e) => onChange(e.target.checked ? 'true' : 'false')} />
+          <span>{field.placeholder ?? 'Yes'}</span>
+        </label>
+      ) : field.type === 'date' ? (
+        <input id={id} type="date" value={value} onChange={(e) => onChange(e.target.value)} />
+      ) : field.type === 'number' ? (
+        <input id={id} type="number" placeholder={field.placeholder} value={value}
+          onChange={(e) => onChange(e.target.value)} />
       ) : (
-        <input id={name} type={type === 'date' ? 'date' : type === 'email' ? 'email' : type === 'phone' ? 'tel' : 'text'}
-          value={value} required={required} onChange={(e) => onChange(e.target.value)} />
+        <input id={id} type="text" placeholder={field.placeholder} value={value}
+          onChange={(e) => onChange(e.target.value)} />
       )}
+      {error && <span data-inline-error>{error}</span>}
     </div>
   );
 }

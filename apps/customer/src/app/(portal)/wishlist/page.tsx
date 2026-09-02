@@ -6,8 +6,7 @@ import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
 import { SkeletonLoader, EmptyState, useToast, Icons } from '@stayos/ui';
-
-const WISHLIST_KEYS = { list: () => ['customer','wishlist'] as const };
+import { wishlistKeys } from '@/lib/query-keys';
 
 export default function WishlistPage(): React.ReactElement {
   const session   = useSession();
@@ -15,14 +14,14 @@ export default function WishlistPage(): React.ReactElement {
   const { toast } = useToast();
 
   const { data: wishlist, isLoading } = useQuery({
-    queryKey: WISHLIST_KEYS.list(),
+    queryKey: wishlistKeys.list(),
     queryFn:  () => api.customer.getWishlist(),
     enabled:  !!session,
   });
 
   const removeMutation = useMutation({
     mutationFn: (propertyId: string) => api.customer.removeFromWishlist(propertyId),
-    onSuccess:  () => { qc.invalidateQueries({ queryKey: WISHLIST_KEYS.list() }); toast('Removed from saved places.', 'info'); },
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: wishlistKeys.list() }); toast('Removed from saved places.', 'info'); },
     onError:    (err: ApiError) => toast(err.message ?? 'Failed to remove.', 'error'),
   });
 
@@ -68,8 +67,14 @@ export default function WishlistPage(): React.ReactElement {
                   <div data-property-card-location><Icons.MapPin size={14} /> {p['city'] as string}</div>
                   <div data-property-card-pricing>
                     <div>
-                      <span data-property-rate>R{((p['baseRate'] as number) ?? 0).toLocaleString()}</span>
-                      <span data-property-rate-label> / night</span>
+                      {typeof p['baseRate'] === 'number' ? (
+                        <>
+                          <span data-property-rate>R{(p['baseRate'] as number).toLocaleString()}</span>
+                          <span data-property-rate-label> / night</span>
+                        </>
+                      ) : (
+                        <span data-property-rate>Contact for rate</span>
+                      )}
                     </div>
                     <Link href={`/accommodation/${p['slug'] as string}`} data-btn-primary style={{ padding:'var(--space-2) var(--space-4)', fontSize:'13px' }}>
                       View

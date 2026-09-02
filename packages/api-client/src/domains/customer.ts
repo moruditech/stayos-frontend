@@ -26,6 +26,14 @@ export const discoveryApi = {
     client.get<Record<string, unknown>[]>(`/discovery/properties/${slug}/reviews`, {
       params: { page },
     }),
+
+  // Bridge from a property's public slug to its (independently-slugged)
+  // student housing application form.
+  getApplicationForm: (slug: string) =>
+    client.get<Record<string, unknown>>(`/discovery/properties/${slug}/application-form`),
+
+  submitApplicationForProperty: (slug: string, input: Record<string, unknown>) =>
+    client.post<Record<string, unknown>>(`/discovery/properties/${slug}/application-form/apply`, input),
 };
 
 export const customerApi = {
@@ -83,11 +91,14 @@ export const customerApi = {
     client.post<Record<string, unknown>>('/customers/me/complaints', input),
 
   // GET/POST/DELETE /customers/me/wishlist
+  // Note: the backend keys wishlist entries by `tenantId` (a property is a
+  // Tenant document) — POST must send `tenantId`, not `propertyId`, or the
+  // request 422s silently and the heart button appears to do nothing.
   getWishlist: () => client.get<Record<string, unknown>[]>('/customers/me/wishlist'),
-  addToWishlist: (propertyId: string) =>
-    client.post<Record<string, unknown>>('/customers/me/wishlist', { propertyId }),
-  removeFromWishlist: (propertyId: string) =>
-    client.delete<{ message: string }>(`/customers/me/wishlist/${propertyId}`),
+  addToWishlist: (tenantId: string) =>
+    client.post<Record<string, unknown>>('/customers/me/wishlist', { tenantId }),
+  removeFromWishlist: (tenantId: string) =>
+    client.delete<{ message: string }>(`/customers/me/wishlist/${tenantId}`),
 
   // GET /customers/me/reviews
   listReviews: () => client.get<Record<string, unknown>[]>('/customers/me/reviews'),

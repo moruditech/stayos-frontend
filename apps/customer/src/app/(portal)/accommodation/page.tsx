@@ -1,12 +1,13 @@
 'use client';
-import Link from 'next/link';
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@stayos/api-client';
 import { SkeletonLoader, EmptyState, Icons, type LucideIcon } from '@stayos/ui';
 import { accommodationKeys } from '@/lib/query-keys';
 import { GuestsRoomsField, type GuestsRoomsValue } from '@/components/GuestsRoomsField';
+import { FilterDropdown } from '@/components/FilterDropdown';
+import { useWishlist } from '@/lib/useWishlist';
 
 type StayMode = 'stays' | 'student' | 'long_term';
 const STAY_MODES: { id: StayMode; label: string; icon: LucideIcon }[] = [
@@ -15,6 +16,10 @@ const STAY_MODES: { id: StayMode; label: string; icon: LucideIcon }[] = [
   { id: 'long_term',  label: 'Long Term',        icon: Icons.Building2 },
 ];
 
+// These map to the *real* Tenant.type enum on the backend
+// ('guesthouse' | 'hotel' | 'rental' | 'student_housing') — there is no
+// 'boutique_hotel' / 'bed_and_breakfast' / 'apartment' / 'villa' sub-type on
+// the server, so the category chips can only ever narrow to these four.
 type CategoryTab = 'all' | 'hotels' | 'guesthouses' | 'apartments';
 const CATS: { id: CategoryTab; label: string; icon: LucideIcon }[] = [
   { id: 'all',         label: 'All',         icon: Icons.LayoutGrid },
@@ -22,12 +27,11 @@ const CATS: { id: CategoryTab; label: string; icon: LucideIcon }[] = [
   { id: 'guesthouses', label: 'Guesthouses', icon: Icons.Home },
   { id: 'apartments',  label: 'Apartments',  icon: Icons.Building2 },
 ];
-
 const TYPE_MAP: Record<CategoryTab, string[]> = {
   all:         [],
-  hotels:      ['hotel', 'boutique_hotel'],
-  guesthouses: ['guesthouse', 'bed_and_breakfast'],
-  apartments:  ['apartment', 'villa', 'rental'],
+  hotels:      ['hotel'],
+  guesthouses: ['guesthouse'],
+  apartments:  ['rental'],
 };
 const MODE_TYPE_MAP: Record<StayMode, string[]> = {
   stays:      [],
@@ -35,10 +39,55 @@ const MODE_TYPE_MAP: Record<StayMode, string[]> = {
   long_term:  [], // Long-term (lease-based) stays are not yet implemented — see "Coming soon" state below.
 };
 
+// Extra chips revealed by "More" — these filter on amenity tags (a filter
+// the backend genuinely supports via `amenities`) rather than invented
+// property types, since the server has no concept of e.g. "Airbnb" as a type.
+const MORE_FILTERS: { id: string; label: string; icon: LucideIcon; amenity: string }[] = [
+  { id: 'pet_friendly', label: 'Pet Friendly',  icon: Icons.PawPrint,  amenity: 'pet_friendly' },
+  { id: 'family',       label: 'Family',        icon: Icons.Users,     amenity: 'family_friendly' },
+  { id: 'business',     label: 'Business',      icon: Icons.Briefcase, amenity: 'business_centre' },
+  { id: 'self_catering',label: 'Self-catering', icon: Icons.Coffee,    amenity: 'self_catering' },
+];
+
+const SORT_OPTIONS: { id: string; label: string }[] = [
+  { id: 'recommended', label: 'Recommended' },
+  { id: 'rating',      label: 'Top rated' },
+  { id: 'price_low',   label: 'Price: low to high' },
+  { id: 'price_high',  label: 'Price: high to low' },
+];
+
+const AMENITY_OPTIONS: { id: string; label: string }[] = [
+  { id: 'wifi',            label: 'Wifi' },
+  { id: 'pool',            label: 'Pool' },
+  { id: 'parking',         label: 'Parking' },
+  { id: 'breakfast',       label: 'Breakfast included' },
+  { id: 'air_conditioning',label: 'Air conditioning' },
+  { id: 'pet_friendly',    label: 'Pet friendly' },
+];
+
+const PROPERTY_TYPE_OPTIONS: { id: string; label: string }[] = [
+  { id: 'hotel',           label: 'Hotel' },
+  { id: 'guesthouse',      label: 'Guesthouse' },
+  { id: 'rental',          label: 'Apartment / rental' },
+  { id: 'student_housing', label: 'Student housing' },
+];
+
+const EXPLORE_TILES: { label: string; icon: LucideIcon; amenity: string }[] = [
+  { label: 'Beachfront',      icon: Icons.Palmtree, amenity: 'beachfront' },
+  { label: 'Pet Friendly',    icon: Icons.PawPrint, amenity: 'pet_friendly' },
+  { label: 'Family Friendly', icon: Icons.Users,    amenity: 'family_friendly' },
+  { label: 'Business Stay',   icon: Icons.Briefcase,amenity: 'business_centre' },
+];
+
 export default function AccommodationPage(): React.ReactElement {
+  const router       = useRouter();
   const searchParams = useSearchParams();
+  const { isSaved, toggle: toggleWishlist } = useWishlist();
+
   const [stayMode, setStayMode]   = useState<StayMode>('stays');
-  const [category, setCategory] = useState<CategoryTab>('all');
+  const [category, setCategory]   = useState<CategoryTab>('all');
+  const [showMore, setShowMore]   = useState(false);
+  const [moreAmenities, setMoreAmenities] = useState<Set<string>>(new Set());
   const [city, setCity]         = useState(searchParams.get('city') ?? '');
   const [checkIn, setCheckIn]   = useState(searchParams.get('checkIn') ?? '');
   const [checkOut, setCheckOut] = useState(searchParams.get('checkOut') ?? '');
@@ -48,23 +97,51 @@ export default function AccommodationPage(): React.ReactElement {
   });
   const [editingSearch, setEditingSearch] = useState(false);
 
+  // Advanced filters
+  const [sortBy, setSortBy]               = useState('recommended');
+  const [priceMin, setPriceMin]           = useState('');
+  const [priceMax, setPriceMax]           = useState('');
+  const [advancedTypes, setAdvancedTypes] = useState<Set<string>>(new Set());
+  const [amenities, setAmenities]         = useState<Set<string>>(new Set());
+
   // Long-term (lease-based) stays aren't built yet — don't hit the search
   // API for a mode that has no real backing data; show "Coming soon" instead.
   const isLongTermMode = stayMode === 'long_term';
 
+  const activeAmenities = new Set([...amenities, ...moreAmenities]);
+  const hasAdvancedFilters = sortBy !== 'recommended' || !!priceMin || !!priceMax
+    || advancedTypes.size > 0 || activeAmenities.size > 0;
+
+  function clearAdvancedFilters(): void {
+    setSortBy('recommended');
+    setPriceMin('');
+    setPriceMax('');
+    setAdvancedTypes(new Set());
+    setAmenities(new Set());
+    setMoreAmenities(new Set());
+  }
+
   const filters: Record<string, string> = {};
   filters['guests'] = String(guestsRooms.guests);
   filters['rooms']  = String(guestsRooms.rooms);
-  if (city)    filters['city']     = city;
-  if (checkIn) filters['checkIn']  = checkIn;
-  if (checkOut)filters['checkOut'] = checkOut;
+  if (city)     filters['city']    = city;
+  if (checkIn)  filters['checkIn'] = checkIn;
+  if (checkOut) filters['checkOut']= checkOut;
+  if (sortBy !== 'recommended') filters['sort'] = sortBy;
+  if (priceMin) filters['minRate'] = priceMin;
+  if (priceMax) filters['maxRate'] = priceMax;
+  if (activeAmenities.size > 0) filters['amenities'] = Array.from(activeAmenities).join(',');
+
   // The "Stays / Student Housing / Long Term" tabs set the broad market
   // segment; the category chips below further narrow "Stays" results by
-  // property type. Student Housing bypasses the chip row entirely.
+  // property type, and the "Property type" dropdown can narrow further
+  // still (it wins over the category chip when it's been used).
   if (stayMode === 'student') {
-    filters['types'] = MODE_TYPE_MAP.student.join(',');
+    filters['type'] = MODE_TYPE_MAP.student.join(',');
+  } else if (advancedTypes.size > 0) {
+    filters['type'] = Array.from(advancedTypes).join(',');
   } else if (stayMode === 'stays' && category !== 'all') {
-    filters['types'] = TYPE_MAP[category].join(',');
+    filters['type'] = TYPE_MAP[category].join(',');
   }
 
   const { data: results, isLoading } = useQuery({
@@ -80,6 +157,12 @@ export default function AccommodationPage(): React.ReactElement {
   });
 
   const properties = (results as Record<string, unknown>[] | undefined) ?? (featured as Record<string, unknown>[] | undefined) ?? [];
+
+  function toggleSet(set: Set<string>, setter: (next: Set<string>) => void, value: string): void {
+    const next = new Set(set);
+    if (next.has(value)) next.delete(value); else next.add(value);
+    setter(next);
+  }
 
   return (
     <div data-search-page>
@@ -147,7 +230,9 @@ export default function AccommodationPage(): React.ReactElement {
         </div>
       )}
 
-      {/* Category chips — only relevant to "Stays" mode */}
+      {/* Category chips — only relevant to "Stays" mode. These are filters,
+          so they (and the "explore" tiles below) live above the results,
+          not after them. */}
       {stayMode === 'stays' && (
         <div data-filter-bar>
           {CATS.map((c) => (
@@ -157,14 +242,42 @@ export default function AccommodationPage(): React.ReactElement {
               <c.icon size={14} style={{ display: 'inline', verticalAlign: '-2px', marginRight: '4px' }} />{c.label}
             </button>
           ))}
-          <button type="button" data-filter-chip>
-            <Icons.MoreHorizontal size={14} style={{ display: 'inline', verticalAlign: '-2px', marginRight: '4px' }} />More
+          {showMore && MORE_FILTERS.map((f) => (
+            <button key={f.id} type="button" data-filter-chip
+              data-active={moreAmenities.has(f.amenity) ? '' : undefined}
+              onClick={() => toggleSet(moreAmenities, setMoreAmenities, f.amenity)}>
+              <f.icon size={14} style={{ display: 'inline', verticalAlign: '-2px', marginRight: '4px' }} />{f.label}
+            </button>
+          ))}
+          <button type="button" data-filter-chip onClick={() => setShowMore((v) => !v)}>
+            <Icons.MoreHorizontal size={14} style={{ display: 'inline', verticalAlign: '-2px', marginRight: '4px' }} />
+            {showMore ? 'Less' : 'More'}
           </button>
         </div>
       )}
 
+      {/* Explore by category — also filters (by amenity), so it stays
+          above the accommodation results rather than after them. */}
+      {stayMode === 'stays' && !isLongTermMode && (
+        <div style={{ marginBottom: 'var(--space-5)' }}>
+            <div data-section-header>
+              <span data-section-title>Explore by category</span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 'var(--space-3)' }}>
+              {EXPLORE_TILES.map((c) => (
+                <button key={c.label} type="button" data-explore-tile
+                  data-active={amenities.has(c.amenity) ? '' : undefined}
+                  onClick={() => toggleSet(amenities, setAmenities, c.amenity)}>
+                  <c.icon size={28} />
+                  <span>{c.label}</span>
+                </button>
+              ))}
+            </div>
+        </div>
+      )}
+
       {isLongTermMode ? (
-        <div data-card-padded style={{ textAlign: 'center', padding: 'var(--space-10) var(--space-6)' }}>
+        <div data-explore-tile style={{ cursor: 'default', textAlign: 'center', padding: 'var(--space-10) var(--space-6)' }}>
           <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
             <Icons.Building2 size={40} />
           </div>
@@ -179,21 +292,83 @@ export default function AccommodationPage(): React.ReactElement {
         <>
           {/* Filter + sort row */}
           <div data-filter-bar style={{ marginBottom: 0 }}>
-            <button type="button" data-filter-chip style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}>
-              <Icons.SlidersHorizontal size={14} /> Filters {properties.length > 0 ? '1' : ''}
+            <button type="button" data-filter-chip disabled={!hasAdvancedFilters}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)', opacity: hasAdvancedFilters ? 1 : 0.5, cursor: hasAdvancedFilters ? 'pointer' : 'default' }}
+              onClick={clearAdvancedFilters}>
+              <Icons.SlidersHorizontal size={14} /> {hasAdvancedFilters ? 'Clear filters' : 'Filters'}
             </button>
-            <button type="button" data-filter-chip>
-              Sort <Icons.ChevronDown size={14} style={{ display: 'inline', verticalAlign: '-2px' }} />
-            </button>
-            <button type="button" data-filter-chip>
-              Price <Icons.ChevronDown size={14} style={{ display: 'inline', verticalAlign: '-2px' }} />
-            </button>
-            <button type="button" data-filter-chip>
-              Property type <Icons.ChevronDown size={14} style={{ display: 'inline', verticalAlign: '-2px' }} />
-            </button>
-            <button type="button" data-filter-chip>
-              Amenities <Icons.ChevronDown size={14} style={{ display: 'inline', verticalAlign: '-2px' }} />
-            </button>
+
+            <FilterDropdown label="Sort" active={sortBy !== 'recommended'}>
+              {(close) => (
+                <>
+                  <span data-filter-panel-title>Sort by</span>
+                  {SORT_OPTIONS.map((o) => (
+                    <label key={o.id} data-filter-option>
+                      <input type="radio" name="sort" checked={sortBy === o.id}
+                        onChange={() => { setSortBy(o.id); close(); }} />
+                      {o.label}
+                    </label>
+                  ))}
+                </>
+              )}
+            </FilterDropdown>
+
+            <FilterDropdown label="Price" active={!!priceMin || !!priceMax}>
+              {(close) => (
+                <>
+                  <span data-filter-panel-title>Price per night (ZAR)</span>
+                  <div data-filter-price-row>
+                    <input type="number" min={0} placeholder="Min" value={priceMin}
+                      onChange={(e) => setPriceMin(e.target.value)} />
+                    <span>–</span>
+                    <input type="number" min={0} placeholder="Max" value={priceMax}
+                      onChange={(e) => setPriceMax(e.target.value)} />
+                  </div>
+                  <div data-filter-panel-actions>
+                    <span data-filter-clear-btn onClick={() => { setPriceMin(''); setPriceMax(''); }}>Clear</span>
+                    <button type="button" data-btn-primary style={{ padding: 'var(--space-2) var(--space-4)', fontSize: '12.5px' }} onClick={close}>Apply</button>
+                  </div>
+                </>
+              )}
+            </FilterDropdown>
+
+            <FilterDropdown label="Property type" active={advancedTypes.size > 0}>
+              {(close) => (
+                <>
+                  <span data-filter-panel-title>Property type</span>
+                  {PROPERTY_TYPE_OPTIONS.map((o) => (
+                    <label key={o.id} data-filter-option>
+                      <input type="checkbox" checked={advancedTypes.has(o.id)}
+                        onChange={() => toggleSet(advancedTypes, setAdvancedTypes, o.id)} />
+                      {o.label}
+                    </label>
+                  ))}
+                  <div data-filter-panel-actions>
+                    <span data-filter-clear-btn onClick={() => setAdvancedTypes(new Set())}>Clear</span>
+                    <button type="button" data-btn-primary style={{ padding: 'var(--space-2) var(--space-4)', fontSize: '12.5px' }} onClick={close}>Apply</button>
+                  </div>
+                </>
+              )}
+            </FilterDropdown>
+
+            <FilterDropdown label="Amenities" active={amenities.size > 0}>
+              {(close) => (
+                <>
+                  <span data-filter-panel-title>Amenities</span>
+                  {AMENITY_OPTIONS.map((o) => (
+                    <label key={o.id} data-filter-option>
+                      <input type="checkbox" checked={amenities.has(o.id)}
+                        onChange={() => toggleSet(amenities, setAmenities, o.id)} />
+                      {o.label}
+                    </label>
+                  ))}
+                  <div data-filter-panel-actions>
+                    <span data-filter-clear-btn onClick={() => setAmenities(new Set())}>Clear</span>
+                    <button type="button" data-btn-primary style={{ padding: 'var(--space-2) var(--space-4)', fontSize: '12.5px' }} onClick={close}>Apply</button>
+                  </div>
+                </>
+              )}
+            </FilterDropdown>
           </div>
 
           {/* Results count */}
@@ -201,9 +376,11 @@ export default function AccommodationPage(): React.ReactElement {
             <span data-results-count>
               <strong>{properties.length}</strong> properties found
             </span>
-            <Link href="/accommodation?mapview=true" data-section-link style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+            <button type="button" data-section-link
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)', background: 'none', border: 'none', cursor: 'pointer' }}
+              onClick={() => router.push('/accommodation?mapview=true')}>
               <Icons.Map size={14} /> Map view
-            </Link>
+            </button>
           </div>
 
           {/* Results */}
@@ -215,68 +392,48 @@ export default function AccommodationPage(): React.ReactElement {
           ) : (
             <div data-property-list>
               {properties.map((p) => (
-                <PropertySearchCard key={p['_id'] as string} property={p} />
+                <PropertySearchCard key={p['_id'] as string} property={p}
+                  isSaved={isSaved(p['_id'] as string)}
+                  onToggleWishlist={() => toggleWishlist(p['_id'] as string)} />
               ))}
             </div>
           )}
         </>
       )}
-
-      {/* Member CTA */}
-      <div data-support-callout style={{ marginTop: 'var(--space-6)' }}>
-        <div data-support-callout-text>
-          <span data-support-callout-icon aria-hidden="true"><Icons.Tag size={20} /></span>
-          <div>
-            <strong>Unlock member rates</strong>
-            <p>Sign in to access exclusive deals and save more on your next stay.</p>
-          </div>
-        </div>
-        <Link href="/login" data-btn-primary style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-          <Icons.User size={16} /> Sign in / Register
-        </Link>
-      </div>
-
-      {/* Explore by category */}
-      <div data-section-header style={{ marginTop: 'var(--space-6)' }}>
-        <span data-section-title>Explore by category</span>
-        <Link href="/accommodation" data-section-link>View all →</Link>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 'var(--space-3)' }}>
-        {[
-          { label: 'Beachfront',      icon: Icons.Palmtree, type: 'beachfront' },
-          { label: 'Pet Friendly',    icon: Icons.PawPrint, type: 'pet_friendly' },
-          { label: 'Family Friendly', icon: Icons.Users,    type: 'family' },
-          { label: 'Business Stay',   icon: Icons.Briefcase,type: 'business' },
-        ].map((c) => (
-          <Link key={c.label} href={`/accommodation?amenity=${c.type}`} data-card
-            style={{ padding: 'var(--space-4)', textAlign: 'center', textDecoration: 'none', cursor: 'pointer' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--color-primary)', marginBottom: 'var(--space-2)' }}><c.icon size={28} /></div>
-            <div style={{ fontSize: '13px', fontWeight: '500' }}>{c.label}</div>
-          </Link>
-        ))}
-      </div>
     </div>
   );
 }
 
-function PropertySearchCard({ property: p }: { property: Record<string, unknown> }): React.ReactElement {
+function PropertySearchCard({
+  property: p, isSaved, onToggleWishlist,
+}: {
+  property: Record<string, unknown>;
+  isSaved: boolean;
+  onToggleWishlist: () => void;
+}): React.ReactElement {
+  const router = useRouter();
   const rating = p['rating'] as number | undefined;
   const reviews = p['reviewCount'] as number | undefined;
-  const rate = p['baseRate'] as number | undefined;
+  const rate = p['baseRate'] as number | null | undefined;
   const discountPercent = p['discountPercent'] as number | undefined;
   const freeCancellation = p['freeCancellation'] as boolean | undefined;
   const breakfastIncluded = p['breakfastIncluded'] as boolean | undefined;
 
   return (
-    <Link href={`/accommodation/${p['slug'] as string}`} data-property-card data-property-list-item
-      style={{ textDecoration: 'none' }}>
+    <div data-property-card data-property-list-item
+      onClick={() => router.push(`/accommodation/${p['slug'] as string}`)}
+      role="link" tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter') router.push(`/accommodation/${p['slug'] as string}`); }}>
       <div data-property-card-image>
         {/* Image path: /images/properties/[slug]-main.jpg */}
         <img src={`/images/properties/${p['slug'] as string}-main.jpg`} alt={p['name'] as string}
           loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
         <span data-property-type-badge>{(p['type'] as string)?.replace(/_/g, ' ')}</span>
-        <button type="button" data-property-card-wishlist aria-label="Save" onClick={(e) => e.preventDefault()}><Icons.Heart size={16} /></button>
+        <button type="button" data-property-card-wishlist data-saved={isSaved ? '' : undefined} aria-label="Save"
+          onClick={(e) => { e.stopPropagation(); onToggleWishlist(); }}>
+          <Icons.Heart size={16} fill={isSaved ? 'currentColor' : 'none'} />
+        </button>
         {discountPercent && (
           <span data-property-card-discount>{discountPercent}% OFF</span>
         )}
@@ -305,14 +462,15 @@ function PropertySearchCard({ property: p }: { property: Record<string, unknown>
         <div data-property-card-pricing>
           <div>
             <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>From</div>
-            <span data-property-rate>R{(rate ?? 0).toLocaleString()}</span>
-            <span data-property-rate-label> / night</span>
+            <span data-property-rate>{typeof rate === 'number' ? `R${rate.toLocaleString()}` : 'Contact for rate'}</span>
+            {typeof rate === 'number' && <span data-property-rate-label> / night</span>}
           </div>
-          <button type="button" data-btn-primary style={{ padding: 'var(--space-2) var(--space-4)', fontSize: '13px' }}>
+          <button type="button" data-btn-primary style={{ padding: 'var(--space-2) var(--space-4)', fontSize: '13px' }}
+            onClick={(e) => { e.stopPropagation(); router.push(`/accommodation/${p['slug'] as string}`); }}>
             View details
           </button>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }

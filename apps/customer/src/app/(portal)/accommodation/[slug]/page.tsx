@@ -1,243 +1,240 @@
 'use client';
-
-import Link from 'next/link';
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { api } from '@stayos/api-client';
-import { SkeletonLoader, Icons } from '@stayos/ui';
+import { SkeletonLoader, EmptyState, Icons } from '@stayos/ui';
 import { accommodationKeys } from '@/lib/query-keys';
+import { useWishlist } from '@/lib/useWishlist';
+import { ImageLightbox } from '@/components/ImageLightbox';
 
 interface Props { params: { slug: string } }
 
-const CUSTOMER_PORTAL = process.env['NEXT_PUBLIC_CUSTOMER_PORTAL_URL'] ?? 'https://my.stayos.co.za';
-
 export default function PropertyDetailPage({ params }: Props): React.ReactElement {
-  const router        = useRouter();
-  const [checkIn, setCheckIn]   = useState('');
-  const [checkOut, setCheckOut] = useState('');
-  const [guests, setGuests]     = useState(1);
-  const [reviewPage] = useState(1);
+  const slug   = params.slug;
+  const router = useRouter();
+  const { isSaved, toggle: toggleWishlist } = useWishlist();
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  const { data: property, isLoading: propLoading } = useQuery({
-    queryKey: accommodationKeys.detail(params.slug),
-    queryFn:  () => api.discovery.getProperty(params.slug),
+  const { data: property, isLoading } = useQuery({
+    queryKey: accommodationKeys.detail(slug),
+    queryFn:  () => api.discovery.getProperty(slug),
   });
 
   const { data: rooms } = useQuery({
-    queryKey: accommodationKeys.rooms(params.slug),
-    queryFn:  () => api.discovery.getPropertyRooms(params.slug),
+    queryKey: accommodationKeys.rooms(slug),
+    queryFn:  () => api.discovery.getPropertyRooms(slug),
     enabled:  !!property,
   });
 
   const { data: reviews } = useQuery({
-    queryKey: accommodationKeys.reviews(params.slug, reviewPage),
-    queryFn:  () => api.discovery.getPropertyReviews(params.slug, reviewPage),
+    queryKey: accommodationKeys.reviews(slug, 1),
+    queryFn:  () => api.discovery.getPropertyReviews(slug, 1),
     enabled:  !!property,
   });
 
-  if (propLoading) return <div data-search-page><SkeletonLoader rows={6} /></div>;
+  if (isLoading) {
+    return (
+      <div data-page>
+        <SkeletonLoader rows={6} />
+      </div>
+    );
+  }
 
-  const p = property as Record<string, unknown> | undefined;
-  if (!p) return <div data-search-page><p>Property not found.</p></div>;
+  if (!property) {
+    return (
+      <div data-page>
+        <EmptyState title="Property not found"
+          description="This property may have been removed or is no longer available."
+          action={<button type="button" data-btn-primary onClick={() => router.push('/accommodation')}>Back to search</button>} />
+      </div>
+    );
+  }
 
-  const isStudent = (p['type'] as string) === 'student_housing';
-  const roomList  = (rooms as Record<string, unknown>[] | undefined) ?? [];
+  const p = property as Record<string, unknown>;
+  const tenantId = p['_id'] as string;
+  const isStudentHousing = p['type'] === 'student_housing';
+  const rating  = p['rating'] as number | undefined;
+  const reviewCount = p['reviewCount'] as number | undefined;
+  const baseRate = p['baseRate'] as number | null | undefined;
+  const roomList = (rooms as Record<string, unknown>[] | undefined) ?? [];
   const reviewList = (reviews as Record<string, unknown>[] | undefined) ?? [];
-  const rating = p['rating'] as number | undefined;
-  const description = p['description'] as string | undefined;
 
-  // CTA per TAD 09 §4 / TAD 10 §3:
-  // student_housing → "Apply now" → /accommodation/[slug]/apply (no login required)
-  // all others → "Book now" → redirect to my.stayos.co.za/login?redirect=... if not authenticated
-  function handleBookNow(roomId?: string): void {
-    const redirectPath = `/accommodation/${params.slug}/book${roomId ? `?room=${roomId}` : ''}${checkIn ? `&checkIn=${checkIn}` : ''}${checkOut ? `&checkOut=${checkOut}` : ''}`;
-    window.location.href = `${CUSTOMER_PORTAL}/login?redirect=${encodeURIComponent(redirectPath)}`;
+  const gallery: string[] = [
+    `/images/properties/${slug}-main.jpg`,
+    `/images/properties/${slug}-2.jpg`,
+    `/images/properties/${slug}-3.jpg`,
+    `/images/properties/${slug}-4.jpg`,
+    `/images/properties/${slug}-5.jpg`,
+  ];
+
+  function goToApply(roomId?: string): void {
+    router.push(`/accommodation/${slug}/apply${roomId ? `?roomId=${roomId}` : ''}`);
+  }
+
+  function goToBook(roomId: string): void {
+    router.push(`/accommodation/${slug}/book?roomId=${roomId}`);
   }
 
   return (
-    <div data-search-page>
-      <button type="button" onClick={() => router.back()}
-        style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-secondary)', fontSize: '13px', marginBottom: 'var(--space-4)', cursor: 'pointer' }}>
+    <div data-page>
+      <button type="button" data-back-link
+        style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)', marginBottom: 'var(--space-4)' }}
+        onClick={() => router.push('/accommodation')}>
         <Icons.ChevronLeft size={16} /> Back to search
       </button>
 
-      {/* Property hero images */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 'var(--space-2)', borderRadius: 'var(--radius-xl)', overflow: 'hidden', marginBottom: 'var(--space-6)', aspectRatio: '16/7' }}>
-        {[0, 1, 2].map((i) => (
-          <div key={i} style={{ background: 'var(--color-bg-sunk)', overflow: 'hidden', gridRow: i === 0 ? '1 / 3' : 'auto' }}>
-            {/* Images: /images/properties/[slug]-[i].jpg */}
-            <img src={`/images/properties/${params.slug}-${i}.jpg`} alt=""
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              loading={i === 0 ? 'eager' : 'lazy'}
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--space-4)', marginBottom: 'var(--space-2)' }}>
+        <div>
+          <h1 data-page-title style={{ marginBottom: 'var(--space-1)' }}>{p['name'] as string}</h1>
+          <div data-property-card-location>
+            <Icons.MapPin size={14} /> {p['city'] as string}{p['province'] ? `, ${p['province'] as string}` : ''}
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 'var(--space-2)' }}>
+          <button type="button" data-property-card-wishlist data-saved={isSaved(tenantId) ? '' : undefined}
+            aria-label="Save to wishlist" style={{ position: 'static' }}
+            onClick={() => toggleWishlist(tenantId)}>
+            <Icons.Heart size={18} fill={isSaved(tenantId) ? 'currentColor' : 'none'} />
+          </button>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>From</div>
+            <span data-property-rate>
+              {typeof baseRate === 'number' ? `R${baseRate.toLocaleString()}` : 'Contact for rate'}
+            </span>
+            {typeof baseRate === 'number' && !isStudentHousing && <span data-property-rate-label> / night</span>}
+          </div>
+        </div>
+      </div>
+
+      {rating && (
+        <div data-property-card-rating style={{ marginBottom: 'var(--space-4)' }}>
+          <Icons.Star size={14} fill="currentColor" /> {rating.toFixed(1)} ({reviewCount ?? 0} reviews)
+        </div>
+      )}
+
+      {/* Photo gallery — click any tile for the full interactive zoom viewer */}
+      <div data-property-hero-grid>
+        {gallery.slice(0, 3).map((src, i) => (
+          <div key={src} data-property-hero-cell data-hero-main={i === 0 ? '' : undefined}
+            onClick={() => setLightboxIndex(i)}>
+            <img src={src} alt={`${p['name'] as string} photo ${i + 1}`}
+              onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }} />
           </div>
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 'var(--space-8)' }}>
-        {/* Left column — property info */}
-        <div>
-          {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--space-4)', flexWrap: 'wrap', gap: 'var(--space-3)' }}>
-            <div>
-              <span data-property-type-badge style={{ position: 'static', marginBottom: 'var(--space-2)', display: 'inline-block' }}>
-                {(p['type'] as string)?.replace(/_/g, ' ')}
-              </span>
-              <h1 style={{ fontSize: '28px', fontWeight: '700', lineHeight: '1.15' }}>
-                {p['name'] as string}
-              </h1>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', marginTop: 'var(--space-2)', fontSize: '13px', color: 'var(--color-text-secondary)' }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}><Icons.MapPin size={14} /> {p['city'] as string}, {p['province'] as string}</span>
-                {rating && (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', color: 'var(--color-text)', fontWeight: '600' }}>
-                    <Icons.Star size={14} fill="currentColor" /> {rating.toFixed(1)}
-                    <span style={{ color: 'var(--color-text-muted)', fontWeight: '400' }}>
-                      ({p['reviewCount'] as number ?? 0} reviews)
-                    </span>
-                  </span>
-                )}
-              </div>
-            </div>
-            <button type="button" data-property-card-wishlist style={{ position: 'static', width: '44px', height: '44px', boxShadow: 'var(--shadow-raised)' }}><Icons.Heart size={18} /></button>
+      {lightboxIndex !== null && (
+        <ImageLightbox images={gallery} initialIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} />
+      )}
+
+      {/* About */}
+      {!!p['description'] && (
+        <section style={{ marginBottom: 'var(--space-6)' }}>
+          <h2 data-section-title style={{ marginBottom: 'var(--space-2)' }}>About this place</h2>
+          <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>{p['description'] as string}</p>
+        </section>
+      )}
+
+      {/* Amenities */}
+      {Array.isArray(p['amenities']) && (p['amenities'] as string[]).length > 0 && (
+        <section style={{ marginBottom: 'var(--space-6)' }}>
+          <h2 data-section-title style={{ marginBottom: 'var(--space-2)' }}>Amenities</h2>
+          <div data-property-card-amenities>
+            {(p['amenities'] as string[]).map((a) => (
+              <span key={a} data-amenity-tag><Icons.Check size={12} /> {a.replace(/_/g, ' ')}</span>
+            ))}
           </div>
+        </section>
+      )}
 
-          {/* Amenities */}
-          {(p['amenities'] as string[])?.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-3)', marginBottom: 'var(--space-6)', padding: 'var(--space-5)', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)' }}>
-              {(p['amenities'] as string[]).map((a) => (
-                <span key={a} data-amenity-tag style={{ fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}><Icons.Check size={14} /> {a}</span>
-              ))}
-            </div>
-          )}
-
-          {/* Description */}
-          {description && (
-            <div style={{ marginBottom: 'var(--space-6)' }}>
-              <h2 style={{ fontSize: '19px', fontWeight: '700', marginBottom: 'var(--space-3)' }}>About this property</h2>
-              <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: '1.65' }}>
-                {description}
-              </p>
-            </div>
-          )}
-
-          {/* Rooms / accommodation types */}
-          {roomList.length > 0 && (
-            <div style={{ marginBottom: 'var(--space-6)' }}>
-              <h2 style={{ fontSize: '19px', fontWeight: '700', marginBottom: 'var(--space-4)' }}>
-                {isStudent ? 'Available rooms' : 'Room types'}
-              </h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-                {roomList.map((room) => (
-                  <div key={room['_id'] as string} data-card>
-                    <div style={{ display: 'grid', gridTemplateColumns: '160px 1fr', minHeight: '140px' }}>
-                      <div style={{ background: 'var(--color-bg-sunk)', overflow: 'hidden' }}>
-                        {/* Image: /images/rooms/[roomId]-thumb.jpg */}
-                        <img src={`/images/rooms/${room['_id'] as string}-thumb.jpg`} alt={room['name'] as string}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+      {/* Rooms — "Apply" (student housing) or "Book" (everything else) act
+          directly on this room; no separate date-picker + Apply footer, and
+          no full-page navigation (router.push keeps this an SPA transition). */}
+      <section style={{ marginBottom: 'var(--space-6)' }}>
+        <h2 data-section-title style={{ marginBottom: 'var(--space-3)' }}>
+          {isStudentHousing ? 'Room types' : 'Available rooms'}
+        </h2>
+        {roomList.length === 0 ? (
+          <EmptyState title="No rooms listed"
+            description="This property hasn't published any room types yet." />
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+            {roomList.map((r) => {
+              const roomId  = r['_id'] as string;
+              const roomRate = r['baseRate'] as number | null | undefined;
+              return (
+                <div key={roomId} data-room-card-grid style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+                  <div data-room-card-image>
+                    <img src={`/images/rooms/${roomId}-main.jpg`} alt={r['name'] as string}
+                      onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }} />
+                  </div>
+                  <div data-room-card-body>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 'var(--space-2)' }}>
+                      <span style={{ fontWeight: 600, fontSize: '15px' }}>{r['name'] as string}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap', fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+                      <span><Icons.Users size={14} /> Up to {r['capacity'] as number ?? r['adultCapacity'] as number} guests</span>
+                      {!!r['bedCount'] && <span><Icons.Bed size={14} /> {r['bedCount'] as number} bed{(r['bedCount'] as number) !== 1 ? 's' : ''}</span>}
+                    </div>
+                    {!!r['description'] && (
+                      <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>{r['description'] as string}</p>
+                    )}
+                    <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 'auto', paddingTop: 'var(--space-2)' }}>
+                      <div>
+                        <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>From</div>
+                        <span data-property-rate>
+                          {typeof roomRate === 'number' ? `R${roomRate.toLocaleString()}` : 'Contact for rate'}
+                        </span>
+                        {typeof roomRate === 'number' && !isStudentHousing && <span data-property-rate-label> / night</span>}
                       </div>
-                      <div style={{ padding: 'var(--space-4)', display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-                        <div style={{ fontWeight: '700', fontSize: '14.5px' }}>{room['name'] as string}</div>
-                        <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', display: 'flex', gap: 'var(--space-3)' }}>
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}><Icons.Bed size={14} /> {room['bedCount'] as number ?? 1} bed{(room['bedCount'] as number) !== 1 ? 's' : ''}</span>
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}><Icons.User size={14} /> Up to {room['capacity'] as number ?? 1} guest{(room['capacity'] as number) !== 1 ? 's' : ''}</span>
-                        </div>
-                        <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div>
-                            <span data-property-rate>R{(room['baseRate'] as number ?? 0).toLocaleString()}</span>
-                            <span data-property-rate-label> / night</span>
-                          </div>
-                          {isStudent ? (
-                            <Link href={`/accommodation/${params.slug}/apply`} data-btn-primary style={{ padding: 'var(--space-2) var(--space-5)' }}>
-                              Apply now
-                            </Link>
-                          ) : (
-                            <button type="button" data-btn-primary style={{ padding: 'var(--space-2) var(--space-5)' }}
-                              onClick={() => handleBookNow(room['_id'] as string)}>
-                              Book now
-                            </button>
-                          )}
-                        </div>
-                      </div>
+                      {isStudentHousing ? (
+                        <button type="button" data-btn-primary onClick={() => goToApply(roomId)}>Apply</button>
+                      ) : (
+                        <button type="button" data-btn-primary onClick={() => goToBook(roomId)}>Book</button>
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
 
-          {/* Reviews */}
-          {reviewList.length > 0 && (
-            <div>
-              <h2 style={{ fontSize: '19px', fontWeight: '700', marginBottom: 'var(--space-4)' }}>
-                Guest reviews
-              </h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-                {reviewList.map((r) => (
-                  <div key={r['_id'] as string} data-card-padded>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
-                      <div style={{ fontWeight: '600', fontSize: '13px' }}>{r['guestName'] as string ?? 'Guest'}</div>
-                      <div style={{ fontSize: '13px', color: 'var(--color-text-muted)', display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}>
-                        <Icons.Star size={14} fill="currentColor" /> {r['rating'] as number ?? 5}
-                      </div>
-                    </div>
-                    <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: '1.65' }}>
-                      {r['comment'] as string}
-                    </p>
-                    <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: 'var(--space-2)' }}>
-                      {new Date(r['createdAt'] as string).toLocaleDateString('en-ZA', { month: 'long', year: 'numeric' })}
-                    </div>
+      {/* Reviews */}
+      {reviewList.length > 0 && (
+        <section style={{ marginBottom: 'var(--space-6)' }}>
+          <h2 data-section-title style={{ marginBottom: 'var(--space-3)' }}>Reviews</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+            {reviewList.slice(0, 5).map((rev) => {
+              const review = rev as Record<string, unknown>;
+              const customer = review['customerId'] as Record<string, unknown> | undefined;
+              return (
+                <div key={review['_id'] as string} style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-1)' }}>
+                    <strong style={{ fontSize: '13px' }}>
+                      {customer ? `${customer['firstName'] as string} ${customer['lastName'] as string}` : 'Guest'}
+                    </strong>
+                    {typeof review['rating'] === 'number' && (
+                      <span data-property-card-rating><Icons.Star size={13} fill="currentColor" /> {(review['rating'] as number).toFixed(1)}</span>
+                    )}
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+                  {!!review['comment'] && (
+                    <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>{review['comment'] as string}</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
-        {/* Booking / Apply CTA panel */}
-        <div data-card-padded style={{ position: 'sticky', top: 'calc(var(--header-height) + var(--space-4))', alignSelf: 'flex-start' }}>
-          {isStudent ? (
-            <>
-              <h3 style={{ fontSize: '17px', fontWeight: '700', marginBottom: 'var(--space-2)' }}>Apply for accommodation</h3>
-              <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-5)' }}>
-                No account required. Submit your application in minutes.
-              </p>
-              <Link href={`/accommodation/${params.slug}/apply`} data-btn-primary data-btn-full>Apply now →</Link>
-            </>
-          ) : (
-            <>
-              <h3 style={{ fontSize: '17px', fontWeight: '700', marginBottom: 'var(--space-4)' }}>
-                From <span style={{ color: 'var(--color-primary)' }}>R{(p['baseRate'] as number ?? 0).toLocaleString()}</span> / night
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', marginBottom: 'var(--space-4)' }}>
-                <div data-form-group>
-                  <label htmlFor="ci-detail">Check-in</label>
-                  <input id="ci-detail" type="date" value={checkIn}
-                    min={new Date().toISOString().split('T')[0]}
-                    onChange={(e) => setCheckIn(e.target.value)} />
-                </div>
-                <div data-form-group>
-                  <label htmlFor="co-detail">Check-out</label>
-                  <input id="co-detail" type="date" value={checkOut}
-                    min={checkIn || new Date().toISOString().split('T')[0]}
-                    onChange={(e) => setCheckOut(e.target.value)} />
-                </div>
-                <div data-form-group>
-                  <label htmlFor="guests-detail">Guests</label>
-                  <select id="guests-detail" value={guests} onChange={(e) => setGuests(Number(e.target.value))}>
-                    {[1, 2, 3, 4].map((n) => <option key={n} value={n}>{n} guest{n !== 1 ? 's' : ''}</option>)}
-                  </select>
-                </div>
-              </div>
-              <button type="button" data-btn-primary data-btn-full onClick={() => handleBookNow()}>Book now →</button>
-              <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', textAlign: 'center', marginTop: 'var(--space-3)' }}>
-                You won&apos;t be charged yet
-              </p>
-            </>
-          )}
-        </div>
-      </div>
+      {isStudentHousing && (
+        <button type="button" data-btn-primary data-btn-full onClick={() => goToApply()}>
+          Apply for this property
+        </button>
+      )}
     </div>
   );
 }

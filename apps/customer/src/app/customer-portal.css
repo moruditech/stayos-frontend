@@ -1148,7 +1148,12 @@
   top: calc(100% + var(--space-2));
   left: 0;
   right: 0;
-  min-width: 260px;
+  /* No min-width here: on narrow layouts (e.g. the 3-column search-fields-row
+     around 640-767px) a fixed min-width would push this past the viewport's
+     right edge and cause horizontal scroll. left:0/right:0 already stretches
+     it to the trigger's own width, which is all the safety we need. */
+  width: auto;
+  max-width: calc(100vw - 2 * var(--space-4));
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -1617,3 +1622,264 @@
   [data-login-left][data-portal="customer"] { display: none; }
   [data-login-right] { padding: var(--space-8) var(--space-4); }
 }
+
+/* ==========================================================================
+   ACCOMMODATION — generic filter dropdown (Sort / Price / Property type /
+   Amenities). Anchored the same safe way as [data-guests-popover]: stretched
+   to the trigger's own width via left:0/right:0 rather than a fixed
+   min-width, so it can never push the page wider than the viewport.
+   ========================================================================== */
+[data-filter-dropdown] { position: relative; flex-shrink: 0; }
+[data-filter-panel] {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  left: 0;
+  width: max-content;
+  min-width: 200px;
+  max-width: calc(100vw - 2 * var(--space-4));
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-raised);
+  padding: var(--space-4);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+@media (max-width: 480px) {
+  /* On very small screens even "shrink to fit the trigger's width" can run
+     out of room near the right edge — pin to the viewport instead. */
+  [data-filter-panel] { left: auto; right: 0; }
+}
+[data-filter-panel-title] {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+[data-filter-option] {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 13px;
+  color: var(--color-text);
+  cursor: pointer;
+  padding: var(--space-1) 0;
+  white-space: nowrap;
+}
+[data-filter-price-row] {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+[data-filter-price-row] input {
+  width: 90px;
+  padding: var(--space-2) var(--space-3);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  background: var(--color-bg);
+}
+[data-filter-panel-actions] {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+[data-filter-clear-btn] {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+[data-filter-clear-btn]:hover { color: var(--color-text); }
+
+/* ==========================================================================
+   ACCOMMODATION — property detail page
+   ========================================================================== */
+[data-property-hero-grid] {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: repeat(3, minmax(90px, 1fr));
+  gap: var(--space-2);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  margin-bottom: var(--space-6);
+}
+@media (min-width: 640px) {
+  [data-property-hero-grid] {
+    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    aspect-ratio: 16 / 7;
+  }
+}
+[data-property-hero-cell] {
+  position: relative;
+  background: var(--color-bg-sunk);
+  overflow: hidden;
+  min-width: 0;
+  min-height: 0;
+  cursor: zoom-in;
+}
+@media (min-width: 640px) {
+  [data-property-hero-cell][data-hero-main] { grid-row: 1 / 3; }
+}
+[data-property-hero-cell] img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+[data-room-card-grid] {
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: 140px;
+}
+@media (min-width: 480px) {
+  [data-room-card-grid] { grid-template-columns: minmax(0, 160px) 1fr; }
+}
+[data-room-card-image] {
+  background: var(--color-bg-sunk);
+  overflow: hidden;
+  min-width: 0;
+  aspect-ratio: 4 / 3;
+}
+@media (min-width: 480px) {
+  [data-room-card-image] { aspect-ratio: auto; }
+}
+[data-room-card-image] img { width: 100%; height: 100%; object-fit: cover; display: block; }
+[data-room-card-body] {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/* ==========================================================================
+   ACCOMMODATION — image lightbox (full view with pan/zoom)
+   ========================================================================== */
+[data-lightbox-overlay] {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 12, 0.92);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  touch-action: none;
+}
+[data-lightbox-toolbar] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  flex-shrink: 0;
+  color: white;
+}
+[data-lightbox-toolbar-group] { display: flex; align-items: center; gap: var(--space-2); }
+[data-lightbox-btn] {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-pill);
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+[data-lightbox-btn]:hover { background: rgba(255,255,255,0.22); }
+[data-lightbox-btn]:disabled { opacity: 0.35; cursor: not-allowed; }
+[data-lightbox-counter] { font-size: 13px; color: rgba(255,255,255,0.85); white-space: nowrap; }
+[data-lightbox-stage] {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  cursor: grab;
+}
+[data-lightbox-stage][data-panning] { cursor: grabbing; }
+[data-lightbox-stage] img {
+  max-width: 100%;
+  max-height: 100%;
+  user-select: none;
+  -webkit-user-drag: none;
+  will-change: transform;
+}
+[data-lightbox-hint] {
+  text-align: center;
+  font-size: 12px;
+  color: rgba(255,255,255,0.6);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  flex-shrink: 0;
+}
+[data-lightbox-thumbs] {
+  display: flex;
+  gap: var(--space-2);
+  padding: 0 var(--space-4) var(--space-4);
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+[data-lightbox-thumb] {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 2px solid transparent;
+  opacity: 0.6;
+  cursor: pointer;
+}
+[data-lightbox-thumb] img { width: 100%; height: 100%; object-fit: cover; display: block; }
+[data-lightbox-thumb][data-active] { border-color: white; opacity: 1; }
+
+[data-section-header] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+[data-section-link] {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-primary);
+  cursor: pointer;
+}
+[data-section-link]:hover { color: var(--color-primary-hover); }
+
+[data-explore-tile] {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  text-align: center;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 120ms ease;
+}
+[data-explore-tile] span { color: var(--color-text); }
+[data-explore-tile]:hover { border-color: var(--color-primary); }
+[data-explore-tile][data-active] {
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle, var(--color-bg-sunk));
+}
+
+[data-back-link] {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+[data-back-link]:hover { color: var(--color-text); }
