@@ -24,10 +24,11 @@ const SEARCH_TABS: { id: SearchTab; label: string; icon: LucideIcon }[] = [
 ];
 
 const STATS = [
-  { value: '4.8/5',   label: 'Average guest rating'        },
-  { value: '25,000+', label: 'Stays booked'                },
-  { value: '3,000+',  label: 'Properties on the platform'  },
-  { value: '99.9%',   label: 'Platform uptime'             },
+  { value: '0%',       label: 'Booking commission — ever'          },
+  { value: '30 min',   label: 'Average setup time'                 },
+  { value: 'Direct',   label: 'Support from the team who built it' },
+  { value: 'SA-Built',  label: 'Made for South African hospitality' },
+  { value: '99.9%',    label: 'Uptime commitment'                  },
 ];
 
 const PLANS = [
@@ -225,7 +226,7 @@ export default function HomePage(): React.ReactElement {
 
       {/* ── Stats ─────────────────────────────────────────────────────────── */}
       <div data-stats-row>
-        <div data-stats-grid>
+        <div data-stats-grid data-cols="5">
           {STATS.map((s) => (
             <div key={s.label} data-stat-item>
               <strong data-stat-value>{s.value}</strong>

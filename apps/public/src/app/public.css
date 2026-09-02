@@ -747,6 +747,14 @@
   [data-stats-row] [data-stats-grid][data-cols="3"] { grid-template-columns: repeat(3, 1fr); }
 }
 
+[data-stats-row] [data-stats-grid][data-cols="5"] {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (min-width: 768px) {
+  [data-stats-row] [data-stats-grid][data-cols="5"] { grid-template-columns: repeat(5, 1fr); }
+}
+
 [data-stat-item] {
   display: flex;
   flex-direction: column;
