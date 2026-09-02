@@ -10,7 +10,11 @@ import { ConfirmDialog, useToast, InlineError, SkeletonLoader, Icons } from '@st
 import { profileKeys } from '@/lib/query-keys';
 
 // ---------------------------------------------------------------------------
-// RevealField — calls POST /customers/me/reveal; supports inline edit
+// RevealField
+// Distinguishes three states:
+//   revealed.done = false  → not yet fetched (show dots + Reveal button)
+//   revealed.done = true, value = string → fetched, show real value + Hide/Edit
+//   revealed.done = true, value = null   → fetched, field empty → show "Not set"
 // ---------------------------------------------------------------------------
 function RevealField({
   fieldKey,
@@ -26,7 +30,7 @@ function RevealField({
   isSaving: boolean;
 }) {
   const { toast } = useToast();
-  const [revealed, setRevealed] = useState<string | null>(null);
+  const [revealed, setRevealed] = useState<{ done: boolean; value: string | null }>({ done: false, value: null });
   const [loading,  setLoading]  = useState(false);
   const [editing,  setEditing]  = useState(false);
   const [draft,    setDraft]    = useState('');
@@ -35,7 +39,8 @@ function RevealField({
     setLoading(true);
     try {
       const result = await api.customer.revealField(fieldKey);
-      setRevealed((result as { value: string }).value ?? null);
+      const val = (result as { value: string | null }).value ?? null;
+      setRevealed({ done: true, value: val });
     } catch (err: unknown) {
       toast((err as ApiError).message ?? 'Reveal failed.', 'error');
     } finally {
@@ -43,8 +48,14 @@ function RevealField({
     }
   }
 
+  function handleHide() {
+    setRevealed({ done: false, value: null });
+    setEditing(false);
+    setDraft('');
+  }
+
   function handleEdit() {
-    setDraft(revealed ?? '');
+    setDraft(revealed.value ?? '');
     setEditing(true);
   }
 
@@ -56,10 +67,12 @@ function RevealField({
   function handleSave() {
     onSave(fieldKey, draft);
     setEditing(false);
-    setRevealed(null);
+    setRevealed({ done: false, value: null });
   }
 
-  const displayValue = revealed ?? '•••••••••••';
+  const displayValue = revealed.done
+    ? (revealed.value ?? 'Not set')
+    : '•••••••••••';
 
   return (
     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'var(--space-3)', paddingBottom:'var(--space-3)', borderBottom:'1px solid var(--color-border)' }}>
@@ -83,10 +96,12 @@ function RevealField({
         </div>
       ) : (
         <div style={{ display:'flex', alignItems:'center', gap:'var(--space-2)' }}>
-          <span style={{ fontFamily:'monospace', fontSize:'13px' }}>{displayValue}</span>
-          {revealed !== null ? (
+          <span style={{ fontFamily:'monospace', fontSize:'13px', color: revealed.done && !revealed.value ? 'var(--color-text-muted)' : undefined }}>
+            {displayValue}
+          </span>
+          {revealed.done ? (
             <>
-              <button type="button" data-btn-ghost onClick={() => setRevealed(null)} style={{ fontSize:'12px' }}>Hide</button>
+              <button type="button" data-btn-ghost onClick={handleHide} style={{ fontSize:'12px' }}>Hide</button>
               <button type="button" data-btn-ghost onClick={handleEdit} style={{ fontSize:'12px' }}>Edit</button>
             </>
           ) : (
@@ -156,6 +171,7 @@ export default function ProfilePage(): React.ReactElement {
   const qc        = useQueryClient();
   const { toast } = useToast();
   const [tab, setTab]               = useState<'profile'|'security'|'data'>('profile');
+  const [editing,  setEditing]      = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [exportDone, setExportDone] = useState(false);
 
@@ -167,8 +183,12 @@ export default function ProfilePage(): React.ReactElement {
 
   const updateMutation = useMutation({
     mutationFn: (v: Record<string,unknown>) => api.customer.updateMe(v),
-    onSuccess:  () => { qc.invalidateQueries({ queryKey: profileKeys.me() }); toast('Profile updated.', 'success'); },
-    onError:    (err: ApiError) => toast(err.message ?? 'Update failed.', 'error'),
+    onSuccess:  () => {
+      qc.invalidateQueries({ queryKey: profileKeys.me() });
+      toast('Profile updated.', 'success');
+      setEditing(false);
+    },
+    onError: (err: ApiError) => toast(err.message ?? 'Update failed.', 'error'),
   });
 
   const exportMutation = useMutation({
@@ -188,7 +208,11 @@ export default function ProfilePage(): React.ReactElement {
   useEffect(() => {
     if (!profile) return;
     const p = profile as Record<string,unknown>;
-    form.reset({ firstName: p['firstName'] as string ?? '', lastName: p['lastName'] as string ?? '', email: p['email'] as string ?? '' });
+    form.reset({
+      firstName: p['firstName'] as string ?? '',
+      lastName:  p['lastName']  as string ?? '',
+      email:     p['email']     as string ?? '',
+    });
   }, [profile, form]);
 
   if (isLoading) return <div data-page><SkeletonLoader rows={5} /></div>;
@@ -213,33 +237,65 @@ export default function ProfilePage(): React.ReactElement {
       {/* Tabs */}
       <div data-filter-tabs style={{ marginBottom:'var(--space-6)' }}>
         {([{id:'profile',label:'Personal info'},{id:'security',label:'Security'},{id:'data',label:'My data'}] as const).map((t) => (
-          <button key={t.id} type="button" data-filter-tab data-active={tab===t.id?'':undefined} onClick={() => setTab(t.id)}>{t.label}</button>
+          <button key={t.id} type="button" data-filter-tab data-active={tab===t.id?'':undefined} onClick={() => { setTab(t.id as typeof tab); setEditing(false); }}>{t.label}</button>
         ))}
       </div>
 
       {/* Personal info */}
       {tab === 'profile' && (
         <div style={{ display:'flex', flexDirection:'column', gap:'var(--space-5)' }}>
-          <form onSubmit={form.handleSubmit((v) => void updateMutation.mutate(v))} noValidate style={{ display:'flex', flexDirection:'column', gap:'var(--space-4)' }}>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'var(--space-4)' }}>
-              <div data-form-group>
-                <label htmlFor="fn">First name</label>
-                <input id="fn" type="text" autoComplete="given-name" {...form.register('firstName')} />
-                <InlineError message={form.formState.errors['firstName']?.message} />
+
+          {/* Basic info — view mode */}
+          {!editing && (
+            <div data-card-padded>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'var(--space-4)' }}>
+                <h3 style={{ fontSize:'13px', fontWeight:'600', color:'var(--color-text-secondary)' }}>Personal information</h3>
+                <button type="button" data-btn-secondary onClick={() => setEditing(true)} style={{ fontSize:'12px' }}>Edit</button>
               </div>
-              <div data-form-group>
-                <label htmlFor="ln">Last name</label>
-                <input id="ln" type="text" autoComplete="family-name" {...form.register('lastName')} />
+              <div style={{ display:'flex', flexDirection:'column', gap:'var(--space-3)' }}>
+                {[
+                  { label:'First name', value: p?.['firstName'] as string },
+                  { label:'Last name',  value: p?.['lastName']  as string },
+                  { label:'Email',      value: p?.['email']     as string },
+                ].map(({ label, value }) => (
+                  <div key={label} style={{ display:'flex', justifyContent:'space-between', paddingBottom:'var(--space-3)', borderBottom:'1px solid var(--color-border)' }}>
+                    <span style={{ fontSize:'13px', color:'var(--color-text-secondary)' }}>{label}</span>
+                    <span style={{ fontSize:'13px', fontWeight:'500' }}>{value || '—'}</span>
+                  </div>
+                ))}
               </div>
             </div>
-            <div data-form-group>
-              <label htmlFor="em">Email address</label>
-              <input id="em" type="email" autoComplete="email" {...form.register('email')} />
-            </div>
-            <button type="submit" disabled={updateMutation.isPending} data-btn-primary>
-              {updateMutation.isPending ? 'Saving…' : 'Save changes'}
-            </button>
-          </form>
+          )}
+
+          {/* Basic info — edit mode */}
+          {editing && (
+            <form onSubmit={form.handleSubmit((v) => void updateMutation.mutate(v))} noValidate>
+              <div data-card-padded style={{ display:'flex', flexDirection:'column', gap:'var(--space-4)' }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                  <h3 style={{ fontSize:'13px', fontWeight:'600', color:'var(--color-text-secondary)' }}>Personal information</h3>
+                  <button type="button" data-btn-ghost onClick={() => setEditing(false)} style={{ fontSize:'12px' }}>Cancel</button>
+                </div>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'var(--space-4)' }}>
+                  <div data-form-group>
+                    <label htmlFor="fn">First name</label>
+                    <input id="fn" type="text" autoComplete="given-name" {...form.register('firstName')} />
+                    <InlineError message={form.formState.errors['firstName']?.message} />
+                  </div>
+                  <div data-form-group>
+                    <label htmlFor="ln">Last name</label>
+                    <input id="ln" type="text" autoComplete="family-name" {...form.register('lastName')} />
+                  </div>
+                </div>
+                <div data-form-group>
+                  <label htmlFor="em">Email address</label>
+                  <input id="em" type="email" autoComplete="email" {...form.register('email')} />
+                </div>
+                <button type="submit" disabled={updateMutation.isPending} data-btn-primary>
+                  {updateMutation.isPending ? 'Saving…' : 'Save changes'}
+                </button>
+              </div>
+            </form>
+          )}
 
           {/* Protected PII fields */}
           <div data-card-padded>
