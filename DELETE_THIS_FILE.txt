@@ -1,8 +1,0 @@
-This turn also DELETES one file that no longer exists in this zip
-(a zip can't represent a deletion):
-
-  packages/ui/src/design-tokens.css
-
-Still fully dead. Delete it manually, or let `git add packages/ui`
-pick up the deletion automatically if you copy this zip's packages/ui/src/
-over the real one wholesale.
