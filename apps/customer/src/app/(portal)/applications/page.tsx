@@ -43,14 +43,14 @@ export default function ApplicationsPage(): React.ReactElement {
       </div>
 
       {/* Callout */}
-      <div data-card-padded style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-5)', background: 'var(--color-primary-light)', borderColor: 'transparent' }}>
+      <div data-card-padded style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-5)', background: 'var(--color-primary-tint)', borderColor: 'transparent' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
-          <span style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-full)', background: 'var(--color-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)', flexShrink: 0 }} aria-hidden="true">
+          <span style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-pill)', background: 'var(--color-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)', flexShrink: 0 }} aria-hidden="true">
             <Icons.FileCheck2 size={22} />
           </span>
           <div>
-            <strong style={{ fontSize: 'var(--text-sm)', color: 'var(--color-primary)' }}>Everything in one place</strong>
-            <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>
+            <strong style={{ fontSize: '13px', color: 'var(--color-primary)' }}>Everything in one place</strong>
+            <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
               View the status of all your applications and complete any pending requirements.
             </p>
           </div>
@@ -66,10 +66,10 @@ export default function ApplicationsPage(): React.ReactElement {
       ) : (
         <>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
-            <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
+            <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
               Applications ({filtered.length})
             </span>
-            <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+            <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)', display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}>
               Sort by: Newest <Icons.ChevronDown size={14} />
             </span>
           </div>
@@ -154,7 +154,7 @@ function ApplicationCard({ application: app }: { application: Record<string, unk
             <span data-status-badge data-status={STATUS_COLORS[status] ?? 'pending'} style={{ marginBottom: 'var(--space-2)' }}>
               {status.replace(/_/g, ' ')}
             </span>
-            <button type="button" data-btn-secondary style={{ padding: 'var(--space-2) var(--space-4)', fontSize: 'var(--text-xs)' }}>
+            <button type="button" data-btn-secondary style={{ padding: 'var(--space-2) var(--space-4)', fontSize: '12px' }}>
               View details
             </button>
           </div>

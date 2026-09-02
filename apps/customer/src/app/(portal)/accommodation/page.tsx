@@ -95,7 +95,7 @@ export default function AccommodationPage(): React.ReactElement {
               {checkIn && checkOut ? `${checkIn} – ${checkOut} · ` : ''}{guestsRooms.guests} Guest{guestsRooms.guests !== 1 ? 's' : ''}, {guestsRooms.rooms} Room{guestsRooms.rooms !== 1 ? 's' : ''}
             </span>
           </div>
-          <span style={{ color: 'var(--color-primary)', fontSize: 'var(--text-sm)', fontWeight: 'var(--font-medium)', display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+          <span style={{ color: 'var(--color-primary)', fontSize: '13px', fontWeight: '500', display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}>
             Edit <Icons.Pencil size={14} />
           </span>
         </div>
@@ -168,10 +168,10 @@ export default function AccommodationPage(): React.ReactElement {
           <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
             <Icons.Building2 size={40} />
           </div>
-          <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-2)' }}>
+          <h2 style={{ fontSize: '17px', fontWeight: '700', marginBottom: 'var(--space-2)' }}>
             Long Term stays — coming soon
           </h2>
-          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', maxWidth: '28rem', margin: '0 auto' }}>
+          <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', maxWidth: '28rem', margin: '0 auto' }}>
             Lease-based long-term accommodation isn&apos;t available yet. Check back soon, or browse short-stay Hotels, Guesthouses and Apartments under the Stays tab.
           </p>
         </div>
@@ -251,7 +251,7 @@ export default function AccommodationPage(): React.ReactElement {
           <Link key={c.label} href={`/accommodation?amenity=${c.type}`} data-card
             style={{ padding: 'var(--space-4)', textAlign: 'center', textDecoration: 'none', cursor: 'pointer' }}>
             <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--color-primary)', marginBottom: 'var(--space-2)' }}><c.icon size={28} /></div>
-            <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-medium)' }}>{c.label}</div>
+            <div style={{ fontSize: '13px', fontWeight: '500' }}>{c.label}</div>
           </Link>
         ))}
       </div>
@@ -304,11 +304,11 @@ function PropertySearchCard({ property: p }: { property: Record<string, unknown>
         )}
         <div data-property-card-pricing>
           <div>
-            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>From</div>
+            <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>From</div>
             <span data-property-rate>R{(rate ?? 0).toLocaleString()}</span>
             <span data-property-rate-label> / night</span>
           </div>
-          <button type="button" data-btn-primary style={{ padding: 'var(--space-2) var(--space-4)', fontSize: 'var(--text-sm)' }}>
+          <button type="button" data-btn-primary style={{ padding: 'var(--space-2) var(--space-4)', fontSize: '13px' }}>
             View details
           </button>
         </div>

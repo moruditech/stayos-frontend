@@ -126,7 +126,7 @@ export default function ReviewsPage(): React.ReactElement {
     return (
       <div data-page>
         <button type="button" onClick={() => setView('list')}
-          style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', color:'var(--color-text-secondary)', fontSize:'var(--text-sm)', marginBottom:'var(--space-4)', cursor:'pointer' }}>
+          style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', color:'var(--color-text-secondary)', fontSize:'13px', marginBottom:'var(--space-4)', cursor:'pointer' }}>
           <Icons.ChevronLeft size={16} /> Back to reviews
         </button>
 
@@ -159,14 +159,14 @@ export default function ReviewsPage(): React.ReactElement {
 
           {/* Overall rating — required */}
           <div>
-            <label style={{ display:'block', fontSize:'var(--text-sm)', fontWeight:'var(--font-medium)', marginBottom:'var(--space-3)' }}>
+            <label style={{ display:'block', fontSize:'13px', fontWeight:'500', marginBottom:'var(--space-3)' }}>
               Overall rating *
             </label>
             <StarRating size={36}
               value={overallRating}
               onChange={(n) => form.setValue('ratings.overall', n)} />
             {overallRating > 0 && (
-              <span style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', marginTop:'var(--space-2)', display:'block' }}>
+              <span style={{ fontSize:'13px', color:'var(--color-text-secondary)', marginTop:'var(--space-2)', display:'block' }}>
                 {['','Poor','Below average','Average','Good','Excellent'][overallRating]}
               </span>
             )}
@@ -175,7 +175,7 @@ export default function ReviewsPage(): React.ReactElement {
 
           {/* Category ratings — optional */}
           <div data-card-padded>
-            <h3 style={{ fontSize:'var(--text-sm)', fontWeight:'var(--font-semibold)', marginBottom:'var(--space-4)' }}>
+            <h3 style={{ fontSize:'13px', fontWeight:'600', marginBottom:'var(--space-4)' }}>
               Rate specific aspects (optional)
             </h3>
             <div style={{ display:'flex', flexDirection:'column', gap:'var(--space-4)' }}>
@@ -183,7 +183,7 @@ export default function ReviewsPage(): React.ReactElement {
                 const val = form.watch(`ratings.${cat.key}` as 'ratings.cleanliness') ?? 0;
                 return (
                   <div key={cat.key} style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                    <span style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)' }}>{cat.label}</span>
+                    <span style={{ fontSize:'13px', color:'var(--color-text-secondary)' }}>{cat.label}</span>
                     <StarRating size={20}
                       value={val}
                       onChange={(n) => form.setValue(`ratings.${cat.key}` as 'ratings.cleanliness', n)} />
@@ -205,7 +205,7 @@ export default function ReviewsPage(): React.ReactElement {
             <textarea id="rv-body" rows={6}
               placeholder="What did you love? What could be improved? Other guests appreciate honest, detailed reviews."
               {...form.register('body')} />
-            <div style={{ display:'flex', justifyContent:'space-between', fontSize:'var(--text-xs)', color:'var(--color-text-muted)', marginTop:'var(--space-1)' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', fontSize:'12px', color:'var(--color-text-muted)', marginTop:'var(--space-1)' }}>
               <InlineError message={form.formState.errors.body?.message} />
               <span>{(form.watch('body') ?? '').length} / 3000</span>
             </div>
@@ -213,7 +213,7 @@ export default function ReviewsPage(): React.ReactElement {
 
           {formError && <span role="alert" data-form-error>{formError}</span>}
 
-          <p style={{ fontSize:'var(--text-xs)', color:'var(--color-text-muted)' }}>
+          <p style={{ fontSize:'12px', color:'var(--color-text-muted)' }}>
             Reviews are published publicly and cannot be edited after submission. By submitting, you confirm the review reflects your genuine experience.
           </p>
 
@@ -262,29 +262,29 @@ export default function ReviewsPage(): React.ReactElement {
               <div key={r['_id'] as string} data-card-padded>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'var(--space-3)', flexWrap:'wrap', gap:'var(--space-2)' }}>
                   <div>
-                    <div style={{ fontWeight:'var(--font-bold)', fontSize:'var(--text-base)' }}>
+                    <div style={{ fontWeight:'700', fontSize:'14.5px' }}>
                       {r['propertyName'] as string ?? 'Property'}
                     </div>
-                    <div style={{ fontSize:'var(--text-xs)', color:'var(--color-text-muted)', marginTop:2 }}>{date}</div>
+                    <div style={{ fontSize:'12px', color:'var(--color-text-muted)', marginTop:2 }}>{date}</div>
                   </div>
                   <div style={{ display:'flex', alignItems:'center', gap:'var(--space-3)' }}>
                     <span style={{ display: 'flex' }}>
                       <StarDisplay value={ratings?.['overall'] ?? 0} size={18} />
                     </span>
                     <span data-status-badge data-status={status==='approved'?'confirmed':status}
-                      style={{ fontSize:'var(--text-xs)' }}>
+                      style={{ fontSize:'12px' }}>
                       {status==='approved'?'Published':status==='pending'?'Under review':'Rejected'}
                     </span>
                   </div>
                 </div>
 
                 {title && (
-                  <div style={{ fontWeight:'var(--font-semibold)', fontSize:'var(--text-sm)', marginBottom:'var(--space-2)' }}>
+                  <div style={{ fontWeight:'600', fontSize:'13px', marginBottom:'var(--space-2)' }}>
                     {title}
                   </div>
                 )}
 
-                <p style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', lineHeight:'var(--leading-relaxed)' }}>
+                <p style={{ fontSize:'13px', color:'var(--color-text-secondary)', lineHeight:'1.65' }}>
                   {r['body'] as string}
                 </p>
 
@@ -292,7 +292,7 @@ export default function ReviewsPage(): React.ReactElement {
                 {ratings && Object.keys(ratings).length > 1 && (
                   <div style={{ display:'flex', flexWrap:'wrap', gap:'var(--space-4)', marginTop:'var(--space-4)', paddingTop:'var(--space-4)', borderTop:'1px solid var(--color-border)' }}>
                     {RATING_CATEGORIES.filter((cat) => ratings[cat.key]).map((cat) => (
-                      <div key={cat.key} style={{ fontSize:'var(--text-xs)', color:'var(--color-text-secondary)' }}>
+                      <div key={cat.key} style={{ fontSize:'12px', color:'var(--color-text-secondary)' }}>
                         {cat.label}: <StarDisplay value={ratings[cat.key] ?? 0} size={12} />
                       </div>
                     ))}
@@ -301,11 +301,11 @@ export default function ReviewsPage(): React.ReactElement {
 
                 {/* Property response */}
                 {reply && (
-                  <div style={{ marginTop:'var(--space-4)', padding:'var(--space-4)', background:'var(--color-surface-muted)', borderRadius:'var(--radius-md)', borderLeft:'3px solid var(--color-primary)' }}>
-                    <div style={{ fontSize:'var(--text-xs)', fontWeight:'var(--font-semibold)', color:'var(--color-primary)', marginBottom:'var(--space-2)' }}>
+                  <div style={{ marginTop:'var(--space-4)', padding:'var(--space-4)', background:'var(--color-bg-sunk)', borderRadius:'var(--radius-md)', borderLeft:'3px solid var(--color-primary)' }}>
+                    <div style={{ fontSize:'12px', fontWeight:'600', color:'var(--color-primary)', marginBottom:'var(--space-2)' }}>
                       Response from the property
                     </div>
-                    <p style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', lineHeight:'var(--leading-relaxed)' }}>
+                    <p style={{ fontSize:'13px', color:'var(--color-text-secondary)', lineHeight:'1.65' }}>
                       {reply}
                     </p>
                   </div>

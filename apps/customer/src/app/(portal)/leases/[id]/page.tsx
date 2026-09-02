@@ -48,7 +48,7 @@ export default function LeaseDetailPage({ params }: Props): React.ReactElement {
   return (
     <div data-page>
       <button type="button" onClick={() => router.back()}
-        style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-4)', cursor: 'pointer' }}>
+        style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-secondary)', fontSize: '13px', marginBottom: 'var(--space-4)', cursor: 'pointer' }}>
         <Icons.ChevronLeft size={16} /> Back to leases
       </button>
 
@@ -69,8 +69,8 @@ export default function LeaseDetailPage({ params }: Props): React.ReactElement {
             l['signedAt'] ? { label: 'Signed on', value: new Date(l['signedAt'] as string).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' }) } : null,
           ].filter(Boolean).map((item) => item && (
             <div key={item.label}>
-              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginBottom: '4px' }}>{item.label}</div>
-              <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-semibold)' }}>{item.value}</div>
+              <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '4px' }}>{item.label}</div>
+              <div style={{ fontSize: '13px', fontWeight: '600' }}>{item.value}</div>
             </div>
           ))}
         </div>
@@ -80,10 +80,10 @@ export default function LeaseDetailPage({ params }: Props): React.ReactElement {
 
       {needsSign && (
         <div data-card-padded style={{ marginTop: 'var(--space-5)', borderColor: 'var(--color-primary)' }}>
-          <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-2)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <h3 style={{ fontSize: '14.5px', fontWeight: '700', marginBottom: 'var(--space-2)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
             <Icons.PenLine size={18} /> Digital signature required
           </h3>
-          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-4)' }}>
+          <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-4)' }}>
             Please review the lease document above and sign below to confirm your acceptance.
           </p>
           {!signing ? (
@@ -104,7 +104,7 @@ export default function LeaseDetailPage({ params }: Props): React.ReactElement {
                   {signMutation.isPending ? 'Signing…' : 'Confirm signature'}
                 </button>
               </div>
-              <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+              <p style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
                 By signing, you confirm you have read the lease agreement and agree to its terms. This signature is legally binding.
               </p>
             </div>

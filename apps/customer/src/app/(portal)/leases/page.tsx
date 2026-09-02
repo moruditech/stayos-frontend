@@ -32,20 +32,20 @@ export default function LeasesPage(): React.ReactElement {
             return (
               <a key={l['_id'] as string} href={`/leases/${l['_id'] as string}`}
                 data-card-padded style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
-                <span style={{ width: 40, height: 40, borderRadius: 'var(--radius-full)', background: isSigned ? 'var(--color-success-bg)' : 'var(--color-warning-bg)', color: isSigned ? 'var(--color-success)' : 'var(--color-warning)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <span style={{ width: 40, height: 40, borderRadius: 'var(--radius-pill)', background: isSigned ? 'var(--color-success-bg)' : 'var(--color-warning-bg)', color: isSigned ? 'var(--color-success)' : 'var(--color-warning)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <Icons.ClipboardList size={18} />
                 </span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 'var(--font-semibold)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-1)' }}>
+                  <div style={{ fontWeight: '600', fontSize: '13px', marginBottom: 'var(--space-1)' }}>
                     {l['propertyName'] as string} — Lease agreement
                   </div>
-                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
                     {start.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })}
                     {' – '}
                     {end.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </div>
                   {!isSigned && (
-                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-warning)', fontWeight: 'var(--font-semibold)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--color-warning)', fontWeight: '600', marginTop: '4px', display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
                       <Icons.PenLine size={14} /> Signature required
                     </div>
                   )}

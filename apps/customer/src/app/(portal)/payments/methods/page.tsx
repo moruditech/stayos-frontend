@@ -9,7 +9,7 @@ export default function PaymentMethodsPage(): React.ReactElement {
   return (
     <div data-page>
       <button type="button" onClick={() => router.back()}
-        style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-4)', cursor: 'pointer' }}>
+        style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-secondary)', fontSize: '13px', marginBottom: 'var(--space-4)', cursor: 'pointer' }}>
         <Icons.ChevronLeft size={16} /> Back to payments
       </button>
 
@@ -20,10 +20,10 @@ export default function PaymentMethodsPage(): React.ReactElement {
         <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
           <Icons.Wallet size={40} />
         </div>
-        <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-2)' }}>
+        <h2 style={{ fontSize: '17px', fontWeight: '700', marginBottom: 'var(--space-2)' }}>
           Coming soon
         </h2>
-        <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', maxWidth: '28rem', margin: '0 auto' }}>
+        <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', maxWidth: '28rem', margin: '0 auto' }}>
           Adding, editing and removing saved cards isn&apos;t available yet. In the meantime, you can pay any due amount directly from your bookings or payment history.
         </p>
       </div>

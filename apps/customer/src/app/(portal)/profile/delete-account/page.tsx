@@ -34,7 +34,7 @@ export default function DeleteAccountPage(): React.ReactElement {
 
   return (
     <div data-page>
-      <Link href="/profile" data-link style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', fontSize:'var(--text-sm)', marginBottom:'var(--space-5)', textDecoration:'none', color:'var(--color-text-secondary)' }}>
+      <Link href="/profile" data-link style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', fontSize:'13px', marginBottom:'var(--space-5)', textDecoration:'none', color:'var(--color-text-secondary)' }}>
         <Icons.ChevronLeft size={16} /> Back to profile
       </Link>
 
@@ -45,7 +45,7 @@ export default function DeleteAccountPage(): React.ReactElement {
 
         {/* What happens */}
         <div data-card-padded>
-          <h2 style={{ fontSize:'var(--text-base)', fontWeight:'var(--font-bold)', marginBottom:'var(--space-4)' }}>
+          <h2 style={{ fontSize:'14.5px', fontWeight:'700', marginBottom:'var(--space-4)' }}>
             What happens when you delete your account
           </h2>
           <div style={{ display:'flex', flexDirection:'column', gap:'var(--space-3)' }}>
@@ -65,12 +65,12 @@ export default function DeleteAccountPage(): React.ReactElement {
               ]},
             ].map((section) => (
               <div key={section.label}>
-                <div style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', fontWeight:'var(--font-semibold)', fontSize:'var(--text-sm)', marginBottom:'var(--space-2)' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', fontWeight:'600', fontSize:'13px', marginBottom:'var(--space-2)' }}>
                   <span style={{ display: 'flex', color: 'var(--color-primary)' }}><section.icon size={16} /></span>{section.label}
                 </div>
                 <ul style={{ paddingLeft:'var(--space-5)', display:'flex', flexDirection:'column', gap:'var(--space-1)' }}>
                   {section.items.map((item) => (
-                    <li key={item} style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', lineHeight:'var(--leading-relaxed)' }}>{item}</li>
+                    <li key={item} style={{ fontSize:'13px', color:'var(--color-text-secondary)', lineHeight:'1.65' }}>{item}</li>
                   ))}
                 </ul>
               </div>
@@ -80,24 +80,24 @@ export default function DeleteAccountPage(): React.ReactElement {
 
         {/* Things to do first */}
         <div data-card-padded style={{ background:'var(--color-warning-bg)', borderColor:'var(--color-warning)' }}>
-          <h3 style={{ fontSize:'var(--text-sm)', fontWeight:'var(--font-bold)', color:'var(--color-warning)', marginBottom:'var(--space-3)', display:'flex', alignItems:'center', gap:'var(--space-2)' }}>
+          <h3 style={{ fontSize:'13px', fontWeight:'700', color:'var(--color-warning)', marginBottom:'var(--space-3)', display:'flex', alignItems:'center', gap:'var(--space-2)' }}>
             <Icons.AlertTriangle size={16} /> Before you delete
           </h3>
-          <ul style={{ paddingLeft:'var(--space-5)', display:'flex', flexDirection:'column', gap:'var(--space-2)', fontSize:'var(--text-sm)', color:'var(--color-text-secondary)' }}>
+          <ul style={{ paddingLeft:'var(--space-5)', display:'flex', flexDirection:'column', gap:'var(--space-2)', fontSize:'13px', color:'var(--color-text-secondary)' }}>
             <li>Make sure you have no upcoming bookings — deletion will not automatically cancel them.</li>
             <li>Download your data export first if you want a copy of your records.</li>
             <li>Outstanding payments will still need to be settled with the relevant property.</li>
           </ul>
           <div style={{ display:'flex', gap:'var(--space-3)', marginTop:'var(--space-4)', flexWrap:'wrap' }}>
-            <Link href="/bookings?status=upcoming" data-btn-ghost style={{ fontSize:'var(--text-sm)' }}>Check upcoming bookings</Link>
-            <Link href="/profile/data-export" data-btn-ghost style={{ fontSize:'var(--text-sm)' }}>Export my data first</Link>
+            <Link href="/bookings?status=upcoming" data-btn-ghost style={{ fontSize:'13px' }}>Check upcoming bookings</Link>
+            <Link href="/profile/data-export" data-btn-ghost style={{ fontSize:'13px' }}>Export my data first</Link>
           </div>
         </div>
 
         {/* Confirm checkbox */}
         <label data-checkbox-label style={{ alignItems:'flex-start', gap:'var(--space-3)' }}>
           <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} style={{ marginTop:3 }} />
-          <span style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)' }}>
+          <span style={{ fontSize:'13px', color:'var(--color-text-secondary)' }}>
             I understand that deleting my account is permanent. I have read the information above and I want to proceed.
           </span>
         </label>
@@ -106,10 +106,10 @@ export default function DeleteAccountPage(): React.ReactElement {
           disabled={!confirmed || deleteMutation.isPending}
           onClick={() => setOpen(true)}
           style={{
-            padding:'var(--space-4)', background: confirmed ? 'var(--color-error)' : 'var(--color-surface-muted)',
+            padding:'var(--space-4)', background: confirmed ? 'var(--color-danger)' : 'var(--color-bg-sunk)',
             color: confirmed ? 'white' : 'var(--color-text-muted)',
-            border: 'none', borderRadius:'var(--radius-md)', fontWeight:'var(--font-semibold)',
-            fontSize:'var(--text-base)', cursor: confirmed ? 'pointer' : 'not-allowed', transition:'all var(--transition-fast)',
+            border: 'none', borderRadius:'var(--radius-md)', fontWeight:'600',
+            fontSize:'14.5px', cursor: confirmed ? 'pointer' : 'not-allowed', transition:'all 120ms ease',
           }}>
           Delete my account
         </button>

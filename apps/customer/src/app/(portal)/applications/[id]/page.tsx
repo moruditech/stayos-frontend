@@ -42,7 +42,7 @@ export default function ApplicationDetailPage({ params }: Props): React.ReactEle
   return (
     <div data-page>
       <button type="button" onClick={() => router.back()}
-        style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-4)', cursor: 'pointer' }}>
+        style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-secondary)', fontSize: '13px', marginBottom: 'var(--space-4)', cursor: 'pointer' }}>
         <Icons.ChevronLeft size={16} /> Back to applications
       </button>
 
@@ -50,7 +50,7 @@ export default function ApplicationDetailPage({ params }: Props): React.ReactEle
 
       {/* Property summary */}
       <div data-card>
-        <div style={{ aspectRatio: '16/5', background: 'var(--color-surface-muted)', overflow: 'hidden' }}>
+        <div style={{ aspectRatio: '16/5', background: 'var(--color-bg-sunk)', overflow: 'hidden' }}>
           <img src={`/images/properties/${app['propertySlug'] as string}-banner.jpg`} alt=""
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
@@ -58,8 +58,8 @@ export default function ApplicationDetailPage({ params }: Props): React.ReactEle
         <div style={{ padding: 'var(--space-6)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--space-3)', marginBottom: 'var(--space-4)' }}>
             <div>
-              <h2 style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--font-bold)' }}>{app['propertyName'] as string}</h2>
-              <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginTop: 'var(--space-1)' }}>
+              <h2 style={{ fontSize: '19px', fontWeight: '700' }}>{app['propertyName'] as string}</h2>
+              <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginTop: 'var(--space-1)' }}>
                 Application ID: {app['applicationId'] as string ?? params.id}
               </div>
             </div>
@@ -74,8 +74,8 @@ export default function ApplicationDetailPage({ params }: Props): React.ReactEle
               app['moveInDate'] ? { label: 'Move-in date', value: new Date(app['moveInDate'] as string).toLocaleDateString('en-ZA') } : null,
             ].filter(Boolean).map((item) => item && (
               <div key={item.label}>
-                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginBottom: '4px' }}>{item.label}</div>
-                <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-semibold)' }}>{item.value}</div>
+                <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '4px' }}>{item.label}</div>
+                <div style={{ fontSize: '13px', fontWeight: '600' }}>{item.value}</div>
               </div>
             ))}
           </div>
@@ -85,7 +85,7 @@ export default function ApplicationDetailPage({ params }: Props): React.ReactEle
       {/* Progress tracker */}
       {currentStep >= 0 && (
         <div data-card-padded>
-          <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-5)' }}>Application progress</h3>
+          <h3 style={{ fontSize: '14.5px', fontWeight: '700', marginBottom: 'var(--space-5)' }}>Application progress</h3>
           <div style={{ display: 'flex', gap: 0 }}>
             {STATUS_STEPS.map((step, i) => {
               const done    = i <= currentStep;
@@ -100,11 +100,11 @@ export default function ApplicationDetailPage({ params }: Props): React.ReactEle
                     background: done ? 'var(--color-primary)' : 'var(--color-border)',
                     border: current ? '3px solid var(--color-primary)' : '3px solid transparent',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: done ? 'white' : 'transparent', fontSize: 'var(--text-xs)',
+                    color: done ? 'white' : 'transparent', fontSize: '12px',
                   }}>
                     {done ? <Icons.Check size={14} /> : ''}
                   </div>
-                  <span style={{ fontSize: '10px', textAlign: 'center', color: done ? 'var(--color-primary)' : 'var(--color-text-muted)', fontWeight: done ? 'var(--font-semibold)' : 'normal', textTransform: 'capitalize' }}>
+                  <span style={{ fontSize: '10px', textAlign: 'center', color: done ? 'var(--color-primary)' : 'var(--color-text-muted)', fontWeight: done ? '600' : 'normal', textTransform: 'capitalize' }}>
                     {step.replace(/_/g, ' ')}
                   </span>
                 </div>
@@ -117,10 +117,10 @@ export default function ApplicationDetailPage({ params }: Props): React.ReactEle
       {/* Docs requested action */}
       {status === 'docs_requested' && (
         <div data-card-padded style={{ background: 'var(--color-warning-bg)', borderColor: 'var(--color-warning)' }}>
-          <strong style={{ color: 'var(--color-warning)', fontSize: 'var(--text-sm)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <strong style={{ color: 'var(--color-warning)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
             <Icons.AlertTriangle size={16} /> Documents required
           </strong>
-          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginTop: 'var(--space-2)', marginBottom: 'var(--space-4)' }}>
+          <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginTop: 'var(--space-2)', marginBottom: 'var(--space-4)' }}>
             The property has requested additional documents. Please upload them to continue.
           </p>
           <Link href={`/documents?ref=${params.id}`} data-btn-primary style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
@@ -132,12 +132,12 @@ export default function ApplicationDetailPage({ params }: Props): React.ReactEle
       {/* Answers summary */}
       {(app['answers'] as Record<string, unknown>) && (
         <div data-card-padded>
-          <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-4)' }}>Your responses</h3>
+          <h3 style={{ fontSize: '14.5px', fontWeight: '700', marginBottom: 'var(--space-4)' }}>Your responses</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
             {Object.entries(app['answers'] as Record<string, unknown>).map(([key, val]) => (
               <div key={key}>
-                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginBottom: '4px', textTransform: 'capitalize' }}>{key.replace(/_/g, ' ')}</div>
-                <div style={{ fontSize: 'var(--text-sm)' }}>{String(val)}</div>
+                <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '4px', textTransform: 'capitalize' }}>{key.replace(/_/g, ' ')}</div>
+                <div style={{ fontSize: '13px' }}>{String(val)}</div>
               </div>
             ))}
           </div>
@@ -148,7 +148,7 @@ export default function ApplicationDetailPage({ params }: Props): React.ReactEle
       {(status === 'submitted' || status === 'under_review') && (
         <button type="button" data-btn-ghost data-btn-full
           disabled={withdrawMutation.isPending}
-          style={{ color: 'var(--color-error)', marginTop: 'var(--space-4)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}
+          style={{ color: 'var(--color-danger)', marginTop: 'var(--space-4)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}
           onClick={() => withdrawMutation.mutate()}>
           Withdraw application
           <span data-badge-soon>Coming soon</span>

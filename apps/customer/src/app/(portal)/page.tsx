@@ -262,7 +262,7 @@ export default function DashboardPage(): React.ReactElement {
       {/* Member deals callout */}
       <div
         data-support-callout
-        style={{ marginTop: 'var(--space-6)', background: 'var(--color-primary-light)', position: 'relative', overflow: 'hidden' }}
+        style={{ marginTop: 'var(--space-6)', background: 'var(--color-primary-tint)', position: 'relative', overflow: 'hidden' }}
       >
         <Icons.Tag size={90} aria-hidden="true" style={{ position: 'absolute', right: '-16px', bottom: '-16px', color: 'var(--color-primary)', opacity: 0.08, pointerEvents: 'none' }} />
         <div data-support-callout-text>
@@ -382,7 +382,7 @@ function PropertyCard({ property }: { property: Record<string, unknown> }): Reac
         </div>
         <div data-property-card-pricing>
           <div>
-            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>From</div>
+            <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>From</div>
             <span data-property-rate>R{(property['baseRate'] as number ?? 0).toLocaleString()}</span>
             <span data-property-rate-label> / night</span>
           </div>

@@ -90,7 +90,7 @@ export default function SupportPage(): React.ReactElement {
     return (
       <div data-page>
         <button type="button" onClick={() => setView('list')}
-          style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', color:'var(--color-text-secondary)', fontSize:'var(--text-sm)', marginBottom:'var(--space-4)', cursor:'pointer' }}>
+          style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', color:'var(--color-text-secondary)', fontSize:'13px', marginBottom:'var(--space-4)', cursor:'pointer' }}>
           <Icons.ChevronLeft size={16} /> Back to support
         </button>
         <h1 data-page-title>New support request</h1>
@@ -138,7 +138,7 @@ export default function SupportPage(): React.ReactElement {
     return (
       <div data-page>
         <button type="button" onClick={() => setView('list')}
-          style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', color:'var(--color-text-secondary)', fontSize:'var(--text-sm)', marginBottom:'var(--space-4)', cursor:'pointer' }}>
+          style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', color:'var(--color-text-secondary)', fontSize:'13px', marginBottom:'var(--space-4)', cursor:'pointer' }}>
           <Icons.ChevronLeft size={16} /> Back to support
         </button>
         {detailLoading ? <SkeletonLoader rows={4} /> : (
@@ -146,7 +146,7 @@ export default function SupportPage(): React.ReactElement {
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', flexWrap:'wrap', gap:'var(--space-3)', marginBottom:'var(--space-5)' }}>
               <div>
                 <h1 data-page-title style={{ marginBottom:'var(--space-1)' }}>{ticket?.['subject'] as string}</h1>
-                <p style={{ fontSize:'var(--text-xs)', color:'var(--color-text-muted)', fontFamily:'monospace' }}>
+                <p style={{ fontSize:'12px', color:'var(--color-text-muted)', fontFamily:'monospace' }}>
                   #{ticket?.['ticketNumber'] as string ?? view.id}
                 </p>
               </div>
@@ -165,13 +165,13 @@ export default function SupportPage(): React.ReactElement {
                     <div style={{
                       maxWidth:'80%', padding:'var(--space-4)', borderRadius:'var(--radius-lg)',
                       background: isStaff ? 'var(--color-surface)' : 'var(--color-primary)',
-                      color: isStaff ? 'var(--color-text-primary)' : 'white',
+                      color: isStaff ? 'var(--color-text)' : 'white',
                       border: isStaff ? '1px solid var(--color-border)' : 'none',
-                      fontSize:'var(--text-sm)', lineHeight:'var(--leading-relaxed)',
+                      fontSize:'13px', lineHeight:'1.65',
                     }}>
                       {msg['body'] as string}
                     </div>
-                    <div style={{ fontSize:'var(--text-xs)', color:'var(--color-text-muted)' }}>
+                    <div style={{ fontSize:'12px', color:'var(--color-text-muted)' }}>
                       {isStaff ? 'Support team' : 'You'} · {sentAt}
                     </div>
                   </div>
@@ -182,7 +182,7 @@ export default function SupportPage(): React.ReactElement {
             {/* Rating (resolved tickets) */}
             {isResolved && !(ticket?.['rating']) && (
               <div data-card-padded style={{ marginBottom:'var(--space-5)', textAlign:'center' }}>
-                <p style={{ fontSize:'var(--text-sm)', fontWeight:'var(--font-semibold)', marginBottom:'var(--space-3)' }}>
+                <p style={{ fontSize:'13px', fontWeight:'600', marginBottom:'var(--space-3)' }}>
                   How would you rate this support experience?
                 </p>
                 <div style={{ display:'flex', gap:'var(--space-3)', justifyContent:'center' }}>
@@ -202,7 +202,7 @@ export default function SupportPage(): React.ReactElement {
               <div style={{ display:'flex', flexDirection:'column', gap:'var(--space-3)' }}>
                 <textarea rows={4} placeholder="Type your reply…" value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
-                  style={{ padding:'var(--space-3)', border:'1.5px solid var(--color-border)', borderRadius:'var(--radius-md)', fontSize:'var(--text-sm)', resize:'vertical', fontFamily:'inherit', outline:'none' }} />
+                  style={{ padding:'var(--space-3)', border:'1.5px solid var(--color-border)', borderRadius:'var(--radius-md)', fontSize:'13px', resize:'vertical', fontFamily:'inherit', outline:'none' }} />
                 <button type="button" data-btn-primary
                   disabled={!replyText.trim() || replyMutation.isPending}
                   onClick={() => replyMutation.mutate(view.id)}>
@@ -243,10 +243,10 @@ export default function SupportPage(): React.ReactElement {
                 onClick={() => setView({ id: ticket['_id'] as string })}
                 data-card-padded style={{ textAlign:'left', cursor:'pointer', display:'grid', gridTemplateColumns:'1fr auto', gap:'var(--space-4)', alignItems:'center', width:'100%' }}>
                 <div>
-                  <div style={{ fontSize:'var(--text-sm)', fontWeight:'var(--font-semibold)', marginBottom:'4px' }}>
+                  <div style={{ fontSize:'13px', fontWeight:'600', marginBottom:'4px' }}>
                     {ticket['subject'] as string}
                   </div>
-                  <div style={{ fontSize:'var(--text-xs)', color:'var(--color-text-muted)' }}>
+                  <div style={{ fontSize:'12px', color:'var(--color-text-muted)' }}>
                     #{ticket['ticketNumber'] as string ?? ticket['_id'] as string} · {created}
                   </div>
                 </div>

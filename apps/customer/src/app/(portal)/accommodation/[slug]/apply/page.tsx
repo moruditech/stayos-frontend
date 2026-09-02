@@ -78,7 +78,7 @@ export default function ApplicationFormPage({ params }: Props): React.ReactEleme
       <div data-page>
         <div data-card-padded style={{ textAlign: 'center', padding: 'var(--space-12)' }}>
           <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--color-success)', marginBottom: 'var(--space-5)' }}><Icons.CheckCircle2 size={56} /></div>
-          <h1 style={{ fontSize: 'var(--text-2xl)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-3)' }}>
+          <h1 style={{ fontSize: '22px', fontWeight: '700', marginBottom: 'var(--space-3)' }}>
             Application submitted!
           </h1>
           <p style={{ color: 'var(--color-text-secondary)', marginBottom: 'var(--space-8)' }}>
@@ -88,7 +88,7 @@ export default function ApplicationFormPage({ params }: Props): React.ReactEleme
             <Link href="/applications" data-btn-primary>View my applications →</Link>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', alignItems: 'center' }}>
-              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
+              <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
                 Create an account to track your application status.
               </p>
               <Link href="/register" data-btn-primary>Create account →</Link>
@@ -106,11 +106,11 @@ export default function ApplicationFormPage({ params }: Props): React.ReactEleme
       <p data-page-subtitle>{ft['propertyName'] as string}</p>
 
       {isClosed && (
-        <div data-card-padded style={{ background: 'var(--color-error-bg)', borderColor: 'var(--color-error)', marginBottom: 'var(--space-5)' }}>
-          <strong style={{ color: 'var(--color-error)', fontSize: 'var(--text-sm)' }}>
+        <div data-card-padded style={{ background: 'var(--color-danger-bg)', borderColor: 'var(--color-danger)', marginBottom: 'var(--space-5)' }}>
+          <strong style={{ color: 'var(--color-danger)', fontSize: '13px' }}>
             Applications closed
           </strong>
-          <p style={{ color: 'var(--color-error)', fontSize: 'var(--text-sm)', marginTop: 'var(--space-1)' }}>
+          <p style={{ color: 'var(--color-danger)', fontSize: '13px', marginTop: 'var(--space-1)' }}>
             The closing date for this application was {closingDate?.toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })}.
           </p>
         </div>
@@ -118,7 +118,7 @@ export default function ApplicationFormPage({ params }: Props): React.ReactEleme
 
       {closingDate && !isClosed && (
         <div data-card-padded style={{ background: 'var(--color-warning-bg)', borderColor: 'var(--color-warning)', marginBottom: 'var(--space-5)' }}>
-          <strong style={{ color: 'var(--color-warning)', fontSize: 'var(--text-sm)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <strong style={{ color: 'var(--color-warning)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
             <Icons.Calendar size={16} /> Closing date: {closingDate.toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })}
           </strong>
         </div>
@@ -126,8 +126,8 @@ export default function ApplicationFormPage({ params }: Props): React.ReactEleme
 
       {/* Account hint for unauthenticated applicants */}
       {!session && (
-        <div data-card-padded style={{ background: 'var(--color-primary-light)', marginBottom: 'var(--space-5)' }}>
-          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+        <div data-card-padded style={{ background: 'var(--color-primary-tint)', marginBottom: 'var(--space-5)' }}>
+          <p style={{ fontSize: '13px', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
             <Icons.Lightbulb size={16} /> Already have an account?{' '}
             <Link href={`/login?redirect=/accommodation/${params.slug}/apply`} data-link>Sign in</Link>{' '}
             to pre-fill your details.
@@ -150,18 +150,18 @@ export default function ApplicationFormPage({ params }: Props): React.ReactEleme
 
           {/* Required documents list */}
           {requiredDocs.length > 0 && (
-            <div data-card-padded style={{ background: 'var(--color-surface-muted)' }}>
-              <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-3)' }}>
+            <div data-card-padded style={{ background: 'var(--color-bg-sunk)' }}>
+              <h3 style={{ fontSize: '13px', fontWeight: '700', marginBottom: 'var(--space-3)' }}>
                 Required documents
               </h3>
               <ul style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
                 {requiredDocs.map((doc) => (
-                  <li key={doc} style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', display: 'flex', gap: 'var(--space-2)' }}>
+                  <li key={doc} style={{ fontSize: '13px', color: 'var(--color-text-secondary)', display: 'flex', gap: 'var(--space-2)' }}>
                     <Icons.Paperclip size={14} /> {doc}
                   </li>
                 ))}
               </ul>
-              <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginTop: 'var(--space-3)' }}>
+              <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: 'var(--space-3)' }}>
                 Documents can be uploaded after submission from your applications dashboard.
               </p>
             </div>
@@ -169,9 +169,9 @@ export default function ApplicationFormPage({ params }: Props): React.ReactEleme
 
           {/* Terms acceptance */}
           {terms && (
-            <div data-card-padded style={{ background: 'var(--color-surface-muted)' }}>
-              <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-3)' }}>Terms and conditions</h3>
-              <div style={{ maxHeight: '160px', overflowY: 'auto', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', lineHeight: 'var(--leading-relaxed)', marginBottom: 'var(--space-4)', padding: 'var(--space-3)', background: 'white', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+            <div data-card-padded style={{ background: 'var(--color-bg-sunk)' }}>
+              <h3 style={{ fontSize: '13px', fontWeight: '700', marginBottom: 'var(--space-3)' }}>Terms and conditions</h3>
+              <div style={{ maxHeight: '160px', overflowY: 'auto', fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: '1.65', marginBottom: 'var(--space-4)', padding: 'var(--space-3)', background: 'white', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
                 {terms}
               </div>
               <label data-checkbox-label>
@@ -184,7 +184,7 @@ export default function ApplicationFormPage({ params }: Props): React.ReactEleme
           {/* Data sharing consent — never pre-checked (TAD 07 §3) */}
           <ConsentGate
             legalText={
-              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', lineHeight: 'var(--leading-relaxed)' }}>
+              <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: '1.65' }}>
                 By submitting this application, you agree to share your personal information with{' '}
                 <strong>{ft['propertyName'] as string}</strong> for accommodation placement purposes in accordance with POPIA and our Privacy Policy.
               </p>
@@ -224,7 +224,7 @@ function DynamicField({
   return (
     <div data-form-group>
       <label htmlFor={name}>
-        {label} {required && <span style={{ color: 'var(--color-error)' }}>*</span>}
+        {label} {required && <span style={{ color: 'var(--color-danger)' }}>*</span>}
       </label>
       {type === 'textarea' ? (
         <textarea id={name} rows={4} value={value} required={required} onChange={(e) => onChange(e.target.value)} />

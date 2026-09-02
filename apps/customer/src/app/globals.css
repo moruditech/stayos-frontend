@@ -39,10 +39,10 @@ html {
 }
 
 body {
-  font-family: var(--font-sans);
-  font-size: var(--text-base);
-  line-height: var(--leading-normal);
-  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--color-text);
   background-color: var(--color-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -55,174 +55,16 @@ ul, ol { list-style: none; }
 input, textarea, select { font-family: inherit; font-size: inherit; }
 
 /* ── Typography ───────────────────────────────────────────────────────────── */
-.serif { font-family: var(--font-serif); }
+.serif { font-family: var(--font-display); }
 
-/* ── Buttons ──────────────────────────────────────────────────────────────── */
-[data-btn-primary] {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-6);
-  background: var(--color-primary);
-  color: var(--color-text-inverse);
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  border-radius: var(--radius-md);
-  transition: background var(--transition-fast);
-  cursor: pointer;
-}
-[data-btn-primary]:hover  { background: var(--color-primary-hover); }
-[data-btn-primary]:disabled { opacity: 0.6; cursor: not-allowed; }
-[data-btn-primary][data-btn-full] { width: 100%; }
-
-[data-btn-secondary] {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-6);
-  background: transparent;
-  color: var(--color-primary);
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  border: 1.5px solid var(--color-primary);
-  border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
-  cursor: pointer;
-}
-[data-btn-secondary]:hover { background: var(--color-primary-light); }
-[data-btn-secondary][data-btn-full] { width: 100%; }
-
-[data-btn-ghost] {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-6);
-  background: var(--color-surface-muted);
-  color: var(--color-text-primary);
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  border-radius: var(--radius-md);
-  transition: background var(--transition-fast);
-  cursor: pointer;
-}
-[data-btn-ghost]:hover { background: var(--color-border); }
-[data-btn-ghost][data-btn-full] { width: 100%; }
-
-[data-btn-oauth] {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-6);
-  background: var(--color-surface);
-  color: var(--color-text-primary);
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  border: 1.5px solid var(--color-border);
-  border-radius: var(--radius-md);
-  transition: background var(--transition-fast);
-  cursor: pointer;
-  text-decoration: none;
-}
-[data-btn-oauth]:hover { background: var(--color-surface-muted); }
-[data-btn-oauth][data-btn-full] { width: 100%; }
-
-/* ── Form elements ────────────────────────────────────────────────────────── */
-[data-form-group] {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-[data-form-group] label {
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  color: var(--color-text-primary);
-}
-
-[data-form-group] input,
-[data-form-group] textarea,
-[data-form-group] select {
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-surface);
-  border: 1.5px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  color: var(--color-text-primary);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-  outline: none;
-  width: 100%;
-}
-[data-form-group] input:focus,
-[data-form-group] textarea:focus,
-[data-form-group] select:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(27,77,62,0.12);
-}
-[data-form-group] input::placeholder,
-[data-form-group] textarea::placeholder {
-  color: var(--color-text-muted);
-}
-
-[data-form-group] input[aria-invalid="true"] {
-  border-color: var(--color-error);
-}
-
-[data-input-with-suffix] {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-[data-input-with-suffix] input { padding-right: var(--space-12); }
-[data-password-toggle] {
-  position: absolute;
-  right: var(--space-3);
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  padding: var(--space-1) var(--space-2);
-}
-
-[data-form-row] {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  flex-wrap: wrap;
-}
-
-[data-checkbox-label] {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-}
-[data-checkbox-label] input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--color-primary);
-  cursor: pointer;
-}
-
-[data-form-error] {
-  display: block;
-  font-size: var(--text-xs);
-  color: var(--color-error);
-  margin-top: var(--space-1);
-}
-
-[data-inline-error] {
-  display: block;
-  font-size: var(--text-xs);
-  color: var(--color-error);
-}
-
-[data-link] { color: var(--color-primary); font-size: var(--text-sm); font-weight: var(--font-medium); }
-[data-link]:hover { text-decoration: underline; }
+/* ── Buttons, forms, status badges, skeleton loading, empty state, and toast ─
+   all come from @stayos/ui/design-system.css (imported above) — the same
+   file admin, agency, and property use. Do not redefine [data-btn-*],
+   [data-form-*], [data-status-badge], [data-skeleton*], [data-empty-state*],
+   or [data-toast*] here; a competing local rule just fights the shared one
+   depending on load order. Extend the shared file instead if something is
+   missing — see the property [checked_in/confirmed/etc.] additions there
+   for the pattern. */
 
 /* ── Cards ────────────────────────────────────────────────────────────────── */
 [data-card] {
@@ -244,7 +86,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   align-items: center;
   gap: var(--space-3);
   color: var(--color-text-muted);
-  font-size: var(--text-xs);
+  font-size: 12px;
 }
 [data-divider]::before,
 [data-divider]::after {
@@ -254,134 +96,25 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   background: var(--color-border);
 }
 
-/* ── Status badges ────────────────────────────────────────────────────────── */
-[data-status-badge] {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-full);
-  font-size: var(--text-xs);
-  font-weight: var(--font-semibold);
-  text-transform: capitalize;
-}
-[data-status="confirmed"],
-[data-status="active"],
-[data-status="approved"],
-[data-status="paid"] {
-  background: var(--color-success-bg);
-  color: var(--color-success);
-}
-[data-status="pending"],
-[data-status="under_review"],
-[data-status="submitted"] {
-  background: var(--color-warning-bg);
-  color: var(--color-warning);
-}
-[data-status="cancelled"],
-[data-status="rejected"],
-[data-status="declined"],
-[data-status="terminated"] {
-  background: var(--color-error-bg);
-  color: var(--color-error);
-}
-[data-status="upcoming"],
-[data-status="in_progress"] {
-  background: var(--color-info-bg);
-  color: var(--color-info);
-}
-
 /* ── Section headers ──────────────────────────────────────────────────────── */
+/* [data-section-title] comes from the shared file now (it's Panel's own
+   heading style — font-display, weight 600) — this local copy used the
+   body font at weight 700, a second real divergence this migration closes. */
 [data-section-header] {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: var(--space-4);
 }
-[data-section-title] {
-  font-size: var(--text-lg);
-  font-weight: var(--font-bold);
-  color: var(--color-text-primary);
-}
 [data-section-link] {
-  font-size: var(--text-sm);
+  font-size: 13px;
   color: var(--color-primary);
-  font-weight: var(--font-medium);
+  font-weight: 500;
   display: flex;
   align-items: center;
   gap: var(--space-1);
 }
 [data-section-link]:hover { text-decoration: underline; }
-
-/* ── Skeleton loading ─────────────────────────────────────────────────────── */
-[data-skeleton] { display: flex; flex-direction: column; gap: var(--space-3); }
-[data-skeleton-row] {
-  height: 20px;
-  background: linear-gradient(90deg, var(--color-surface-muted) 25%, var(--color-border) 50%, var(--color-surface-muted) 75%);
-  background-size: 200% 100%;
-  border-radius: var(--radius-sm);
-  animation: shimmer 1.5s infinite;
-}
-[data-skeleton-row]:nth-child(2) { width: 80%; }
-[data-skeleton-row]:nth-child(3) { width: 60%; }
-
-@keyframes shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-/* ── Misc ─────────────────────────────────────────────────────────────────── */
-[data-empty-state] {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-4);
-  padding: var(--space-16) var(--space-8);
-  text-align: center;
-}
-[data-empty-state-title] {
-  font-size: var(--text-xl);
-  font-weight: var(--font-semibold);
-}
-[data-empty-state-description] {
-  color: var(--color-text-secondary);
-  max-width: 400px;
-}
-
-[data-toast-stack] {
-  position: fixed;
-  bottom: var(--space-6);
-  right: var(--space-6);
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  max-width: 360px;
-}
-[data-toast] {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
-  padding: var(--space-4);
-  background: var(--color-surface);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--color-border);
-  font-size: var(--text-sm);
-  animation: slideIn 200ms ease;
-}
-[data-toast-variant="success"] { border-color: var(--color-success); }
-[data-toast-variant="error"]   { border-color: var(--color-error); }
-[data-toast-dismiss] {
-  margin-left: auto;
-  color: var(--color-text-muted);
-  flex-shrink: 0;
-}
-
-@keyframes slideIn {
-  from { transform: translateX(100%); opacity: 0; }
-  to   { transform: translateX(0);    opacity: 1; }
-}
 
 /* ── Auth pages (login, register, etc.) ───────────────────────────────────── */
 [data-auth-page] {
@@ -409,35 +142,12 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
    remain here because they're shared by /verify-email, /auth/callback, and
    the ForgotPasswordPage/ResetPasswordPage components in @stayos/ui. */
 
-/* ── Register success / verify states ───────────────────────────────────────  */
-/* [data-register-success] has its own dedicated styling in
-   customer-portal.css (used only by the /login page's register flow).
-   [data-mfa-step] below remains shared — it's used by MfaStep.tsx
-   independently of the login/register redesign. */
-[data-mfa-step] {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-  max-width: 400px;
-}
-[data-mfa-countdown] {
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  color: var(--color-text-secondary);
-  padding: var(--space-2) var(--space-4);
-  background: var(--color-surface-muted);
-  border-radius: var(--radius-md);
-  text-align: center;
-}
-[data-mfa-input] {
-  font-size: var(--text-3xl);
-  text-align: center;
-  letter-spacing: 0.5em;
-  padding: var(--space-4) var(--space-6);
-  border: 1.5px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-  width: 100%;
-  outline: none;
-}
-[data-mfa-input]:focus { border-color: var(--color-primary); }
+/* ── MFA step ──────────────────────────────────────────────────────────────
+   [data-mfa-step]/[data-mfa-input]/[data-mfa-countdown] come from the shared
+   file now too (MfaStep.tsx is a @stayos/ui component used by admin's own
+   MFA flow as well as this app's) — was previously redefined here with a
+   different gap/max-width/font-size than admin's version, which is exactly
+   the kind of drift this migration is meant to end. The one real addition
+   customer's version had — max-width: 400px so the code input doesn't
+   stretch edge-to-edge on desktop — was ported into the shared rule instead
+   of kept as a second local definition. */

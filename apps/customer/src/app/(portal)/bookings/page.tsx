@@ -95,11 +95,11 @@ export default function BookingsPage(): React.ReactElement {
         ))}
       </div>
 
-      <div data-support-callout style={{ marginTop: 'var(--space-6)', borderColor: 'var(--color-accent)' }}>
+      <div data-support-callout style={{ marginTop: 'var(--space-6)', borderColor: 'var(--color-primary)' }}>
         <div data-support-callout-text>
-          <span data-support-callout-icon style={{ background: 'var(--color-accent-light)', color: 'var(--color-accent)' }} aria-hidden="true"><Icons.Crown size={20} /></span>
+          <span data-support-callout-icon style={{ background: 'var(--color-primary-tint)', color: 'var(--color-primary)' }} aria-hidden="true"><Icons.Crown size={20} /></span>
           <div>
-            <strong style={{ color: 'var(--color-accent)' }}>Member benefit</strong>
+            <strong style={{ color: 'var(--color-primary)' }}>Member benefit</strong>
             <p>As a Silver Member, you get free cancellation on most stays.</p>
           </div>
         </div>
@@ -148,7 +148,7 @@ function BookingCard({ booking }: { booking: Record<string, unknown> }): React.R
             {' · '}{(booking['guests'] as number) ?? 1} Adult{(booking['guests'] as number) !== 1 ? 's' : ''}
           </div>
           <div data-booking-card-meta><Icons.Bed size={14} />{(booking['roomType'] as string) ?? '—'}</div>
-          <div data-booking-card-meta style={{ fontFamily: 'monospace', fontSize: 'var(--text-xs)' }}>
+          <div data-booking-card-meta style={{ fontFamily: 'monospace', fontSize: '12px' }}>
             Booking #{(booking['confirmationNumber'] as string) ?? '—'}
           </div>
         </div>

@@ -101,7 +101,7 @@ export default function ComplaintsPage(): React.ReactElement {
     return (
       <div data-page>
         <button type="button" onClick={() => setView('list')}
-          style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', color:'var(--color-text-secondary)', fontSize:'var(--text-sm)', marginBottom:'var(--space-4)', cursor:'pointer' }}>
+          style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', color:'var(--color-text-secondary)', fontSize:'13px', marginBottom:'var(--space-4)', cursor:'pointer' }}>
           <Icons.ChevronLeft size={16} /> Back to complaints
         </button>
 
@@ -135,7 +135,7 @@ export default function ComplaintsPage(): React.ReactElement {
               <label htmlFor="cp-tenant">Property *</label>
               <input id="cp-tenant" type="text" placeholder="Property ID or name" {...form.register('tenantId')} />
               <InlineError message={form.formState.errors.tenantId?.message} />
-              <span style={{ fontSize:'var(--text-xs)', color:'var(--color-text-muted)' }}>
+              <span style={{ fontSize:'12px', color:'var(--color-text-muted)' }}>
                 Select a related booking above to fill this automatically.
               </span>
             </div>
@@ -218,16 +218,16 @@ export default function ComplaintsPage(): React.ReactElement {
             return (
               <div key={c['_id'] as string} data-card-padded style={{ display:'grid', gridTemplateColumns:'1fr auto', gap:'var(--space-4)', alignItems:'flex-start' }}>
                 <div>
-                  <div style={{ fontWeight:'var(--font-semibold)', fontSize:'var(--text-sm)', marginBottom:'var(--space-1)' }}>
+                  <div style={{ fontWeight:'600', fontSize:'13px', marginBottom:'var(--space-1)' }}>
                     {c['subject'] as string}
                   </div>
-                  <div style={{ fontSize:'var(--text-xs)', color:'var(--color-text-secondary)', display:'flex', gap:'var(--space-4)', flexWrap:'wrap' }}>
+                  <div style={{ fontSize:'12px', color:'var(--color-text-secondary)', display:'flex', gap:'var(--space-4)', flexWrap:'wrap' }}>
                     <span>{CATEGORY_LABELS[(c['category'] as string)] ?? c['category'] as string}</span>
                     <span>{created}</span>
                     {propertyName && <span>{propertyName}</span>}
                   </div>
                   {resolution && (
-                    <div style={{ marginTop:'var(--space-3)', padding:'var(--space-3)', background:'var(--color-success-bg)', borderRadius:'var(--radius-md)', fontSize:'var(--text-xs)', color:'var(--color-success)' }}>
+                    <div style={{ marginTop:'var(--space-3)', padding:'var(--space-3)', background:'var(--color-success-bg)', borderRadius:'var(--radius-md)', fontSize:'12px', color:'var(--color-success)' }}>
                       <strong>Resolution:</strong> {resolution}
                     </div>
                   )}
@@ -236,7 +236,7 @@ export default function ComplaintsPage(): React.ReactElement {
                   <StatusBadge status={status} />
                   {status !== 'resolved' && status !== 'closed' && (
                     <Link href={`/support/new?ref=${c['_id'] as string}`} data-btn-ghost
-                      style={{ fontSize:'var(--text-xs)', padding:'var(--space-1) var(--space-3)' }}>
+                      style={{ fontSize:'12px', padding:'var(--space-1) var(--space-3)' }}>
                       Escalate
                     </Link>
                   )}

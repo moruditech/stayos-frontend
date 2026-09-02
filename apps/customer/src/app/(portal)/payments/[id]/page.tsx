@@ -49,7 +49,7 @@ export default function PaymentDetailPage({ params }: Props): React.ReactElement
   return (
     <div data-page>
       <button type="button" onClick={() => router.back()}
-        style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-4)', cursor: 'pointer' }}>
+        style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-secondary)', fontSize: '13px', marginBottom: 'var(--space-4)', cursor: 'pointer' }}>
         <Icons.ChevronLeft size={16} /> Back to payments
       </button>
       <h1 data-page-title>Payment details</h1>
@@ -57,10 +57,10 @@ export default function PaymentDetailPage({ params }: Props): React.ReactElement
       <div data-card-padded style={{ marginBottom: 'var(--space-5)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--space-3)', marginBottom: 'var(--space-6)' }}>
           <div>
-            <div style={{ fontSize: 'var(--text-3xl)', fontWeight: 'var(--font-bold)', color: status === 'refunded' ? 'var(--color-success)' : status === 'due' ? 'var(--color-error)' : 'var(--color-text-primary)' }}>
+            <div style={{ fontSize: '28px', fontWeight: '700', color: status === 'refunded' ? 'var(--color-success)' : status === 'due' ? 'var(--color-danger)' : 'var(--color-text)' }}>
               {status === 'refunded' ? '−' : ''}R{((p['amount'] as number) ?? 0).toLocaleString()}
             </div>
-            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginTop: 'var(--space-1)' }}>{date}</div>
+            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginTop: 'var(--space-1)' }}>{date}</div>
           </div>
           <StatusBadge status={status} />
         </div>
@@ -73,12 +73,12 @@ export default function PaymentDetailPage({ params }: Props): React.ReactElement
             bookingId ? { label: 'Booking', value: `#${bookingConfirmation}`, link: `/bookings/${bookingId}` } : null,
           ].filter(Boolean).map((row) => row && (
             <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 'var(--space-4)', borderBottom: '1px solid var(--color-border)' }}>
-              <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>{row.label}</span>
+              <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>{row.label}</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
                 {row.link ? (
-                  <Link href={row.link} data-link style={{ fontSize: 'var(--text-sm)' }}>{row.value}</Link>
+                  <Link href={row.link} data-link style={{ fontSize: '13px' }}>{row.value}</Link>
                 ) : (
-                  <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-medium)' }}>{row.value}</span>
+                  <span style={{ fontSize: '13px', fontWeight: '500' }}>{row.value}</span>
                 )}
                 {row.copy && <CopyButton value={row.value} label="Copy" />}
               </div>

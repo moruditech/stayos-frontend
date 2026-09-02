@@ -49,8 +49,8 @@ export default function ChangePasswordPage(): React.ReactElement {
         <div style={{ maxWidth:480 }}>
           <div style={{ padding:'var(--space-8)', background:'var(--color-success-bg)', borderRadius:'var(--radius-xl)', textAlign:'center' }}>
             <div style={{ display:'flex', justifyContent:'center', color:'var(--color-success)', marginBottom:'var(--space-4)' }}><Icons.CheckCircle2 size={40} /></div>
-            <h2 style={{ fontSize:'var(--text-lg)', fontWeight:'var(--font-bold)', color:'var(--color-success)', marginBottom:'var(--space-2)' }}>Password updated</h2>
-            <p style={{ fontSize:'var(--text-sm)', color:'var(--color-success)', marginBottom:'var(--space-6)' }}>
+            <h2 style={{ fontSize:'17px', fontWeight:'700', color:'var(--color-success)', marginBottom:'var(--space-2)' }}>Password updated</h2>
+            <p style={{ fontSize:'13px', color:'var(--color-success)', marginBottom:'var(--space-6)' }}>
               All other active sessions have been signed out. You remain signed in on this device.
             </p>
             <button type="button" data-btn-primary onClick={() => router.push('/profile')}>
@@ -64,7 +64,7 @@ export default function ChangePasswordPage(): React.ReactElement {
 
   return (
     <div data-page>
-      <Link href="/profile" data-link style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', fontSize:'var(--text-sm)', marginBottom:'var(--space-5)', textDecoration:'none', color:'var(--color-text-secondary)' }}>
+      <Link href="/profile" data-link style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', fontSize:'13px', marginBottom:'var(--space-5)', textDecoration:'none', color:'var(--color-text-secondary)' }}>
         <Icons.ChevronLeft size={16} /> Back to profile
       </Link>
 
@@ -98,7 +98,7 @@ export default function ChangePasswordPage(): React.ReactElement {
             </button>
           </div>
           <InlineError message={form.formState.errors.newPassword?.message} />
-          <span style={{ fontSize:'var(--text-xs)', color:'var(--color-text-muted)' }}>
+          <span style={{ fontSize:'12px', color:'var(--color-text-muted)' }}>
             Minimum 8 characters.
           </span>
         </div>

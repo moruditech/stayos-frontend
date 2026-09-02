@@ -51,7 +51,7 @@ export default function CommPrefsPage(): React.ReactElement {
 
   return (
     <div data-page>
-      <Link href="/profile" data-link style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', fontSize:'var(--text-sm)', marginBottom:'var(--space-5)', textDecoration:'none', color:'var(--color-text-secondary)' }}>
+      <Link href="/profile" data-link style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', fontSize:'13px', marginBottom:'var(--space-5)', textDecoration:'none', color:'var(--color-text-secondary)' }}>
         <Icons.ChevronLeft size={16} /> Back to profile
       </Link>
 
@@ -59,14 +59,14 @@ export default function CommPrefsPage(): React.ReactElement {
       <p data-page-subtitle>Choose how you&apos;d like us to contact you</p>
 
       <div style={{ display:'flex', flexDirection:'column', gap:'var(--space-4)', maxWidth:560 }}>
-        <div data-card-padded style={{ background:'var(--color-primary-light)' }}>
-          <p style={{ fontSize:'var(--text-sm)', color:'var(--color-primary)' }}>
+        <div data-card-padded style={{ background:'var(--color-primary-tint)' }}>
+          <p style={{ fontSize:'13px', color:'var(--color-primary)' }}>
             <strong>Transactional messages</strong> (booking confirmations, payment receipts, application updates, password resets, and security alerts) are always sent regardless of these preferences — they are required for the service to function.
           </p>
         </div>
 
         <div data-card-padded>
-          <h2 style={{ fontSize:'var(--text-base)', fontWeight:'var(--font-bold)', marginBottom:'var(--space-5)' }}>
+          <h2 style={{ fontSize:'14.5px', fontWeight:'700', marginBottom:'var(--space-5)' }}>
             Marketing and non-essential communications
           </h2>
           <div style={{ display:'flex', flexDirection:'column', gap: 0 }}>
@@ -79,10 +79,10 @@ export default function CommPrefsPage(): React.ReactElement {
                   borderBottom: i < CHANNELS.length-1 ? '1px solid var(--color-border)' : 'none',
                 }}>
                   <div style={{ display:'flex', alignItems:'flex-start', gap:'var(--space-4)' }}>
-                    <span style={{ width:40, height:40, background:'var(--color-surface-muted)', borderRadius:'var(--radius-md)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, color:'var(--color-primary)' }}><ch.icon size={20} /></span>
+                    <span style={{ width:40, height:40, background:'var(--color-bg-sunk)', borderRadius:'var(--radius-md)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, color:'var(--color-primary)' }}><ch.icon size={20} /></span>
                     <div>
-                      <div style={{ fontSize:'var(--text-sm)', fontWeight:'var(--font-semibold)', marginBottom:4 }}>{ch.label}</div>
-                      <div style={{ fontSize:'var(--text-xs)', color:'var(--color-text-secondary)', lineHeight:'var(--leading-relaxed)' }}>{ch.desc}</div>
+                      <div style={{ fontSize:'13px', fontWeight:'600', marginBottom:4 }}>{ch.label}</div>
+                      <div style={{ fontSize:'12px', color:'var(--color-text-secondary)', lineHeight:'1.65' }}>{ch.desc}</div>
                     </div>
                   </div>
                   {/* Toggle switch */}
@@ -108,7 +108,7 @@ export default function CommPrefsPage(): React.ReactElement {
           </div>
         </div>
 
-        <p style={{ fontSize:'var(--text-xs)', color:'var(--color-text-muted)', lineHeight:'var(--leading-relaxed)' }}>
+        <p style={{ fontSize:'12px', color:'var(--color-text-muted)', lineHeight:'1.65' }}>
           You can unsubscribe from marketing emails at any time by clicking the unsubscribe link in any email. Changes take effect within 24 hours. For more information, see our{' '}
           <Link href="/legal/privacy" data-link>Privacy Policy</Link>.
         </p>

@@ -116,7 +116,7 @@ export default function BookingFormPage({ params }: Props): React.ReactElement {
   return (
     <div data-page>
       <button type="button" onClick={() => router.back()}
-        style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-4)', cursor: 'pointer' }}>
+        style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-secondary)', fontSize: '13px', marginBottom: 'var(--space-4)', cursor: 'pointer' }}>
         <Icons.ChevronLeft size={16} /> Back
       </button>
 
@@ -127,14 +127,14 @@ export default function BookingFormPage({ params }: Props): React.ReactElement {
         {/* Booking summary */}
         <div data-card-padded>
           <div style={{ display: 'flex', gap: 'var(--space-4)', marginBottom: 'var(--space-5)' }}>
-            <div style={{ width: '80px', height: '80px', borderRadius: 'var(--radius-md)', background: 'var(--color-surface-muted)', overflow: 'hidden', flexShrink: 0 }}>
+            <div style={{ width: '80px', height: '80px', borderRadius: 'var(--radius-md)', background: 'var(--color-bg-sunk)', overflow: 'hidden', flexShrink: 0 }}>
               <img src={`/images/properties/${params.slug}-thumb.jpg`} alt=""
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             </div>
             <div>
-              <div style={{ fontWeight: 'var(--font-bold)', marginBottom: 'var(--space-1)' }}>{p['name'] as string}</div>
-              <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+              <div style={{ fontWeight: '700', marginBottom: 'var(--space-1)' }}>{p['name'] as string}</div>
+              <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
                 <Icons.MapPin size={14} /> {p['city'] as string}
               </div>
             </div>
@@ -142,33 +142,33 @@ export default function BookingFormPage({ params }: Props): React.ReactElement {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)', marginBottom: 'var(--space-4)' }}>
             <div>
-              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Check-in</div>
-              <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-semibold)' }}>
+              <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Check-in</div>
+              <div style={{ fontSize: '13px', fontWeight: '600' }}>
                 {checkIn ? new Date(checkIn).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
               </div>
             </div>
             <div>
-              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Check-out</div>
-              <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-semibold)' }}>
+              <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Check-out</div>
+              <div style={{ fontSize: '13px', fontWeight: '600' }}>
                 {checkOut ? new Date(checkOut).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
               </div>
             </div>
           </div>
 
           <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 'var(--space-4)', display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--color-text-secondary)' }}>
               <span>R{rate.toLocaleString()} × {nights} night{nights !== 1 ? 's' : ''}</span>
               <span>R{subtotal.toLocaleString()}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--color-text-secondary)' }}>
               <span>Taxes &amp; fees (indicative)</span>
               <span>R{tax.toLocaleString()}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-base)', fontWeight: 'var(--font-bold)', marginTop: 'var(--space-2)', paddingTop: 'var(--space-2)', borderTop: '1px solid var(--color-border)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14.5px', fontWeight: '700', marginTop: 'var(--space-2)', paddingTop: 'var(--space-2)', borderTop: '1px solid var(--color-border)' }}>
               <span>Total</span>
               <span>R{total.toLocaleString()}</span>
             </div>
-            <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+            <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
               Final amount calculated by the property at checkout.
             </p>
           </div>
@@ -212,10 +212,10 @@ export default function BookingFormPage({ params }: Props): React.ReactElement {
             <ConsentGate
               legalText={
                 <div>
-                  <p style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-semibold)', marginBottom: 'var(--space-2)' }}>
+                  <p style={{ fontSize: '13px', fontWeight: '600', marginBottom: 'var(--space-2)' }}>
                     Data sharing consent
                   </p>
-                  <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', lineHeight: 'var(--leading-relaxed)' }}>
+                  <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: '1.65' }}>
                     {consentText}
                   </p>
                 </div>
@@ -234,7 +234,7 @@ export default function BookingFormPage({ params }: Props): React.ReactElement {
               {createMutation.isPending ? 'Confirming booking…' : 'Confirm booking'}
             </button>
 
-            <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', textAlign: 'center' }}>
+            <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', textAlign: 'center' }}>
               By confirming, you agree to the property&apos;s cancellation policy and our{' '}
               <Link href="/legal/terms" data-link>Terms of Service</Link>.
             </p>

@@ -97,7 +97,7 @@ export default function PaymentsPage(): React.ReactElement {
       {isLoading ? <SkeletonLoader rows={4} /> : (
         <div data-card-padded style={{ padding: '0 var(--space-6)' }}>
           {all.length === 0 ? (
-            <p style={{ padding: 'var(--space-6) 0', color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)' }}>
+            <p style={{ padding: 'var(--space-6) 0', color: 'var(--color-text-secondary)', fontSize: '13px' }}>
               No transactions yet.
             </p>
           ) : all.slice(0, 8).map((p) => <TransactionItem key={p['_id'] as string} payment={p} />)}
@@ -112,10 +112,10 @@ export default function PaymentsPage(): React.ReactElement {
         <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--color-text-muted)', marginBottom: 'var(--space-3)' }}>
           <Icons.Wallet size={32} />
         </div>
-        <p style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-semibold)', marginBottom: 'var(--space-1)' }}>
+        <p style={{ fontSize: '13px', fontWeight: '600', marginBottom: 'var(--space-1)' }}>
           Saved payment methods
         </p>
-        <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>
+        <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
           Managing saved cards isn&apos;t available yet. You can still pay any due amount from your bookings or payment history.
         </p>
       </div>
@@ -139,16 +139,16 @@ export default function PaymentsPage(): React.ReactElement {
 
 const STATUS_ICON_MAP: Record<string, LucideIcon> = { paid: Icons.Building2, refunded: Icons.RefreshCcw, due: Icons.FileText };
 const STATUS_TINT_MAP: Record<string, { bg: string; fg: string }> = {
-  paid:     { bg: 'var(--color-primary-light)', fg: 'var(--color-primary)' },
+  paid:     { bg: 'var(--color-primary-tint)', fg: 'var(--color-primary)' },
   refunded: { bg: 'var(--color-info-bg)',       fg: 'var(--color-info)' },
-  due:      { bg: 'var(--color-sand-bg)',       fg: 'var(--color-text-secondary)' },
+  due:      { bg: 'var(--color-bg-sunk)',       fg: 'var(--color-text-secondary)' },
 };
 
 function TransactionItem({ payment: p }: { payment: Record<string, unknown> }): React.ReactElement {
   const status = p['status'] as string;
   const date   = new Date(p['createdAt'] as string).toLocaleDateString('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' });
   const StatusIcon = STATUS_ICON_MAP[status] ?? Icons.CreditCard;
-  const tint = STATUS_TINT_MAP[status] ?? { bg: 'var(--color-surface-muted)', fg: 'var(--color-text-secondary)' };
+  const tint = STATUS_TINT_MAP[status] ?? { bg: 'var(--color-bg-sunk)', fg: 'var(--color-text-secondary)' };
   return (
     <Link href={`/payments/${p['_id'] as string}`} data-transaction-item style={{ textDecoration: 'none' }}>
       <span data-transaction-icon style={{ background: tint.bg, color: tint.fg }}>

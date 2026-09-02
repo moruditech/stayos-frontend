@@ -63,7 +63,7 @@ function RevealField({
 
   return (
     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'var(--space-3)', paddingBottom:'var(--space-3)', borderBottom:'1px solid var(--color-border)' }}>
-      <div style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', minWidth:120 }}>{label}</div>
+      <div style={{ fontSize:'13px', color:'var(--color-text-secondary)', minWidth:120 }}>{label}</div>
 
       {editing ? (
         <div style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', flex:1 }}>
@@ -74,23 +74,23 @@ function RevealField({
             style={{ flex:1 }}
             autoFocus
           />
-          <button type="button" data-btn-primary onClick={handleSave} disabled={isSaving} style={{ fontSize:'var(--text-xs)', padding:'var(--space-1) var(--space-3)' }}>
+          <button type="button" data-btn-primary onClick={handleSave} disabled={isSaving} style={{ fontSize:'12px', padding:'var(--space-1) var(--space-3)' }}>
             {isSaving ? 'Saving…' : 'Save'}
           </button>
-          <button type="button" data-btn-secondary onClick={handleCancel} style={{ fontSize:'var(--text-xs)', padding:'var(--space-1) var(--space-3)' }}>
+          <button type="button" data-btn-secondary onClick={handleCancel} style={{ fontSize:'12px', padding:'var(--space-1) var(--space-3)' }}>
             Cancel
           </button>
         </div>
       ) : (
         <div style={{ display:'flex', alignItems:'center', gap:'var(--space-2)' }}>
-          <span style={{ fontFamily:'monospace', fontSize:'var(--text-sm)' }}>{displayValue}</span>
+          <span style={{ fontFamily:'monospace', fontSize:'13px' }}>{displayValue}</span>
           {revealed !== null ? (
             <>
-              <button type="button" data-btn-ghost onClick={() => setRevealed(null)} style={{ fontSize:'var(--text-xs)' }}>Hide</button>
-              <button type="button" data-btn-ghost onClick={handleEdit} style={{ fontSize:'var(--text-xs)' }}>Edit</button>
+              <button type="button" data-btn-ghost onClick={() => setRevealed(null)} style={{ fontSize:'12px' }}>Hide</button>
+              <button type="button" data-btn-ghost onClick={handleEdit} style={{ fontSize:'12px' }}>Edit</button>
             </>
           ) : (
-            <button type="button" data-btn-ghost onClick={handleReveal} disabled={loading} style={{ fontSize:'var(--text-xs)' }}>
+            <button type="button" data-btn-ghost onClick={handleReveal} disabled={loading} style={{ fontSize:'12px' }}>
               {loading ? 'Loading…' : 'Reveal'}
             </button>
           )}
@@ -122,7 +122,7 @@ function CommPrefsSection({ profile }: { profile: Record<string,unknown> | undef
 
   return (
     <div data-card-padded>
-      <h3 style={{ fontSize:'var(--text-sm)', fontWeight:'var(--font-semibold)', marginBottom:'var(--space-4)' }}>Communication preferences</h3>
+      <h3 style={{ fontSize:'13px', fontWeight:'600', marginBottom:'var(--space-4)' }}>Communication preferences</h3>
       <div style={{ display:'flex', flexDirection:'column', gap:'var(--space-3)' }}>
         {(['email','sms','whatsapp','push'] as const).map((ch) => (
           <label key={ch} data-checkbox-label style={{ justifyContent:'space-between' }}>
@@ -202,11 +202,11 @@ export default function ProfilePage(): React.ReactElement {
 
       {/* Avatar card */}
       <div style={{ display:'flex', alignItems:'center', gap:'var(--space-5)', marginBottom:'var(--space-6)', padding:'var(--space-6)', background:'var(--color-surface)', border:'1px solid var(--color-border)', borderRadius:'var(--radius-xl)' }}>
-        <div style={{ width:72, height:72, borderRadius:'50%', background:'var(--color-primary)', color:'white', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'var(--text-2xl)', fontWeight:'var(--font-bold)', flexShrink:0 }}>{initials}</div>
+        <div style={{ width:72, height:72, borderRadius:'50%', background:'var(--color-primary)', color:'white', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px', fontWeight:'700', flexShrink:0 }}>{initials}</div>
         <div>
-          <div style={{ fontSize:'var(--text-xl)', fontWeight:'var(--font-bold)' }}>{p?.['firstName'] as string} {p?.['lastName'] as string}</div>
-          <div style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', marginTop:4 }}>{p?.['email'] as string}</div>
-          <div style={{ fontSize:'var(--text-xs)', color:'var(--color-text-muted)', marginTop:4, textTransform:'capitalize' }}>{(session?.role ?? '').replace(/_/g,' ')}</div>
+          <div style={{ fontSize:'19px', fontWeight:'700' }}>{p?.['firstName'] as string} {p?.['lastName'] as string}</div>
+          <div style={{ fontSize:'13px', color:'var(--color-text-secondary)', marginTop:4 }}>{p?.['email'] as string}</div>
+          <div style={{ fontSize:'12px', color:'var(--color-text-muted)', marginTop:4, textTransform:'capitalize' }}>{(session?.role ?? '').replace(/_/g,' ')}</div>
         </div>
       </div>
 
@@ -243,13 +243,13 @@ export default function ProfilePage(): React.ReactElement {
 
           {/* Protected PII fields */}
           <div data-card-padded>
-            <h3 style={{ fontSize:'var(--text-sm)', fontWeight:'var(--font-semibold)', color:'var(--color-text-secondary)', marginBottom:'var(--space-4)' }}>Protected information</h3>
+            <h3 style={{ fontSize:'13px', fontWeight:'600', color:'var(--color-text-secondary)', marginBottom:'var(--space-4)' }}>Protected information</h3>
             <div style={{ display:'flex', flexDirection:'column', gap:'var(--space-4)' }}>
               <RevealField fieldKey="phone"       label="Phone number"  inputType="tel"  onSave={(k, v) => updateMutation.mutate({ [k]: v })} isSaving={updateMutation.isPending} />
               <RevealField fieldKey="idNumber"    label="ID number"     inputType="text" onSave={(k, v) => updateMutation.mutate({ [k]: v })} isSaving={updateMutation.isPending} />
               <RevealField fieldKey="dateOfBirth" label="Date of birth" inputType="date" onSave={(k, v) => updateMutation.mutate({ [k]: v })} isSaving={updateMutation.isPending} />
             </div>
-            <p style={{ fontSize:'var(--text-xs)', color:'var(--color-text-muted)', marginTop:'var(--space-4)' }}>
+            <p style={{ fontSize:'12px', color:'var(--color-text-muted)', marginTop:'var(--space-4)' }}>
               These fields are masked for your security. Each reveal is logged and rate-limited.
             </p>
           </div>
@@ -263,18 +263,18 @@ export default function ProfilePage(): React.ReactElement {
       {tab === 'security' && (
         <div style={{ display:'flex', flexDirection:'column', gap:'var(--space-5)' }}>
           <div data-card-padded>
-            <h3 style={{ fontSize:'var(--text-base)', fontWeight:'var(--font-bold)', marginBottom:'var(--space-3)' }}>Change password</h3>
-            <p style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', marginBottom:'var(--space-4)' }}>Changing your password signs out all other active sessions.</p>
+            <h3 style={{ fontSize:'14.5px', fontWeight:'700', marginBottom:'var(--space-3)' }}>Change password</h3>
+            <p style={{ fontSize:'13px', color:'var(--color-text-secondary)', marginBottom:'var(--space-4)' }}>Changing your password signs out all other active sessions.</p>
             <Link href="/profile/password" data-btn-secondary>Change password →</Link>
           </div>
           <div data-card-padded>
-            <h3 style={{ fontSize:'var(--text-base)', fontWeight:'var(--font-bold)', marginBottom:'var(--space-3)' }}>Connected accounts</h3>
+            <h3 style={{ fontSize:'14.5px', fontWeight:'700', marginBottom:'var(--space-3)' }}>Connected accounts</h3>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
               <div style={{ display:'flex', alignItems:'center', gap:'var(--space-3)' }}>
-                <span style={{ fontSize:'var(--text-xl)', fontWeight:'var(--font-bold)', color:'#4285F4' }}>G</span>
+                <span style={{ fontSize:'19px', fontWeight:'700', color:'#4285F4' }}>G</span>
                 <div>
-                  <div style={{ fontSize:'var(--text-sm)', fontWeight:'var(--font-semibold)' }}>Google</div>
-                  <div style={{ fontSize:'var(--text-xs)', color:'var(--color-text-secondary)' }}>{p?.['oAuthProvider']==='google'?'Connected':'Not connected'}</div>
+                  <div style={{ fontSize:'13px', fontWeight:'600' }}>Google</div>
+                  <div style={{ fontSize:'12px', color:'var(--color-text-secondary)' }}>{p?.['oAuthProvider']==='google'?'Connected':'Not connected'}</div>
                 </div>
               </div>
               {p?.['oAuthProvider']!=='google' && <a href="/api/v1/auth/google" data-btn-secondary>Connect</a>}
@@ -287,12 +287,12 @@ export default function ProfilePage(): React.ReactElement {
       {tab === 'data' && (
         <div style={{ display:'flex', flexDirection:'column', gap:'var(--space-5)' }}>
           <div data-card-padded>
-            <h3 style={{ fontSize:'var(--text-base)', fontWeight:'var(--font-bold)', marginBottom:'var(--space-2)' }}>Export my data</h3>
-            <p style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', marginBottom:'var(--space-4)', lineHeight:'var(--leading-relaxed)' }}>
+            <h3 style={{ fontSize:'14.5px', fontWeight:'700', marginBottom:'var(--space-2)' }}>Export my data</h3>
+            <p style={{ fontSize:'13px', color:'var(--color-text-secondary)', marginBottom:'var(--space-4)', lineHeight:'1.65' }}>
               Download a copy of your personal data — profile, bookings, payments, reviews, complaints, loyalty account, and all consent records held for your account.
             </p>
             {exportDone ? (
-              <div style={{ padding:'var(--space-4)', background:'var(--color-success-bg)', borderRadius:'var(--radius-md)', fontSize:'var(--text-sm)', color:'var(--color-success)', fontWeight:'var(--font-medium)', display:'flex', alignItems:'center', gap:'var(--space-2)' }}>
+              <div style={{ padding:'var(--space-4)', background:'var(--color-success-bg)', borderRadius:'var(--radius-md)', fontSize:'13px', color:'var(--color-success)', fontWeight:'500', display:'flex', alignItems:'center', gap:'var(--space-2)' }}>
                 <Icons.CheckCircle2 size={16} /> Export requested. You will receive an email with a download link within 24 hours.
               </div>
             ) : (
@@ -302,15 +302,15 @@ export default function ProfilePage(): React.ReactElement {
             )}
           </div>
 
-          <div data-card-padded style={{ borderColor:'var(--color-error)' }}>
-            <h3 style={{ fontSize:'var(--text-base)', fontWeight:'var(--font-bold)', color:'var(--color-error)', marginBottom:'var(--space-2)' }}>Delete account</h3>
-            <p style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', marginBottom:'var(--space-2)', lineHeight:'var(--leading-relaxed)' }}>
+          <div data-card-padded style={{ borderColor:'var(--color-danger)' }}>
+            <h3 style={{ fontSize:'14.5px', fontWeight:'700', color:'var(--color-danger)', marginBottom:'var(--space-2)' }}>Delete account</h3>
+            <p style={{ fontSize:'13px', color:'var(--color-text-secondary)', marginBottom:'var(--space-2)', lineHeight:'1.65' }}>
               Deleting your account deactivates it immediately and revokes all active sessions. Personal data is removed from active records within 30 days.
             </p>
-            <p style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', marginBottom:'var(--space-4)', lineHeight:'var(--leading-relaxed)' }}>
+            <p style={{ fontSize:'13px', color:'var(--color-text-secondary)', marginBottom:'var(--space-4)', lineHeight:'1.65' }}>
               <strong>Note:</strong> A record of your consent history is retained permanently as required for compliance purposes, even after deletion. This cannot be removed.
             </p>
-            <button type="button" data-btn-ghost style={{ color:'var(--color-error)', borderColor:'var(--color-error)' }} onClick={() => setDeleteOpen(true)}>
+            <button type="button" data-btn-ghost style={{ color:'var(--color-danger)', borderColor:'var(--color-danger)' }} onClick={() => setDeleteOpen(true)}>
               Delete my account
             </button>
           </div>

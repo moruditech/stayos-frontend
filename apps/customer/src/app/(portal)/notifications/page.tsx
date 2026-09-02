@@ -99,23 +99,23 @@ export default function NotificationsPage(): React.ReactElement {
               <div key={notif['_id'] as string}
                 style={{
                   display: 'flex', alignItems: 'flex-start', gap: 'var(--space-4)',
-                  padding: 'var(--space-4)', background: isRead ? 'var(--color-surface)' : 'var(--color-primary-light)',
+                  padding: 'var(--space-4)', background: isRead ? 'var(--color-surface)' : 'var(--color-primary-tint)',
                   borderRadius: 'var(--radius-lg)', border: `1px solid ${isRead ? 'var(--color-border)' : 'var(--color-primary)'}`,
-                  cursor: 'pointer', transition: 'background var(--transition-fast)',
+                  cursor: 'pointer', transition: 'background 120ms ease',
                 }}
                 onClick={() => { if (!isRead) markReadMutation.mutate(notif['_id'] as string); }}
               >
-                <div style={{ width: '40px', height: '40px', background: isRead ? 'var(--color-surface-muted)' : 'rgba(27,77,62,0.12)', borderRadius: 'var(--radius-full)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)', flexShrink: 0 }}>
+                <div style={{ width: '40px', height: '40px', background: isRead ? 'var(--color-bg-sunk)' : 'rgba(27,77,62,0.12)', borderRadius: 'var(--radius-pill)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)', flexShrink: 0 }}>
                   <NotifIcon size={18} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 'var(--text-sm)', fontWeight: isRead ? 'var(--font-normal)' : 'var(--font-semibold)', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: isRead ? '400' : '600', marginBottom: '4px' }}>
                     {notif['title'] as string}
                   </div>
-                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', lineHeight: 'var(--leading-relaxed)' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', lineHeight: '1.65' }}>
                     {notif['message'] as string}
                   </div>
-                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
                     {dateStr} at {timeStr}
                   </div>
                 </div>

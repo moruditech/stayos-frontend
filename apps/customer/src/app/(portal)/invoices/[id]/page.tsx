@@ -40,7 +40,7 @@ export default function InvoiceDetailPage({ params }: Props): React.ReactElement
   return (
     <div data-page>
       <button type="button" onClick={() => router.back()}
-        style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-4)', cursor: 'pointer' }}>
+        style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-secondary)', fontSize: '13px', marginBottom: 'var(--space-4)', cursor: 'pointer' }}>
         <Icons.ChevronLeft size={16} /> Back to invoices
       </button>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--space-3)', marginBottom: 'var(--space-6)' }}>
@@ -52,29 +52,29 @@ export default function InvoiceDetailPage({ params }: Props): React.ReactElement
       </div>
 
       <div data-card-padded style={{ marginBottom: 'var(--space-5)' }}>
-        <h3 style={{ fontWeight: 'var(--font-bold)', fontSize: 'var(--text-base)', marginBottom: 'var(--space-4)' }}>Line items</h3>
+        <h3 style={{ fontWeight: '700', fontSize: '14.5px', marginBottom: 'var(--space-4)' }}>Line items</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
           {lineItems.map((item, i) => (
-            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-sm)', paddingBottom: 'var(--space-3)', borderBottom: '1px solid var(--color-border)' }}>
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', paddingBottom: 'var(--space-3)', borderBottom: '1px solid var(--color-border)' }}>
               <div>
-                <div style={{ fontWeight: 'var(--font-medium)' }}>{item['description'] as string}</div>
-                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', textTransform: 'capitalize' }}>{(item['category'] as string)?.replace(/_/g, ' ')}</div>
+                <div style={{ fontWeight: '500' }}>{item['description'] as string}</div>
+                <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', textTransform: 'capitalize' }}>{(item['category'] as string)?.replace(/_/g, ' ')}</div>
               </div>
-              <span style={{ fontWeight: 'var(--font-semibold)' }}>R{((item['amount'] as number) ?? 0).toLocaleString()}</span>
+              <span style={{ fontWeight: '600' }}>R{((item['amount'] as number) ?? 0).toLocaleString()}</span>
             </div>
           ))}
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-base)', fontWeight: 'var(--font-bold)', paddingTop: 'var(--space-2)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14.5px', fontWeight: '700', paddingTop: 'var(--space-2)' }}>
             <span>Total</span>
             <span>R{((inv['totalAmount'] as number) ?? 0).toLocaleString()}</span>
           </div>
           {(inv['paidAmount'] as number) > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-sm)', color: 'var(--color-success)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--color-success)' }}>
               <span>Amount paid</span>
               <span>−R{(inv['paidAmount'] as number).toLocaleString()}</span>
             </div>
           )}
           {(inv['balanceDue'] as number) > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-base)', fontWeight: 'var(--font-bold)', color: 'var(--color-error)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14.5px', fontWeight: '700', color: 'var(--color-danger)' }}>
               <span>Balance due</span>
               <span>R{(inv['balanceDue'] as number).toLocaleString()}</span>
             </div>

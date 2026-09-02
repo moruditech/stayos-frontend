@@ -84,8 +84,8 @@ export default function LoyaltyPage(): React.ReactElement {
           {EARN_WAYS.map((w) => (
             <div key={w.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '2px' }}>
               <span style={{ color: 'var(--color-text-secondary)', marginBottom: 'var(--space-1)' }}><w.icon size={20} /></span>
-              <div style={{ fontSize: '11px', fontWeight: 'var(--font-medium)', color: 'var(--color-text-primary)' }}>{w.label}</div>
-              <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-bold)', color: 'var(--color-primary)' }}>{w.detail}</div>
+              <div style={{ fontSize: '11px', fontWeight: '500', color: 'var(--color-text)' }}>{w.label}</div>
+              <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--color-primary)' }}>{w.detail}</div>
               <div style={{ fontSize: '10px', color: 'var(--color-text-muted)' }}>{w.sub}</div>
             </div>
           ))}
@@ -105,18 +105,18 @@ export default function LoyaltyPage(): React.ReactElement {
           { label: 'Late checkout',      cost: '500 QP',   popular: false, image: 'reward-checkout' },
         ].map((r) => (
           <div key={r.label} data-card data-horizontal-scroll-item style={{ overflow: 'hidden', cursor: 'pointer' }}>
-            <div style={{ aspectRatio: '4/3', background: 'var(--color-surface-muted)', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ aspectRatio: '4/3', background: 'var(--color-bg-sunk)', position: 'relative', overflow: 'hidden' }}>
               {/* Image path: /images/loyalty/[reward-image].jpg */}
               <img src={`/images/loyalty/${r.image}.jpg`} alt={r.label} loading="lazy"
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
               {r.popular && (
-                <span style={{ position: 'absolute', top: 'var(--space-2)', left: 'var(--space-2)', background: 'var(--color-primary)', color: 'white', fontSize: '10px', fontWeight: 'var(--font-bold)', padding: '2px 8px', borderRadius: 'var(--radius-full)' }}>Popular</span>
+                <span style={{ position: 'absolute', top: 'var(--space-2)', left: 'var(--space-2)', background: 'var(--color-primary)', color: 'white', fontSize: '10px', fontWeight: '700', padding: '2px 8px', borderRadius: 'var(--radius-pill)' }}>Popular</span>
               )}
             </div>
             <div style={{ padding: 'var(--space-3)' }}>
-              <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-semibold)', marginBottom: 'var(--space-1)' }}>{r.label}</div>
-              <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-bold)', color: 'var(--color-primary)' }}>{r.cost}</div>
+              <div style={{ fontSize: '13px', fontWeight: '600', marginBottom: 'var(--space-1)' }}>{r.label}</div>
+              <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--color-primary)' }}>{r.cost}</div>
             </div>
           </div>
         ))}
@@ -129,7 +129,7 @@ export default function LoyaltyPage(): React.ReactElement {
       </div>
       <div data-card-padded style={{ padding: '0 var(--space-6)', marginBottom: 'var(--space-6)' }}>
         {hist.length === 0 ? (
-          <p style={{ padding: 'var(--space-5) 0', color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)' }}>No activity yet.</p>
+          <p style={{ padding: 'var(--space-5) 0', color: 'var(--color-text-secondary)', fontSize: '13px' }}>No activity yet.</p>
         ) : hist.slice(0, 4).map((h) => {
           const desc = ((h['description'] as string) ?? '').toLowerCase();
           let ActivityIcon = Icons.Gift;
@@ -137,7 +137,7 @@ export default function LoyaltyPage(): React.ReactElement {
           if (desc.includes('review')) { ActivityIcon = Icons.Star; tint = 'warning'; }
           else if (desc.includes('refer')) { ActivityIcon = Icons.Users; tint = 'sand'; }
           else if (desc.includes('stay') || desc.includes('booking')) { ActivityIcon = Icons.Bed; tint = 'success'; }
-          const bg = tint === 'warning' ? 'var(--color-warning-bg)' : tint === 'sand' ? 'var(--color-sand-bg)' : 'var(--color-primary-light)';
+          const bg = tint === 'warning' ? 'var(--color-warning-bg)' : tint === 'sand' ? 'var(--color-bg-sunk)' : 'var(--color-primary-tint)';
           const fg = tint === 'warning' ? 'var(--color-warning)' : tint === 'sand' ? 'var(--color-text-secondary)' : 'var(--color-primary)';
           return (
           <div key={h['_id'] as string} data-transaction-item>
@@ -161,7 +161,7 @@ export default function LoyaltyPage(): React.ReactElement {
       </div>
 
       {/* Referral callout */}
-      <div data-support-callout style={{ background: 'var(--color-primary-light)', borderColor: 'var(--color-primary)', marginBottom: 'var(--space-6)' }}>
+      <div data-support-callout style={{ background: 'var(--color-primary-tint)', borderColor: 'var(--color-primary)', marginBottom: 'var(--space-6)' }}>
         <div data-support-callout-text>
           <span style={{ color: 'var(--color-primary)' }}><Icons.Gift size={32} /></span>
           <div>
@@ -185,8 +185,8 @@ export default function LoyaltyPage(): React.ReactElement {
           return (
             <div key={t.id} data-card-padded style={{ textAlign: 'center', borderColor: isCurrent ? 'var(--color-primary)' : undefined }}>
               <div style={{ display: 'flex', justifyContent: 'center', color: t.color, marginBottom: 'var(--space-2)' }}><t.icon size={26} /></div>
-              <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-bold)' }}>{t.label}</div>
-              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', margin: 'var(--space-1) 0' }}>{t.range}</div>
+              <div style={{ fontSize: '13px', fontWeight: '700' }}>{t.label}</div>
+              <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: 'var(--space-1) 0' }}>{t.range}</div>
               {isCurrent ? (
                 <span data-status-badge data-status="confirmed" style={{ fontSize: '10px' }}>Current</span>
               ) : toNext > 0 && t.id !== 'silver' ? (

@@ -10,9 +10,9 @@ import { paymentKeys } from '@/lib/query-keys';
 
 const STATUS_ICON_MAP: Record<string, LucideIcon> = { paid: Icons.Building2, refunded: Icons.RefreshCcw, due: Icons.FileText };
 const STATUS_TINT_MAP: Record<string, { bg: string; fg: string }> = {
-  paid:     { bg: 'var(--color-primary-light)', fg: 'var(--color-primary)' },
+  paid:     { bg: 'var(--color-primary-tint)', fg: 'var(--color-primary)' },
   refunded: { bg: 'var(--color-info-bg)',       fg: 'var(--color-info)' },
-  due:      { bg: 'var(--color-sand-bg)',       fg: 'var(--color-text-secondary)' },
+  due:      { bg: 'var(--color-bg-sunk)',       fg: 'var(--color-text-secondary)' },
 };
 
 const FILTERS: { id: string; label: string }[] = [
@@ -40,7 +40,7 @@ export default function AllPaymentsPage(): React.ReactElement {
   return (
     <div data-page>
       <button type="button" onClick={() => router.back()}
-        style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-4)', cursor: 'pointer' }}>
+        style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-secondary)', fontSize: '13px', marginBottom: 'var(--space-4)', cursor: 'pointer' }}>
         <Icons.ChevronLeft size={16} /> Back to payments
       </button>
 
@@ -73,7 +73,7 @@ function TransactionRow({ payment: p }: { payment: Record<string, unknown> }): R
   const status = p['status'] as string;
   const date   = new Date(p['createdAt'] as string).toLocaleDateString('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' });
   const StatusIcon = STATUS_ICON_MAP[status] ?? Icons.CreditCard;
-  const tint = STATUS_TINT_MAP[status] ?? { bg: 'var(--color-surface-muted)', fg: 'var(--color-text-secondary)' };
+  const tint = STATUS_TINT_MAP[status] ?? { bg: 'var(--color-bg-sunk)', fg: 'var(--color-text-secondary)' };
   return (
     <Link href={`/payments/${p['_id'] as string}`} data-transaction-item style={{ textDecoration: 'none' }}>
       <span data-transaction-icon style={{ background: tint.bg, color: tint.fg }}>

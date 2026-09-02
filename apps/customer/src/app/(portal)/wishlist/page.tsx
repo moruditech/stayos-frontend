@@ -71,7 +71,7 @@ export default function WishlistPage(): React.ReactElement {
                       <span data-property-rate>R{((p['baseRate'] as number) ?? 0).toLocaleString()}</span>
                       <span data-property-rate-label> / night</span>
                     </div>
-                    <Link href={`/accommodation/${p['slug'] as string}`} data-btn-primary style={{ padding:'var(--space-2) var(--space-4)', fontSize:'var(--text-sm)' }}>
+                    <Link href={`/accommodation/${p['slug'] as string}`} data-btn-primary style={{ padding:'var(--space-2) var(--space-4)', fontSize:'13px' }}>
                       View
                     </Link>
                   </div>

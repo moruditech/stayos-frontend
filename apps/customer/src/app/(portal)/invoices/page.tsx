@@ -22,7 +22,7 @@ export default function InvoicesPage(): React.ReactElement {
   return (
     <div data-page>
       <button type="button" onClick={() => router.back()}
-        style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-4)', cursor: 'pointer' }}>
+        style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-secondary)', fontSize: '13px', marginBottom: 'var(--space-4)', cursor: 'pointer' }}>
         <Icons.ChevronLeft size={16} /> Back
       </button>
       <h1 data-page-title>Invoices</h1>
@@ -41,17 +41,17 @@ export default function InvoicesPage(): React.ReactElement {
               <Link key={inv_['_id'] as string} href={`/invoices/${inv_['_id'] as string}`}
                 data-card-padded style={{ textDecoration: 'none', color: 'inherit', display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center', gap: 'var(--space-4)' }}>
                 <div>
-                  <div style={{ fontWeight: 'var(--font-semibold)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-1)' }}>
+                  <div style={{ fontWeight: '600', fontSize: '13px', marginBottom: 'var(--space-1)' }}>
                     Invoice #{inv_['invoiceNumber'] as string ?? inv_['_id'] as string}
                   </div>
-                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
                     Issued {issueDate.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })}
                     {dueDate && ` · Due ${dueDate.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })}`}
                   </div>
-                  {isOverdue && <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-error)', fontWeight: 'var(--font-semibold)', marginTop: '4px' }}>Overdue</div>}
+                  {isOverdue && <div style={{ fontSize: '12px', color: 'var(--color-danger)', fontWeight: '600', marginTop: '4px' }}>Overdue</div>}
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 'var(--text-base)', fontWeight: 'var(--font-bold)', color: isOverdue ? 'var(--color-error)' : 'var(--color-text-primary)' }}>
+                  <div style={{ fontSize: '14.5px', fontWeight: '700', color: isOverdue ? 'var(--color-danger)' : 'var(--color-text)' }}>
                     R{((inv_['totalAmount'] as number) ?? 0).toLocaleString()}
                   </div>
                   <div style={{ marginTop: 'var(--space-1)' }}><StatusBadge status={inv_['status'] as string} /></div>

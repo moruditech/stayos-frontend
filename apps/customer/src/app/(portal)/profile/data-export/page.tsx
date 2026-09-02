@@ -38,7 +38,7 @@ export default function DataExportPage(): React.ReactElement {
 
   return (
     <div data-page>
-      <Link href="/profile" data-link style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', fontSize:'var(--text-sm)', marginBottom:'var(--space-5)', textDecoration:'none', color:'var(--color-text-secondary)' }}>
+      <Link href="/profile" data-link style={{ display:'flex', alignItems:'center', gap:'var(--space-2)', fontSize:'13px', marginBottom:'var(--space-5)', textDecoration:'none', color:'var(--color-text-secondary)' }}>
         <Icons.ChevronLeft size={16} /> Back to profile
       </Link>
 
@@ -47,12 +47,12 @@ export default function DataExportPage(): React.ReactElement {
 
       <div style={{ display:'flex', flexDirection:'column', gap:'var(--space-5)', maxWidth:560 }}>
         <div data-card-padded>
-          <h2 style={{ fontSize:'var(--text-base)', fontWeight:'var(--font-bold)', marginBottom:'var(--space-4)' }}>
+          <h2 style={{ fontSize:'14.5px', fontWeight:'700', marginBottom:'var(--space-4)' }}>
             What&apos;s included in your export
           </h2>
           <ul style={{ display:'flex', flexDirection:'column', gap:'var(--space-2)' }}>
             {WHAT_IS_INCLUDED.map((item) => (
-              <li key={item} style={{ display:'flex', gap:'var(--space-2)', fontSize:'var(--text-sm)', color:'var(--color-text-secondary)' }}>
+              <li key={item} style={{ display:'flex', gap:'var(--space-2)', fontSize:'13px', color:'var(--color-text-secondary)' }}>
                 <span style={{ color:'var(--color-primary)', flexShrink:0, display:'flex' }}><Icons.Check size={16} /></span>
                 {item}
               </li>
@@ -60,11 +60,11 @@ export default function DataExportPage(): React.ReactElement {
           </ul>
         </div>
 
-        <div data-card-padded style={{ background:'var(--color-surface-muted)' }}>
-          <h3 style={{ fontSize:'var(--text-sm)', fontWeight:'var(--font-semibold)', marginBottom:'var(--space-2)' }}>
+        <div data-card-padded style={{ background:'var(--color-bg-sunk)' }}>
+          <h3 style={{ fontSize:'13px', fontWeight:'600', marginBottom:'var(--space-2)' }}>
             How it works
           </h3>
-          <ol style={{ paddingLeft:'var(--space-5)', display:'flex', flexDirection:'column', gap:'var(--space-2)', fontSize:'var(--text-sm)', color:'var(--color-text-secondary)' }}>
+          <ol style={{ paddingLeft:'var(--space-5)', display:'flex', flexDirection:'column', gap:'var(--space-2)', fontSize:'13px', color:'var(--color-text-secondary)' }}>
             <li>Click the button below to request your data export.</li>
             <li>We compile your data into a machine-readable format (JSON + CSV).</li>
             <li>You receive an email with a secure download link within <strong>24 hours</strong>.</li>
@@ -75,10 +75,10 @@ export default function DataExportPage(): React.ReactElement {
         {done ? (
           <div style={{ padding:'var(--space-6)', background:'var(--color-success-bg)', borderRadius:'var(--radius-lg)', textAlign:'center' }}>
             <div style={{ display:'flex', justifyContent:'center', color:'var(--color-success)', marginBottom:'var(--space-3)' }}><Icons.CheckCircle2 size={32} /></div>
-            <h3 style={{ fontSize:'var(--text-base)', fontWeight:'var(--font-bold)', color:'var(--color-success)', marginBottom:'var(--space-2)' }}>
+            <h3 style={{ fontSize:'14.5px', fontWeight:'700', color:'var(--color-success)', marginBottom:'var(--space-2)' }}>
               Export requested
             </h3>
-            <p style={{ fontSize:'var(--text-sm)', color:'var(--color-success)' }}>
+            <p style={{ fontSize:'13px', color:'var(--color-success)' }}>
               You will receive an email at <strong>{session.userId}</strong> with a download link within 24 hours.
             </p>
           </div>
@@ -90,7 +90,7 @@ export default function DataExportPage(): React.ReactElement {
           </button>
         )}
 
-        <p style={{ fontSize:'var(--text-xs)', color:'var(--color-text-muted)', lineHeight:'var(--leading-relaxed)' }}>
+        <p style={{ fontSize:'12px', color:'var(--color-text-muted)', lineHeight:'1.65' }}>
           This is your right under the Protection of Personal Information Act 4 of 2013 (POPIA). If you have questions, contact our Information Officer at privacy@stayos.co.za.
         </p>
       </div>
