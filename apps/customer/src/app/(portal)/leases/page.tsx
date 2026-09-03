@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
@@ -30,7 +31,7 @@ export default function LeasesPage(): React.ReactElement {
             const end   = new Date(l['endDate'] as string);
             const isSigned = l['status'] === 'signed';
             return (
-              <a key={l['_id'] as string} href={`/leases/${l['_id'] as string}`}
+              <Link key={l['_id'] as string} href={`/leases/${l['_id'] as string}`}
                 data-card-padded style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
                 <span style={{ width: 40, height: 40, borderRadius: 'var(--radius-pill)', background: isSigned ? 'var(--color-success-bg)' : 'var(--color-warning-bg)', color: isSigned ? 'var(--color-success)' : 'var(--color-warning)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <Icons.ClipboardList size={18} />
@@ -52,7 +53,7 @@ export default function LeasesPage(): React.ReactElement {
                 </div>
                 <StatusBadge status={l['status'] as string} />
                 <Icons.ChevronRight size={16} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
-              </a>
+              </Link>
             );
           })}
         </div>
