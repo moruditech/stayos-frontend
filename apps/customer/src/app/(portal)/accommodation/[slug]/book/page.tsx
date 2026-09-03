@@ -60,7 +60,9 @@ export default function BookRoomPage({ params }: Props): React.ReactElement {
   const bookMutation = useMutation({
     mutationFn: (input: PublicBookingInput) => api.bookings.createPublic(input),
     onSuccess:  (result) => {
-      setConfirmed((result as Record<string, unknown>)['_id'] as string ?? 'confirmed');
+      // `result` is a fully-typed `Booking` (see @stayos/types/booking) —
+      // `_id` is a required field, so no cast or fallback is needed here.
+      setConfirmed(result._id);
     },
     onError: (err: ApiError) => {
       if (err.code === 'BOOKING_CONFLICT') {
