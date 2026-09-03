@@ -117,14 +117,9 @@ export function ImageLightbox({ images, initialIndex = 0, onClose }: ImageLightb
       e.preventDefault();
       const dist  = touchDistance(e.touches);
       const ratio = dist / pinchState.current.startDist;
-      const midpoint = {
-        x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
-        y: (e.touches[0].clientY + e.touches[1].clientY) / 2,
-      };
       const nextScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, pinchState.current.startScale * ratio));
       setScale(nextScale);
       setOffset((prev) => clampOffset(prev, nextScale));
-      void midpoint;
     }
   }
 
@@ -148,7 +143,12 @@ export function ImageLightbox({ images, initialIndex = 0, onClose }: ImageLightb
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = '';
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // `goTo` intentionally omitted from deps — it only reads `images.length`
+    // (already a dep) and calling it doesn't need to resubscribe the
+    // listener on every index change. Not suppressed via eslint-disable
+    // because this project's ESLint config doesn't have the react-hooks
+    // plugin registered, and a disable-comment for an unregistered rule
+    // is itself a lint error ("Definition for rule ... was not found").
   }, [onClose, images.length]);
 
   const current = images[index] ?? '';
