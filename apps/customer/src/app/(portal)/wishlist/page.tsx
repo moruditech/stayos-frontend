@@ -20,12 +20,16 @@ export default function WishlistPage(): React.ReactElement {
   });
 
   const removeMutation = useMutation({
-    mutationFn: (propertyId: string) => api.customer.removeFromWishlist(propertyId),
+    // removeFromWishlist expects the tenantId (the Tenant document's _id),
+    // not the wishlist subdocument's own _id.
+    mutationFn: (tenantId: string) => api.customer.removeFromWishlist(tenantId),
     onSuccess:  () => { qc.invalidateQueries({ queryKey: wishlistKeys.list() }); toast('Removed from saved places.', 'info'); },
     onError:    (err: ApiError) => toast(err.message ?? 'Failed to remove.', 'error'),
   });
 
-  const all = (wishlist as Record<string,unknown>[] | undefined) ?? [];
+  // Each entry is: { _id, savedAt, notes, tenantId: { _id, name, slug, type,
+  // coverImage, address, ratings, baseRate } } — populated by the backend.
+  const all = (wishlist as Record<string, unknown>[] | undefined) ?? [];
 
   return (
     <div data-page>
@@ -40,43 +44,79 @@ export default function WishlistPage(): React.ReactElement {
         />
       ) : (
         <div data-property-list>
-          {all.map((item) => {
-            const p = item as Record<string,unknown>;
-            const rating = p['rating'] as number | undefined;
+          {all.map((entry) => {
+            // The tenant object is nested under `tenantId` after population.
+            const tenant = (entry['tenantId'] ?? {}) as Record<string, unknown>;
+            const tenantId  = tenant['_id'] as string;
+            const name      = tenant['name'] as string | undefined;
+            const slug      = tenant['slug'] as string | undefined;
+            const type      = tenant['type'] as string | undefined;
+            const cover     = tenant['coverImage'] as string | undefined;
+            const address   = (tenant['address'] ?? {}) as Record<string, unknown>;
+            const city      = address['city'] as string | undefined;
+            const ratings   = (tenant['ratings'] ?? {}) as Record<string, unknown>;
+            const rating    = ratings['overall'] as number | undefined;
+            const baseRate  = tenant['baseRate'] as number | null | undefined;
+
+            if (!slug) return null; // guard against unpopulated entries
+
             return (
-              <div key={p['_id'] as string} data-property-card data-property-list-item>
+              <div key={tenantId ?? (entry['_id'] as string)} data-property-card data-property-list-item>
                 <div data-property-card-image>
-                  {/* /images/properties/[slug]-thumb.jpg */}
-                  <img src={`/images/properties/${p['slug'] as string}-thumb.jpg`} alt={p['name'] as string}
-                    loading="lazy" style={{ width:'100%', height:'100%', objectFit:'cover' }}
-                    onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }} />
-                  <span data-property-type-badge>{(p['type'] as string)?.replace(/_/g,' ')}</span>
-                  <button type="button" data-property-card-wishlist data-saved=""
+                  <img
+                    src={cover ?? `/images/properties/${slug}-thumb.jpg`}
+                    alt={name ?? 'Property'}
+                    loading="lazy"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                  {type && <span data-property-type-badge>{type.replace(/_/g, ' ')}</span>}
+                  <button
+                    type="button"
+                    data-property-card-wishlist
+                    data-saved=""
                     aria-label="Remove from saved"
-                    onClick={() => removeMutation.mutate(p['_id'] as string)}>
+                    onClick={() => removeMutation.mutate(tenantId)}
+                  >
                     <Icons.Heart size={16} fill="currentColor" />
                   </button>
                 </div>
                 <div data-property-card-body>
                   <div data-property-card-header>
-                    <Link href={`/accommodation/${p['slug'] as string}`} data-property-card-name style={{ textDecoration:'none' }}>
-                      {p['name'] as string}
+                    <Link
+                      href={`/accommodation/${slug}`}
+                      data-property-card-name
+                      style={{ textDecoration: 'none' }}
+                    >
+                      {name}
                     </Link>
-                    {rating && <span data-property-card-rating><Icons.Star size={14} fill="currentColor" /> {rating.toFixed(1)}</span>}
+                    {typeof rating === 'number' && rating > 0 && (
+                      <span data-property-card-rating>
+                        <Icons.Star size={14} fill="currentColor" /> {rating.toFixed(1)}
+                      </span>
+                    )}
                   </div>
-                  <div data-property-card-location><Icons.MapPin size={14} /> {p['city'] as string}</div>
+                  {city && (
+                    <div data-property-card-location>
+                      <Icons.MapPin size={14} /> {city}
+                    </div>
+                  )}
                   <div data-property-card-pricing>
                     <div>
-                      {typeof p['baseRate'] === 'number' ? (
+                      {typeof baseRate === 'number' ? (
                         <>
-                          <span data-property-rate>R{(p['baseRate'] as number).toLocaleString()}</span>
+                          <span data-property-rate>R{baseRate.toLocaleString()}</span>
                           <span data-property-rate-label> / night</span>
                         </>
                       ) : (
                         <span data-property-rate>Contact for rate</span>
                       )}
                     </div>
-                    <Link href={`/accommodation/${p['slug'] as string}`} data-btn-primary style={{ padding:'var(--space-2) var(--space-4)', fontSize:'13px' }}>
+                    <Link
+                      href={`/accommodation/${slug}`}
+                      data-btn-primary
+                      style={{ padding: 'var(--space-2) var(--space-4)', fontSize: '13px' }}
+                    >
                       View
                     </Link>
                   </div>
