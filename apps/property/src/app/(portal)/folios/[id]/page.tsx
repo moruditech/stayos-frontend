@@ -131,14 +131,14 @@ export default function FolioDetailPage(): React.ReactElement {
   if (!folio) return <p>Folio not found.</p>;
 
   const f = folio;
-  const hasBalance = f.balanceDue > 0;
+  const hasBalance = f.balance > 0;
 
   return (
     <div data-page="folio-detail">
       <div data-page-header>
         <div>
           <Link href="/bookings" data-breadcrumb><Icons.ChevronLeft data-breadcrumb-icon aria-hidden="true" /> Bookings</Link>
-          <h1>Folio {f.folioNumber}</h1>
+          <h1>Folio — {f.bookingId.confirmationNumber}</h1>
         </div>
         <div data-header-actions>
           <RoleGate perm={PERMISSIONS.FOLIO_MANAGE}>
@@ -153,9 +153,9 @@ export default function FolioDetailPage(): React.ReactElement {
           <DownloadButton
             href={async () => {
               const result = await api.folios.getPdfUrl(id);
-              return result.url;
+              return result.pdfUrl;
             }}
-            filename={`folio-${f.folioNumber}.pdf`}
+            filename={`folio-${f.bookingId.confirmationNumber}.pdf`}
             label="Print folio"
           />
         </div>
@@ -165,16 +165,16 @@ export default function FolioDetailPage(): React.ReactElement {
       <div data-folio-summary-bar>
         <div data-summary-item>
           <span data-summary-label>Total charges</span>
-          <span data-summary-value>{fmtCurrency(f.totalCharges)}</span>
+          <span data-summary-value>{fmtCurrency(f.grandTotal)}</span>
         </div>
         <div data-summary-item>
           <span data-summary-label>Total payments</span>
-          <span data-summary-value>{fmtCurrency(f.totalPayments)}</span>
+          <span data-summary-value>{fmtCurrency(f.paidAmount)}</span>
         </div>
         <div data-summary-item data-balance-due={hasBalance || undefined}>
           <span data-summary-label>Balance due</span>
           <span data-summary-value data-highlight={hasBalance || undefined}>
-            {fmtCurrency(f.balanceDue)}
+            {fmtCurrency(f.balance)}
           </span>
         </div>
         <div data-summary-item>
@@ -203,7 +203,7 @@ export default function FolioDetailPage(): React.ReactElement {
             </thead>
             <tbody>
               {f.lineItems.map((item) => (
-                <tr key={item._id} data-line-item data-voided={item.voided || undefined}>
+                <tr key={item._id} data-line-item data-voided={item.isVoided || undefined}>
                   <td>{new Date(item.date).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })}</td>
                   <td>{item.description}</td>
                   <td data-line-type>{item.type}</td>
@@ -211,7 +211,7 @@ export default function FolioDetailPage(): React.ReactElement {
                   <td>{fmtCurrency(item.unitPrice)}</td>
                   <td data-amount>{fmtCurrency(item.amount)}</td>
                   <td>
-                    {!item.voided && (
+                    {!item.isVoided && (
                       <RoleGate perm={PERMISSIONS.FOLIO_MANAGE}>
                         <button
                           type="button"
@@ -233,19 +233,19 @@ export default function FolioDetailPage(): React.ReactElement {
             <tfoot>
               <tr data-folio-totals>
                 <td colSpan={5} data-total-label>Subtotal</td>
-                <td>{fmtCurrency(f.subtotal)}</td>
+                <td>{fmtCurrency(f.subTotal)}</td>
                 <td />
               </tr>
-              {f.discountAmount > 0 && (
+              {f.taxTotal > 0 && (
                 <tr>
-                  <td colSpan={5} data-total-label>Discount</td>
-                  <td>−{fmtCurrency(f.discountAmount)}</td>
+                  <td colSpan={5} data-total-label>Tax</td>
+                  <td>{fmtCurrency(f.taxTotal)}</td>
                   <td />
                 </tr>
               )}
               <tr data-folio-total-row>
                 <td colSpan={5} data-total-label>Total charges</td>
-                <td data-amount data-grand-total>{fmtCurrency(f.totalCharges)}</td>
+                <td data-amount data-grand-total>{fmtCurrency(f.grandTotal)}</td>
                 <td />
               </tr>
             </tfoot>
@@ -284,7 +284,7 @@ export default function FolioDetailPage(): React.ReactElement {
                     <tr key={pmt._id}>
                       <td>{new Date(pmt.date).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })}</td>
                       <td>{pmt.type}</td>
-                      <td>{pmt.last4 ? `Card ···· ${pmt.last4}` : (pmt.reference ?? '—')}</td>
+                      <td>{pmt.reference ?? '—'}</td>
                       <td data-amount>{fmtCurrency(pmt.amount)}</td>
                     </tr>
                   ))}
@@ -292,12 +292,12 @@ export default function FolioDetailPage(): React.ReactElement {
               </table>
             )}
             <div data-payment-totals>
-              <ReadOnlyField label="Total payments" value={fmtCurrency(f.totalPayments)} />
+              <ReadOnlyField label="Total payments" value={fmtCurrency(f.paidAmount)} />
               <ReadOnlyField
                 label="Balance due"
                 value={
                   <span data-balance={hasBalance ? 'outstanding' : 'clear'}>
-                    {fmtCurrency(f.balanceDue)}
+                    {fmtCurrency(f.balance)}
                   </span>
                 }
               />
@@ -421,7 +421,7 @@ export default function FolioDetailPage(): React.ReactElement {
             <textarea id="settleNote" rows={2} {...settleForm.register('note')} />
           </div>
           <div data-settle-summary>
-            <ReadOnlyField label="Amount to collect" value={fmtCurrency(f.balanceDue)} />
+            <ReadOnlyField label="Amount to collect" value={fmtCurrency(f.balance)} />
           </div>
           <div data-modal-actions>
             <button type="button" data-btn-ghost onClick={() => setShowSettleModal(false)}>

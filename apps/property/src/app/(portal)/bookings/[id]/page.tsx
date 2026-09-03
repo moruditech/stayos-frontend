@@ -175,6 +175,8 @@ export default function BookingDetailPage(): React.ReactElement {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelReasonError, setCancelReasonError] = useState<string | undefined>();
   const [confirmNoShow, setConfirmNoShow] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
 
@@ -198,10 +200,12 @@ export default function BookingDetailPage(): React.ReactElement {
   });
 
   const cancelMutation = useMutation({
-    mutationFn: () => api.bookings.cancel(id),
+    mutationFn: (reason: string) => api.bookings.cancel(id, reason),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: bookingKeys.detail(id) });
       setConfirmCancel(false);
+      setCancelReason('');
+      setCancelReasonError(undefined);
       toast('Booking cancelled.', 'success');
     },
     onError: (err: ApiError) => toast(err.message ?? 'Failed to cancel.', 'error'),
@@ -296,8 +300,8 @@ export default function BookingDetailPage(): React.ReactElement {
               <ReadOnlyField
                 label="Balance due"
                 value={
-                  <span data-balance={Number(f['balanceDue']) > 0 ? 'outstanding' : 'clear'}>
-                    {fmtCurrency(Number(f['balanceDue'] ?? 0))}
+                  <span data-balance={Number(f['balance']) > 0 ? 'outstanding' : 'clear'}>
+                    {fmtCurrency(Number(f['balance'] ?? 0))}
                   </span>
                 }
               />
@@ -362,16 +366,59 @@ export default function BookingDetailPage(): React.ReactElement {
         </div>
       </RoleGate>
 
-      <ConfirmDialog
+      <Modal
         open={confirmCancel}
+        onClose={() => {
+          setConfirmCancel(false);
+          setCancelReason('');
+          setCancelReasonError(undefined);
+        }}
         title="Cancel this booking?"
-        message="This will release the room. The guest will receive a cancellation notification."
-        confirmLabel="Cancel booking"
-        cancelLabel="Keep"
-        destructive
-        onConfirm={() => cancelMutation.mutate()}
-        onCancel={() => setConfirmCancel(false)}
-      />
+      >
+        <p data-modal-message>
+          This will release the room. The guest will receive a cancellation notification.
+        </p>
+        <div data-form-group>
+          <label htmlFor="cancelReason">Cancellation reason</label>
+          <textarea
+            id="cancelReason"
+            rows={3}
+            value={cancelReason}
+            onChange={(e) => setCancelReason(e.target.value)}
+            maxLength={1000}
+          />
+          <InlineError message={cancelReasonError} />
+        </div>
+        <div data-modal-actions>
+          <button
+            type="button"
+            data-btn-ghost
+            onClick={() => {
+              setConfirmCancel(false);
+              setCancelReason('');
+              setCancelReasonError(undefined);
+            }}
+          >
+            Keep booking
+          </button>
+          <button
+            type="button"
+            data-btn-primary
+            data-destructive
+            disabled={cancelMutation.isPending}
+            onClick={() => {
+              const reason = cancelReason.trim();
+              if (!reason) {
+                setCancelReasonError('Cancellation reason is required.');
+                return;
+              }
+              cancelMutation.mutate(reason);
+            }}
+          >
+            {cancelMutation.isPending ? 'Cancelling…' : 'Cancel booking'}
+          </button>
+        </div>
+      </Modal>
 
       <ConfirmDialog
         open={confirmNoShow}

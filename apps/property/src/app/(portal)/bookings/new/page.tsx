@@ -39,19 +39,22 @@ const BOOKING_SOURCES = [
 ] as const;
 
 const newGuestSchema = z.object({
-  guestMode:  z.literal('new'),
-  firstName:  z.string().min(1, 'First name is required'),
-  lastName:   z.string().min(1, 'Last name is required'),
-  email:      z.string().email('Valid email required'),
-  phone:      z.string().optional(),
-  roomId:     z.string().min(1, 'Room is required'),
-  checkIn:    z.string().min(1, 'Check-in date is required'),
-  checkOut:   z.string().min(1, 'Check-out date is required'),
-  adults:     z.coerce.number().min(1).default(1),
-  children:   z.coerce.number().min(0).default(0),
-  source:     z.enum(BOOKING_SOURCES).default('direct'),
-  notes:      z.string().optional(),
-  promoCode:  z.string().optional(),
+  guestMode:      z.literal('new'),
+  // Field names must match staffCreateBookingSchema on the backend exactly
+  // (guestFirstName/guestLastName/guestEmail/guestPhone) — the "guest" prefix
+  // distinguishes these from a staff member's own name elsewhere in the JWT.
+  guestFirstName: z.string().min(1, 'First name is required'),
+  guestLastName:  z.string().min(1, 'Last name is required'),
+  guestEmail:     z.string().email('Valid email required'),
+  guestPhone:     z.string().optional(),
+  roomId:         z.string().min(1, 'Room is required'),
+  checkIn:        z.string().min(1, 'Check-in date is required'),
+  checkOut:       z.string().min(1, 'Check-out date is required'),
+  adults:         z.coerce.number().min(1).default(1),
+  children:       z.coerce.number().min(0).default(0),
+  source:         z.enum(BOOKING_SOURCES).default('direct'),
+  notes:          z.string().optional(),
+  promoCode:      z.string().optional(),
 });
 
 const existingGuestSchema = z.object({
@@ -88,14 +91,7 @@ export default function NewBookingPage(): React.ReactElement {
   // Guest search — debounced against a simple inline search
   const { data: guestResults } = useQuery({
     queryKey: ['guest-search', guestSearch],
-    queryFn: async () => {
-      if (guestSearch.length < 2) return [];
-      const staff = await api.staff.list();
-      // In practice this would be a customer search endpoint;
-      // stubbed here since the customer search API is on /customers, not staff.
-      // The backend POST /bookings accepts customerId OR guest details.
-      return staff;
-    },
+    queryFn: () => api.bookings.searchGuests(guestSearch),
     enabled: guestMode === 'existing' && guestSearch.length >= 2,
   });
 
@@ -127,6 +123,13 @@ export default function NewBookingPage(): React.ReactElement {
       if (err.code === 'VALIDATION_ERROR') {
         if (guestMode === 'new') applyServerErrors(newForm, err);
         else applyServerErrors(existingForm, err);
+        // A whole-form check (e.g. the backend's "must supply customerId or
+        // full guest details" rule) has no single field to attach to, so
+        // applyServerErrors silently drops it — see InlineError.tsx's own
+        // warning about this. Surface those as a toast instead of letting
+        // the submit button just quietly reset with no visible feedback.
+        const hasUnattachedError = err.fields?.some((f) => !f.field);
+        if (hasUnattachedError || !err.fields?.length) toast(err.message, 'error');
       } else {
         toast(err.message ?? 'Failed to create booking.', 'error');
       }
@@ -313,23 +316,23 @@ export default function NewBookingPage(): React.ReactElement {
                   {guestResults.length === 0 ? (
                     <p data-search-empty>No guests found. Try entering details below.</p>
                   ) : (
-                    guestResults.map((g) => {
-                      const gRec = g as unknown as Record<string, unknown>;
-                      return (
-                        <button
-                          key={String(gRec['_id'])}
-                          type="button"
-                          data-search-result-item
-                          onClick={() => {
-                            existingForm.setValue('customerId', String(gRec['_id']));
-                            setGuestSearch(`${String(gRec['firstName'])} ${String(gRec['lastName'])}`);
-                          }}
-                        >
-                          <span>{String(gRec['firstName'])} {String(gRec['lastName'])}</span>
-                          <span data-result-email>{String(gRec['email'] ?? '')}</span>
-                        </button>
-                      );
-                    })
+                    guestResults.map((g) => (
+                      <button
+                        key={g._id}
+                        type="button"
+                        data-search-result-item
+                        onClick={() => {
+                          existingForm.setValue('customerId', g._id);
+                          setGuestSearch(`${g.firstName} ${g.lastName}`);
+                        }}
+                      >
+                        <span>
+                          {g.firstName} {g.lastName}
+                          {g.isBlacklisted && <span data-tag-blacklisted> · Blacklisted</span>}
+                        </span>
+                        <span data-result-email>{g.email}</span>
+                      </button>
+                    ))
                   )}
                 </div>
               )}
@@ -360,26 +363,26 @@ export default function NewBookingPage(): React.ReactElement {
 
             <div data-form-row>
               <div data-form-group>
-                <label htmlFor="firstName">First name</label>
-                <input id="firstName" type="text" {...newForm.register('firstName')} />
-                <InlineError message={newForm.formState.errors.firstName?.message} />
+                <label htmlFor="guestFirstName">First name</label>
+                <input id="guestFirstName" type="text" {...newForm.register('guestFirstName')} />
+                <InlineError message={newForm.formState.errors.guestFirstName?.message} />
               </div>
               <div data-form-group>
-                <label htmlFor="lastName">Last name</label>
-                <input id="lastName" type="text" {...newForm.register('lastName')} />
-                <InlineError message={newForm.formState.errors.lastName?.message} />
+                <label htmlFor="guestLastName">Last name</label>
+                <input id="guestLastName" type="text" {...newForm.register('guestLastName')} />
+                <InlineError message={newForm.formState.errors.guestLastName?.message} />
               </div>
             </div>
 
             <div data-form-group>
-              <label htmlFor="email">Email</label>
-              <input id="email" type="email" {...newForm.register('email')} />
-              <InlineError message={newForm.formState.errors.email?.message} />
+              <label htmlFor="guestEmail">Email</label>
+              <input id="guestEmail" type="email" {...newForm.register('guestEmail')} />
+              <InlineError message={newForm.formState.errors.guestEmail?.message} />
             </div>
 
             <div data-form-group>
-              <label htmlFor="phone">Phone <span data-optional>(optional)</span></label>
-              <input id="phone" type="tel" {...newForm.register('phone')} />
+              <label htmlFor="guestPhone">Phone <span data-optional>(optional)</span></label>
+              <input id="guestPhone" type="tel" {...newForm.register('guestPhone')} />
             </div>
 
             {sharedFields(newForm as unknown as UseFormReturn<FieldValues>, newForm.formState.errors as unknown as Record<string, { message?: string } | undefined>)}

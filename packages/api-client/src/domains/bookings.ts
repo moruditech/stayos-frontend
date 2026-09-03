@@ -8,11 +8,28 @@ import type {
   BookingFilters,
 } from '@stayos/validators';
 
+// GET /bookings/guests result shape — see bookings.service.js#searchGuests.
+// Not the full Customer record, just enough to disambiguate a search result.
+export interface GuestSearchResult {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  accountStatus: string;
+  isBlacklisted: boolean;
+}
+
 export const bookingsApi = {
   // GET /bookings — staff list (Property Operations Portal). customerId and
   // roomId come back populated — see bookings.service.js#listBookings.
   list: (filters?: BookingFilters) =>
     client.get<PopulatedBooking[]>('/bookings', { params: filters as Record<string, string | number | boolean | undefined> }),
+
+  // GET /bookings/guests — existing-guest lookup for the "existing guest"
+  // path of staff booking creation. Searches Customer by name/email; this is
+  // NOT a general customer/CRM search and is unrelated to staff.list().
+  searchGuests: (search: string) =>
+    client.get<GuestSearchResult[]>('/bookings/guests', { params: { search } }),
 
   // GET /bookings/:id — staff detail. Also populated — see #getBooking.
   get: (id: string) => client.get<PopulatedBooking>(`/bookings/${id}`),
