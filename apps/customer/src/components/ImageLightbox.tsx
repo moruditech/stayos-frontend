@@ -102,7 +102,9 @@ export function ImageLightbox({ images, initialIndex = 0, onClose }: ImageLightb
   }
 
   function touchDistance(touches: React.TouchList): number {
-    const [a, b] = [touches[0], touches[1]];
+    const a = touches[0];
+    const b = touches[1];
+    if (!a || !b) return 0;
     return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
   }
 
