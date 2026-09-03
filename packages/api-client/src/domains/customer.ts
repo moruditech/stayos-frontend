@@ -71,6 +71,7 @@ export const customerApi = {
 
   // GET /customers/me/payments
   listPayments: () => client.get<Record<string, unknown>[]>('/customers/me/payments'),
+  getPayment: (id: string) => client.get<Record<string, unknown>>(`/customers/me/payments/${id}`),
 
   // GET /customers/me/invoices
   listInvoices: () => client.get<Record<string, unknown>[]>('/customers/me/invoices'),

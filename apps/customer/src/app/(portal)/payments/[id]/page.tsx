@@ -26,7 +26,7 @@ export default function PaymentDetailPage({ params }: Props): React.ReactElement
 
   const { data: payment, isLoading } = useQuery({
     queryKey: paymentKeys.detail(params.id),
-    queryFn:  () => api.payments.get(params.id),
+    queryFn:  () => api.customer.getPayment(params.id),
     enabled:  !!session,
   });
 

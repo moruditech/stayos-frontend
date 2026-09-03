@@ -1,11 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
-import { SkeletonLoader, EmptyState, Icons, type LucideIcon } from '@stayos/ui';
+import type { ApiError } from '@stayos/api-client';
+import { SkeletonLoader, EmptyState, ConfirmDialog, useToast, Icons, type LucideIcon } from '@stayos/ui';
 import { bookingKeys } from '@/lib/query-keys';
 
 type Tab = 'upcoming' | 'past' | 'cancelled' | 'all';
@@ -85,7 +87,7 @@ export default function BookingsPage(): React.ReactElement {
           { label: 'Modify booking',   icon: Icons.CalendarClock, tint: 'success', path: '/bookings' },
           { label: 'Cancel booking',   icon: Icons.X,             tint: 'warning', path: '/bookings' },
           { label: 'Get invoice',      icon: Icons.FileText,      tint: 'info',    path: '/invoices' },
-          { label: 'Contact property', icon: Icons.MessageCircle, tint: 'sand',  path: '/support' },
+          { label: 'Contact property', icon: Icons.MessageCircle, tint: 'sand',    path: '/support' },
           { label: 'Add to calendar',  icon: Icons.Calendar,      tint: 'success', path: '/bookings' },
         ].map((a) => (
           <Link key={a.label} href={a.path} data-quick-action>
@@ -111,62 +113,226 @@ export default function BookingsPage(): React.ReactElement {
   );
 }
 
+// ─── Booking card ─────────────────────────────────────────────────────────────
+
 function BookingCard({ booking }: { booking: Record<string, unknown> }): React.ReactElement {
+  const qc          = useQueryClient();
+  const { toast }   = useToast();
+  const [menuOpen, setMenuOpen]     = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [menuPos, setMenuPos]       = useState<{ top: number; left: number; visible: boolean }>({ top: 0, left: 0, visible: false });
+  const moreRef   = useRef<HTMLButtonElement>(null);
+  const menuRef   = useRef<HTMLDivElement>(null);
+
+  const bookingId = booking['_id'] as string;
+  const status    = booking['status'] as string;
+
+  // Backend populates tenantId → { name, slug, coverImage, address: { city } }
+  // and roomId → { roomNumber, type }
+  const tenant     = (typeof booking['tenantId'] === 'object' && booking['tenantId'] !== null
+    ? booking['tenantId'] : {}) as Record<string, unknown>;
+  const room       = (typeof booking['roomId'] === 'object' && booking['roomId'] !== null
+    ? booking['roomId'] : {}) as Record<string, unknown>;
+  const address    = (typeof tenant['address'] === 'object' && tenant['address'] !== null
+    ? tenant['address'] : {}) as Record<string, unknown>;
+
+  const propertyName  = (tenant['name']        as string)  ?? 'Property';
+  const propertyCity  = (address['city']        as string)  ?? null;
+  const coverImage    = (tenant['coverImage']   as string)  ?? null;
+  const slug          = (tenant['slug']         as string)  ?? null;
+  const roomType      = (room['type']           as string)  ?? null;
+
   const checkIn   = new Date(booking['checkIn'] as string);
   const checkOut  = new Date(booking['checkOut'] as string);
   const day       = checkIn.getDate();
   const month     = checkIn.toLocaleString('default', { month: 'short' }).toUpperCase();
   const daysUntil = Math.ceil((checkIn.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-  const status    = booking['status'] as string;
+  const isUpcoming = ['confirmed', 'pending_confirmation'].includes(status) && daysUntil > 0;
+
+  const cancelMutation = useMutation({
+    mutationFn: () => api.bookings.cancel(bookingId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: bookingKeys.list() });
+      toast('Booking cancelled.', 'success');
+      setCancelOpen(false);
+    },
+    onError: (err: ApiError) => {
+      toast(err.message ?? 'Cancellation failed.', 'error');
+      setCancelOpen(false);
+    },
+  });
+
+  // Portal menu positioning — same pattern as FilterDropdown
+  useEffect(() => {
+    if (!menuOpen) { setMenuPos((p) => ({ ...p, visible: false })); return; }
+    const place = (clamp: boolean) => {
+      const rect = moreRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const margin = 12;
+      let left = rect.right;
+      if (clamp) {
+        const w = menuRef.current?.offsetWidth ?? 180;
+        if (left + w > window.innerWidth - margin) left = Math.max(margin, rect.left - w);
+      }
+      setMenuPos({ top: rect.bottom + 6, left, visible: clamp });
+    };
+    place(false);
+    const raf = requestAnimationFrame(() => place(true));
+    const close = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (moreRef.current?.contains(t) || menuRef.current?.contains(t)) return;
+      setMenuOpen(false);
+    };
+    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuOpen(false); };
+    document.addEventListener('mousedown', close);
+    document.addEventListener('keydown', key);
+    return () => { cancelAnimationFrame(raf); document.removeEventListener('mousedown', close); document.removeEventListener('keydown', key); };
+  }, [menuOpen]);
+
+  const MENU_ITEMS = [
+    { label: 'View details',     icon: Icons.Eye,            action: 'view' },
+    ...(isUpcoming ? [{ label: 'Cancel booking', icon: Icons.X, action: 'cancel' }] : []),
+    { label: 'Contact property', icon: Icons.MessageCircle,  action: 'contact' },
+    { label: 'View invoice',     icon: Icons.FileText,       action: 'invoice' },
+  ];
 
   return (
-    <div data-booking-card style={{ position: 'relative' }}>
-      <Link href={`/bookings/${booking['_id'] as string}`} data-booking-card-top style={{ textDecoration: 'none', color: 'inherit' }}>
-        <div data-booking-card-image>
-          {/* Image path: /images/properties/[tenantId]-thumb.jpg */}
-          <img src={`/images/properties/${booking['tenantId'] as string}-thumb.jpg`} alt="" loading="lazy"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-          <span data-booking-status-badge>
-            <span data-status-badge data-status={status}>{status.replace(/_/g, ' ')}</span>
-          </span>
-          <div data-booking-date-badge>
-            <span data-booking-date-day>{day}</span>
-            <span data-booking-date-month>{month}</span>
+    <>
+      <div data-booking-card style={{ position: 'relative' }}>
+        <Link href={`/bookings/${bookingId}`} data-booking-card-top style={{ textDecoration: 'none', color: 'inherit' }}>
+          <div data-booking-card-image>
+            {coverImage ? (
+              <img src={coverImage} alt={propertyName} loading="lazy"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+            ) : slug ? (
+              <img src={`/images/properties/${slug}-thumb.jpg`} alt={propertyName} loading="lazy"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+            ) : null}
+            <span data-booking-status-badge>
+              <span data-status-badge data-status={status}>{status.replace(/_/g, ' ')}</span>
+            </span>
+            <div data-booking-date-badge>
+              <span data-booking-date-day>{day}</span>
+              <span data-booking-date-month>{month}</span>
+            </div>
           </div>
-        </div>
-        <div data-booking-card-body>
-          <div data-booking-card-name>
-            {(booking['propertyName'] as string) ?? 'Property'}
-            <Icons.ChevronRight size={16} style={{ color: 'var(--color-text-muted)' }} />
+          <div data-booking-card-body>
+            <div data-booking-card-name>
+              {propertyName}
+              <Icons.ChevronRight size={16} style={{ color: 'var(--color-text-muted)' }} />
+            </div>
+            {propertyCity && (
+              <div data-booking-card-meta><Icons.MapPin size={14} />{propertyCity}</div>
+            )}
+            <div data-booking-card-meta>
+              <Icons.Calendar size={14} />
+              {checkIn.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })}
+              {' – '}
+              {checkOut.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })}
+              {' · '}{(booking['adults'] as number) ?? 1} Adult{(booking['adults'] as number) !== 1 ? 's' : ''}
+            </div>
+            {roomType && (
+              <div data-booking-card-meta><Icons.Bed size={14} />{roomType}</div>
+            )}
+            <div data-booking-card-meta style={{ fontFamily: 'monospace', fontSize: '12px' }}>
+              Booking #{(booking['confirmationNumber'] as string) ?? '—'}
+            </div>
           </div>
-          <div data-booking-card-meta><Icons.MapPin size={14} />{(booking['propertyCity'] as string) ?? '—'}</div>
-          <div data-booking-card-meta>
-            <Icons.Calendar size={14} />
-            {checkIn.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })}
-            {' – '}
-            {checkOut.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })}
-            {' · '}{(booking['guests'] as number) ?? 1} Adult{(booking['guests'] as number) !== 1 ? 's' : ''}
-          </div>
-          <div data-booking-card-meta><Icons.Bed size={14} />{(booking['roomType'] as string) ?? '—'}</div>
-          <div data-booking-card-meta style={{ fontFamily: 'monospace', fontSize: '12px' }}>
-            Booking #{(booking['confirmationNumber'] as string) ?? '—'}
-          </div>
-        </div>
-      </Link>
+        </Link>
 
-      <button type="button" data-btn-icon-square aria-label="More options" data-booking-card-more>
-        <Icons.MoreHorizontal size={16} />
-      </button>
+        {/* ••• action button */}
+        <button
+          type="button"
+          ref={moreRef}
+          data-btn-icon-square
+          aria-label="More options"
+          aria-haspopup="true"
+          aria-expanded={menuOpen}
+          data-booking-card-more
+          onClick={(e) => { e.stopPropagation(); setMenuOpen((o) => !o); }}
+        >
+          <Icons.MoreHorizontal size={16} />
+        </button>
 
-      <div data-booking-card-footer>
-        {daysUntil > 0 && status === 'confirmed' && (
-          <span data-checkin-countdown>Check-in in {daysUntil} day{daysUntil !== 1 ? 's' : ''}</span>
-        )}
-        <div data-booking-total>
-          <div data-booking-total-label>Total</div>
-          <div data-booking-total-amount>R{((booking['totalAmount'] as number) ?? 0).toLocaleString()}</div>
+        <div data-booking-card-footer>
+          {daysUntil > 0 && status === 'confirmed' && (
+            <span data-checkin-countdown>Check-in in {daysUntil} day{daysUntil !== 1 ? 's' : ''}</span>
+          )}
+          <div data-booking-total>
+            <div data-booking-total-label>Total</div>
+            <div data-booking-total-amount>R{((booking['totalAmount'] as number) ?? 0).toLocaleString()}</div>
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Portaled action menu */}
+      {menuOpen && typeof document !== 'undefined' && createPortal(
+        <div
+          ref={menuRef}
+          role="menu"
+          style={{
+            position: 'fixed',
+            top: menuPos.top,
+            left: menuPos.left,
+            opacity: menuPos.visible ? 1 : 0,
+            minWidth: '180px',
+            background: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-md)',
+            boxShadow: 'var(--shadow-raised)',
+            zIndex: 300,
+            overflow: 'hidden',
+          }}
+        >
+          {MENU_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const base: React.CSSProperties = {
+              display: 'flex', alignItems: 'center', gap: '10px',
+              width: '100%', padding: '10px 16px', fontSize: '13px',
+              color: item.action === 'cancel' ? 'var(--color-danger)' : 'var(--color-text)',
+              background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'none',
+            };
+            if (item.action === 'view') return (
+              <Link key={item.action} href={`/bookings/${bookingId}`} role="menuitem" style={base}
+                onClick={() => setMenuOpen(false)}>
+                <Icon size={15} /> {item.label}
+              </Link>
+            );
+            if (item.action === 'contact') return (
+              <Link key={item.action} href={`/support/new?ref=${bookingId}`} role="menuitem" style={base}
+                onClick={() => setMenuOpen(false)}>
+                <Icon size={15} /> {item.label}
+              </Link>
+            );
+            if (item.action === 'invoice') return (
+              <Link key={item.action} href={`/bookings/${bookingId}/folio`} role="menuitem" style={base}
+                onClick={() => setMenuOpen(false)}>
+                <Icon size={15} /> {item.label}
+              </Link>
+            );
+            return (
+              <button key={item.action} type="button" role="menuitem" style={base}
+                onClick={() => { setMenuOpen(false); setCancelOpen(true); }}>
+                <Icon size={15} /> {item.label}
+              </button>
+            );
+          })}
+        </div>,
+        document.body
+      )}
+
+      <ConfirmDialog
+        open={cancelOpen}
+        title="Cancel this booking?"
+        message="This action cannot be undone. Cancellation fees may apply depending on the property's policy."
+        confirmLabel={cancelMutation.isPending ? 'Cancelling…' : 'Yes, cancel booking'}
+        cancelLabel="Keep booking"
+        destructive
+        onConfirm={() => cancelMutation.mutate()}
+        onCancel={() => setCancelOpen(false)}
+      />
+    </>
   );
 }

@@ -44,6 +44,17 @@ export default function BookingDetailPage({ params }: Props): React.ReactElement
   const b   = booking as Record<string, unknown> | undefined;
   if (!b)   return <div data-page><p>Booking not found.</p></div>;
 
+  // Backend populates tenantId → { name, slug, coverImage, address: { city } }
+  // and roomId → { roomNumber, type, floor }
+  const tenant       = (typeof b['tenantId'] === 'object' && b['tenantId'] !== null ? b['tenantId'] : {}) as Record<string, unknown>;
+  const room         = (typeof b['roomId']   === 'object' && b['roomId']   !== null ? b['roomId']   : {}) as Record<string, unknown>;
+  const tenantAddr   = (typeof tenant['address'] === 'object' && tenant['address'] !== null ? tenant['address'] : {}) as Record<string, unknown>;
+  const propertyName = (tenant['name']       as string) ?? 'Property';
+  const propertyCity = (tenantAddr['city']   as string) ?? null;
+  const coverImage   = (tenant['coverImage'] as string) ?? null;
+  const tenantSlug   = (tenant['slug']       as string) ?? null;
+  const roomType     = (room['type']         as string) ?? null;
+
   const status      = b['status'] as string;
   const checkIn     = new Date(b['checkIn'] as string);
   const checkOut    = new Date(b['checkOut'] as string);
@@ -92,7 +103,7 @@ export default function BookingDetailPage({ params }: Props): React.ReactElement
           <p style={{ fontSize: '13px', color: 'var(--color-info)', marginTop: 'var(--space-1)' }}>
             Complete your guest profile before check-in to unlock digital key access and self-check-in features.
           </p>
-          <Link href="/id-verification" data-btn-primary style={{ marginTop: 'var(--space-3)', display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <Link href="/profile" data-btn-primary style={{ marginTop: 'var(--space-3)', display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
             Complete profile <Icons.ArrowRight size={14} />
           </Link>
         </div>
@@ -103,20 +114,27 @@ export default function BookingDetailPage({ params }: Props): React.ReactElement
         {/* Property summary */}
         <div data-card>
           <div style={{ aspectRatio: '16/6', background: 'var(--color-bg-sunk)', overflow: 'hidden' }}>
-            {/* Image: /images/properties/[tenantId]-banner.jpg */}
-            <img src={`/images/properties/${b['tenantId'] as string}-banner.jpg`} alt=""
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+            {(coverImage ?? tenantSlug) && (
+              <img
+                src={coverImage ?? `/images/properties/${tenantSlug}-banner.jpg`}
+                alt={propertyName}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                loading="lazy"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              />
+            )}
           </div>
           <div style={{ padding: 'var(--space-6)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--space-4)' }}>
               <div>
                 <h2 style={{ fontSize: '19px', fontWeight: '700', marginBottom: 'var(--space-1)' }}>
-                  {b['propertyName'] as string ?? 'Property'}
+                  {propertyName}
                 </h2>
-                <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
-                  <Icons.MapPin size={14} /> {b['propertyCity'] as string ?? '—'}
-                </div>
+                {propertyCity && (
+                  <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+                    <Icons.MapPin size={14} /> {propertyCity}
+                  </div>
+                )}
               </div>
               <span data-status-badge data-status={status}>{status.replace(/_/g, ' ')}</span>
             </div>
@@ -132,11 +150,11 @@ export default function BookingDetailPage({ params }: Props): React.ReactElement
               </div>
               <div>
                 <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Room type</div>
-                <div style={{ fontSize: '13px', fontWeight: '600' }}>{b['roomType'] as string ?? '—'}</div>
+                <div style={{ fontSize: '13px', fontWeight: '600' }}>{roomType ?? '—'}</div>
               </div>
               <div>
                 <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Guests</div>
-                <div style={{ fontSize: '13px', fontWeight: '600' }}>{b['guests'] as number ?? 1} guest{(b['guests'] as number) !== 1 ? 's' : ''}</div>
+                <div style={{ fontSize: '13px', fontWeight: '600' }}>{(b['adults'] as number) ?? 1} guest{((b['adults'] as number) ?? 1) !== 1 ? 's' : ''}</div>
               </div>
             </div>
 
