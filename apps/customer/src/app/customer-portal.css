@@ -1630,15 +1630,15 @@
 
 /* ==========================================================================
    ACCOMMODATION — generic filter dropdown (Sort / Price / Property type /
-   Amenities). Anchored the same safe way as [data-guests-popover]: stretched
-   to the trigger's own width via left:0/right:0 rather than a fixed
-   min-width, so it can never push the page wider than the viewport.
+   Amenities). Portaled to document.body and positioned by JS (see
+   FilterDropdown.tsx) rather than absolutely positioned inside
+   [data-filter-bar] — that bar scrolls horizontally, which clips an
+   in-place absolute panel on the vertical axis too. `position: fixed`
+   here works with the inline top/left the component computes at runtime.
    ========================================================================== */
 [data-filter-dropdown] { position: relative; flex-shrink: 0; }
 [data-filter-panel] {
-  position: absolute;
-  top: calc(100% + var(--space-2));
-  left: 0;
+  position: fixed;
   width: max-content;
   min-width: 200px;
   max-width: calc(100vw - 2 * var(--space-4));
@@ -1647,15 +1647,11 @@
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-raised);
   padding: var(--space-4);
-  z-index: 50;
+  z-index: 300;
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-}
-@media (max-width: 480px) {
-  /* On very small screens even "shrink to fit the trigger's width" can run
-     out of room near the right edge — pin to the viewport instead. */
-  [data-filter-panel] { left: auto; right: 0; }
+  transition: opacity 100ms ease;
 }
 [data-filter-panel-title] {
   font-size: 11px;
