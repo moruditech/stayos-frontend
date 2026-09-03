@@ -21,10 +21,10 @@ interface FormField {
   fieldId: string;
   type: 'text' | 'textarea' | 'select' | 'multiselect' | 'checkbox' | 'date' | 'file' | 'number';
   label: string;
-  placeholder?: string;
-  required?: boolean;
-  options?: { label: string; value: string }[];
-  order?: number;
+  placeholder?: string | undefined;
+  required?: boolean | undefined;
+  options?: { label: string; value: string }[] | undefined;
+  order?: number | undefined;
 }
 
 interface Props { params: { slug: string } }
@@ -318,7 +318,7 @@ export default function ApplyPage({ params }: Props): React.ReactElement {
 }
 
 function DynamicField({ field, value, error, onChange }: {
-  field: FormField; value: string; error?: string; onChange: (value: string) => void;
+  field: FormField; value: string; error?: string | undefined; onChange: (value: string) => void;
 }): React.ReactElement {
   const id = `field-${field.fieldId}`;
   return (

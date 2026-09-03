@@ -5,7 +5,7 @@ import { Icons } from '@stayos/ui';
 
 interface ImageLightboxProps {
   images: string[];
-  initialIndex?: number;
+  initialIndex?: number | undefined;
   onClose: () => void;
 }
 

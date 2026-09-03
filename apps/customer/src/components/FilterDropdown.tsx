@@ -5,7 +5,7 @@ import { Icons } from '@stayos/ui';
 
 interface FilterDropdownProps {
   label: string;
-  active?: boolean;
+  active?: boolean | undefined;
   children: (close: () => void) => React.ReactNode;
 }
 
