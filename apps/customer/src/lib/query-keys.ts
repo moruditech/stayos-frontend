@@ -20,6 +20,10 @@ export const bookingKeys = {
   detail: (id: string) => ['customer', 'bookings', id] as const,
 };
 
+export const messageKeys = {
+  thread: (bookingId: string) => ['customer', 'bookings', bookingId, 'messages'] as const,
+};
+
 export const applicationKeys = {
   list: () => ['customer', 'applications'] as const,
   detail: (id: string) => ['customer', 'applications', id] as const,

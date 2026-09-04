@@ -10,6 +10,10 @@
 export const SOCKET_EVENTS = {
   BOOKING_CREATED: 'booking:created',
   BOOKING_UPDATED: 'booking:updated',
+  // Confirmed against messaging.service.js — emitted to staff on customer
+  // inbound (emitToProperty) and to the customer on staff in_app reply
+  // (emitToUser), same event name and payload shape both directions.
+  MESSAGING_NEW_MESSAGE: 'messaging:new_message',
   // Additional confirmed events are added here per-portal, in the phase
   // that needs them, each individually verified.
 } as const;

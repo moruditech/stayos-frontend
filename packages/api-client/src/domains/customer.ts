@@ -28,14 +28,12 @@ export const discoveryApi = {
     }),
 
   // Bridge from a property's public slug to its (independently-slugged)
-  // student housing application form(s). A property can have more than one
-  // currently-open form (e.g. overlapping academic years), so this returns
-  // a list — the applicant picks which one to apply to.
-  listApplicationForms: (slug: string) =>
-    client.get<Record<string, unknown>[]>(`/discovery/properties/${slug}/application-forms`),
+  // student housing application form.
+  getApplicationForm: (slug: string) =>
+    client.get<Record<string, unknown>>(`/discovery/properties/${slug}/application-form`),
 
-  submitApplicationForProperty: (slug: string, formId: string, input: Record<string, unknown>) =>
-    client.post<Record<string, unknown>>(`/discovery/properties/${slug}/application-forms/${formId}/apply`, input),
+  submitApplicationForProperty: (slug: string, input: Record<string, unknown>) =>
+    client.post<Record<string, unknown>>(`/discovery/properties/${slug}/application-form/apply`, input),
 };
 
 export const customerApi = {
@@ -66,6 +64,13 @@ export const customerApi = {
   getBooking: (id: string) => client.get<Record<string, unknown>>(`/customers/me/bookings/${id}`),
   cancelBooking: (id: string, reason?: string) =>
     client.post<Record<string, unknown>>(`/customers/me/bookings/${id}/cancel`, { reason }),
+
+  // GET/POST /customers/me/bookings/:id/messages — one GuestThread per
+  // (tenant, customer); the same thread staff see and reply to.
+  getBookingMessages: (bookingId: string) =>
+    client.get<Record<string, unknown>>(`/customers/me/bookings/${bookingId}/messages`),
+  sendBookingMessage: (bookingId: string, body: string) =>
+    client.post<Record<string, unknown>>(`/customers/me/bookings/${bookingId}/messages`, { body }),
 
   // POST /payments/booking/:bookingId — customer-initiated payment against a
   // booking they own; the backend resolves tenantId from the ownership

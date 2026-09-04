@@ -9,6 +9,7 @@ import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
 import { SkeletonLoader, EmptyState, ConfirmDialog, useToast, Icons, type LucideIcon } from '@stayos/ui';
 import { bookingKeys } from '@/lib/query-keys';
+import { downloadBookingICS } from '@/lib/calendar-export';
 
 type Tab = 'upcoming' | 'past' | 'cancelled' | 'all';
 const TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
@@ -191,6 +192,7 @@ function BookingCard({ booking }: { booking: Record<string, unknown> }): React.R
 
   const MENU_ITEMS = [
     { label: 'View details',     icon: Icons.Eye,            action: 'view' },
+    { label: 'Add to calendar',  icon: Icons.Calendar,       action: 'calendar' },
     ...(isUpcoming ? [{ label: 'Cancel booking', icon: Icons.X, action: 'cancel' }] : []),
     { label: 'Contact property', icon: Icons.MessageCircle,  action: 'contact' },
     { label: 'View invoice',     icon: Icons.FileText,       action: 'invoice' },
@@ -303,7 +305,7 @@ function BookingCard({ booking }: { booking: Record<string, unknown> }): React.R
               </Link>
             );
             if (item.action === 'contact') return (
-              <Link key={item.action} href={`/support/new?ref=${bookingId}`} role="menuitem" style={base}
+              <Link key={item.action} href={`/bookings/${bookingId}/chat`} role="menuitem" style={base}
                 onClick={() => setMenuOpen(false)}>
                 <Icon size={15} /> {item.label}
               </Link>
@@ -313,6 +315,21 @@ function BookingCard({ booking }: { booking: Record<string, unknown> }): React.R
                 onClick={() => setMenuOpen(false)}>
                 <Icon size={15} /> {item.label}
               </Link>
+            );
+            if (item.action === 'calendar') return (
+              <button key={item.action} type="button" role="menuitem" style={base}
+                onClick={() => {
+                  setMenuOpen(false);
+                  downloadBookingICS({
+                    confirmationNumber: booking['confirmationNumber'] as string | undefined,
+                    checkIn: booking['checkIn'] as string,
+                    checkOut: booking['checkOut'] as string,
+                    propertyName,
+                    city: propertyCity,
+                  });
+                }}>
+                <Icon size={15} /> {item.label}
+              </button>
             );
             return (
               <button key={item.action} type="button" role="menuitem" style={base}

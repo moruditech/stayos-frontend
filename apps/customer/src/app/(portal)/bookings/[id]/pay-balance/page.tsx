@@ -6,15 +6,15 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { useSession } from '@stayos/auth';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { SkeletonLoader, useToast, Icons } from '@stayos/ui';
+import { SkeletonLoader, useToast, Icons, type LucideIcon } from '@stayos/ui';
 import { bookingKeys } from '@/lib/query-keys';
 
 interface Props { params: { id: string } }
 
-const GATEWAYS: { id: string; label: string; icon: keyof typeof Icons; blurb: string }[] = [
-  { id: 'payfast',    label: 'PayFast',        icon: 'CreditCard', blurb: 'Card, Instant EFT, and more' },
-  { id: 'ozow',       label: 'Ozow',           icon: 'Landmark',   blurb: 'Instant EFT from your bank' },
-  { id: 'manual_eft', label: 'Bank transfer',  icon: 'Building2',  blurb: 'Pay via EFT, confirmed manually' },
+const GATEWAYS: { id: string; label: string; icon: LucideIcon; blurb: string }[] = [
+  { id: 'payfast',    label: 'PayFast',        icon: Icons.CreditCard, blurb: 'Card, Instant EFT, and more' },
+  { id: 'ozow',       label: 'Ozow',           icon: Icons.Landmark,   blurb: 'Instant EFT from your bank' },
+  { id: 'manual_eft', label: 'Bank transfer',  icon: Icons.Building2, blurb: 'Pay via EFT, confirmed manually' },
 ];
 
 export default function PayBalancePage({ params }: Props): React.ReactElement {
@@ -94,7 +94,7 @@ export default function PayBalancePage({ params }: Props): React.ReactElement {
           <div data-section-header><span data-section-title>Choose a payment method</span></div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', marginBottom: 'var(--space-5)' }}>
             {GATEWAYS.map((gw) => {
-              const Icon = Icons[gw.icon];
+              const Icon = gw.icon;
               return (
                 <button
                   key={gw.id}

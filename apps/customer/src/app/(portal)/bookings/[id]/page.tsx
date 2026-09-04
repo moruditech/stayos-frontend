@@ -9,6 +9,7 @@ import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
 import { SkeletonLoader, ConfirmDialog, useToast, Icons } from '@stayos/ui';
 import { bookingKeys } from '@/lib/query-keys';
+import { downloadBookingICS } from '@/lib/calendar-export';
 
 interface Props { params: { id: string } }
 
@@ -236,12 +237,22 @@ export default function BookingDetailPage({ params }: Props): React.ReactElement
           </div>
         )}
 
-        {/* Folio / invoice link */}
+        {/* Folio / invoice / calendar / chat links */}
         <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
           <Link href={`/bookings/${params.id}/folio`} data-btn-ghost style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}>
             <Icons.FileText size={16} /> View invoice
           </Link>
-          <Link href={`/support/new?ref=${params.id}`} data-btn-ghost style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}>
+          <button type="button" data-btn-ghost style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}
+            onClick={() => downloadBookingICS({
+              confirmationNumber: b['confirmationNumber'] as string | undefined,
+              checkIn: b['checkIn'] as string,
+              checkOut: b['checkOut'] as string,
+              propertyName,
+              city: propertyCity,
+            })}>
+            <Icons.Calendar size={16} /> Add to calendar
+          </button>
+          <Link href={`/bookings/${params.id}/chat`} data-btn-ghost style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}>
             <Icons.MessageCircle size={16} /> Contact property
           </Link>
         </div>
@@ -260,4 +271,15 @@ export default function BookingDetailPage({ params }: Props): React.ReactElement
       />
     </div>
   );
+}
+
+// Room types come back from the API as lowercase enum values (e.g. 'single',
+// 'deluxe') — display them Title Case, with a trailing "Room" if the value
+// doesn't already read as a full room name.
+function formatRoomType(type: string | undefined): string | null {
+  if (!type) return null;
+  const words = type.replace(/_/g, ' ').trim().split(/\s+/)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+  return /room$/i.test(words) ? words : `${words} Room`;
 }

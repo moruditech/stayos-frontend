@@ -334,7 +334,7 @@ function UpcomingBookingCard({ booking }: { booking: Record<string, unknown> }):
           )}
           {roomType && (
             <div data-booking-card-meta>
-              <Icons.BedDouble size={14} /> {roomType}
+              <Icons.Bed size={14} /> {roomType}
             </div>
           )}
           <div data-booking-card-meta>
