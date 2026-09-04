@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
 import { PublicHeader, PublicFooter } from '@/components/PublicLayout';
 import { SkeletonLoader } from '@stayos/ui';
-import { MapPin, Star, Check, BedDouble, Users, ArrowRight, ShieldCheck, Calendar } from 'lucide-react';
+import { MapPin, Star, Check, BedDouble, Users, ArrowRight, ShieldCheck, Calendar, Clock, PawPrint, Ban, ScrollText } from 'lucide-react';
 
 interface Props { params: { slug: string } }
 
@@ -67,6 +67,19 @@ export default function PublicPropertyPage({ params }: Props): React.ReactElemen
 
   const address = p['address'] as Record<string,unknown> | undefined;
   const ratings = p['ratings'] as Record<string,unknown> | undefined;
+  // Guest-facing subset of Tenant.policies (see Tenant.model.js). Deliberately
+  // excludes sameDayTurnoverAllowed — that's operational/housekeeping
+  // logic for the availability matrix, not something a guest needs to see.
+  const policies           = p['policies'] as Record<string,unknown> | undefined;
+  const checkInTime        = policies?.['checkInTime'] as string | undefined;
+  const checkOutTime       = policies?.['checkOutTime'] as string | undefined;
+  const cancellationPolicy = policies?.['cancellationPolicy'] as string | undefined;
+  const petPolicy          = policies?.['petPolicy'] as string | undefined;
+  const smokingPolicy      = policies?.['smokingPolicy'] as string | undefined;
+  const houseRules         = policies?.['houseRules'] as string | undefined;
+  const hasAnyPolicy = Boolean(
+    checkInTime || checkOutTime || cancellationPolicy || petPolicy || smokingPolicy || houseRules
+  );
 
   // TAD 09 §4: student_housing → Apply (no account, no redirect)
   //            all others → "Book now" → my.stayos.co.za/login?redirect=...
@@ -154,12 +167,54 @@ export default function PublicPropertyPage({ params }: Props): React.ReactElemen
             )}
 
             {/* Policies */}
-            {Boolean(p['policies']) && (
+            {hasAnyPolicy && (
               <div style={{ marginBottom:'var(--space-8)', padding:'var(--space-5)', background:'var(--color-surface-muted)', borderRadius:'var(--radius-lg)' }}>
-                <h2 style={{ fontSize:'var(--text-base)', fontWeight:'var(--font-bold)', marginBottom:'var(--space-3)' }}>Policies</h2>
-                <p style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', lineHeight:'var(--leading-relaxed)' }}>
-                  {p['policies'] as string}
-                </p>
+                <h2 style={{ fontSize:'var(--text-base)', fontWeight:'var(--font-bold)', marginBottom:'var(--space-4)' }}>Policies</h2>
+
+                <div style={{ display:'flex', flexWrap:'wrap', gap:'var(--space-5)', marginBottom: (cancellationPolicy || houseRules) ? 'var(--space-4)' : 0 }}>
+                  {(checkInTime || checkOutTime) && (
+                    <div style={{ display:'flex', alignItems:'flex-start', gap:'var(--space-2)' }}>
+                      <Clock size={16} style={{ marginTop:2, flexShrink:0, color:'var(--color-text-muted)' }} aria-hidden="true" />
+                      <div>
+                        <div style={{ fontSize:'var(--text-sm)', fontWeight:600 }}>Check-in / Check-out</div>
+                        <div style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)' }}>
+                          From {checkInTime ?? '—'} · Until {checkOutTime ?? '—'}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {petPolicy && (
+                    <div style={{ display:'flex', alignItems:'flex-start', gap:'var(--space-2)' }}>
+                      <PawPrint size={16} style={{ marginTop:2, flexShrink:0, color:'var(--color-text-muted)' }} aria-hidden="true" />
+                      <div>
+                        <div style={{ fontSize:'var(--text-sm)', fontWeight:600 }}>Pets</div>
+                        <div style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)' }}>{petPolicy}</div>
+                      </div>
+                    </div>
+                  )}
+                  {smokingPolicy && (
+                    <div style={{ display:'flex', alignItems:'flex-start', gap:'var(--space-2)' }}>
+                      <Ban size={16} style={{ marginTop:2, flexShrink:0, color:'var(--color-text-muted)' }} aria-hidden="true" />
+                      <div>
+                        <div style={{ fontSize:'var(--text-sm)', fontWeight:600 }}>Smoking</div>
+                        <div style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)' }}>{smokingPolicy}</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {cancellationPolicy && (
+                  <p style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', lineHeight:'var(--leading-relaxed)', marginBottom: houseRules ? 'var(--space-3)' : 0, display:'flex', gap:'var(--space-2)' }}>
+                    <ShieldCheck size={16} style={{ marginTop:2, flexShrink:0, color:'var(--color-text-muted)' }} aria-hidden="true" />
+                    <span><strong style={{ color:'var(--color-text)' }}>Cancellation:</strong> {cancellationPolicy}</span>
+                  </p>
+                )}
+                {houseRules && (
+                  <p style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', lineHeight:'var(--leading-relaxed)', display:'flex', gap:'var(--space-2)' }}>
+                    <ScrollText size={16} style={{ marginTop:2, flexShrink:0, color:'var(--color-text-muted)' }} aria-hidden="true" />
+                    <span><strong style={{ color:'var(--color-text)' }}>House rules:</strong> {houseRules}</span>
+                  </p>
+                )}
               </div>
             )}
 
