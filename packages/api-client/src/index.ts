@@ -32,7 +32,6 @@ import {
   universityApi,
   paymentsApi,
 } from './domains/customer';
-import { newsletterApi, contactApi, mailboxApi } from './domains/public';
 
 export const api = {
   // ── Cross-portal auth ──────────────────────────────────────────────────
@@ -76,11 +75,6 @@ export const api = {
   support:       supportApi,
   university:    universityApi,
   payments:      paymentsApi,
-
-  // ── Public marketing site (Next.js — stayos.co.za) ─────────────────────
-  newsletter:    newsletterApi,
-  contact:       contactApi,
-  mailbox:       mailboxApi,
 } as const;
 
 export { ApiError, setTokenGetter, setTenantIdGetter, setRefreshCallback } from './client';
@@ -90,3 +84,10 @@ export type {
   AgencyEnterPropertyResponse,
   StaffPropertyAssignment,
 } from './domains/agency';
+export type {
+  CalendarRoom,
+  CalendarBooking,
+  CalendarBlock,
+  CalendarMatrixResponse,
+  CalendarMatrixParams,
+} from './domains/rooms';

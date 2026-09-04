@@ -45,11 +45,64 @@ export interface StatusBoardEntry {
   ratePerNight: number;
 }
 
-export interface CalendarMatrixEntry {
+// GET /rooms/calendar-matrix — see rooms.service.js#getCalendarMatrix. This
+// is a flat list of rooms/bookings/blocks for the visible range, NOT a
+// pre-built per-room-per-date matrix — the frontend derives per-day cells
+// from checkIn/checkOut (bookings) and from/to (blocks) itself.
+export interface CalendarRoom {
+  _id: string;
+  roomNumber: string;
+  name?: string;
+  type: string;
+  floor?: string;
+  capacity: number;
+  status: string; // 'available' | 'occupied' | 'dirty' | 'cleaning' | 'inspection' | 'maintenance' | 'blocked' | 'out_of_order'
+  baseRate: number;
+}
+
+export interface CalendarBooking {
+  _id: string;
+  roomId: string;
+  confirmationNumber: string;
+  guestName: string | null;
+  checkIn: string;
+  checkOut: string;
+  status: string; // 'pending' | 'confirmed' | 'checked_in' | 'cancelled'
+  isTentative: boolean; // guestConfirmationStatus === 'pending' — awaiting the guest, not yet a firm hold
+  source: string;
+  isVip: boolean;
+  depositPaid: boolean;
+  hasBalanceDue: boolean;
+  isExternal: boolean;
+  externalUid: string | null;
+  hasConflict: boolean;
+  cancellationReason?: string;
+}
+
+export interface CalendarBlock {
   roomId: string;
   roomNumber: string;
-  type: string;
-  dates: Record<string, { bookingId?: string; guestName?: string; status: string }>;
+  from: string;
+  to: string;
+  reason: string;
+  blockedBy: string;
+}
+
+export interface CalendarMatrixResponse {
+  range: { startDate: string; endDate: string };
+  rooms: CalendarRoom[];
+  bookings: CalendarBooking[];
+  blocks: CalendarBlock[];
+  groupLinks: Record<string, string[]>;
+}
+
+export interface CalendarMatrixParams {
+  startDate: string;
+  endDate: string;
+  roomType?: string;
+  floor?: string;
+  includeBlocked?: boolean;
+  includeCancelled?: boolean;
 }
 
 export const roomsApi = {
@@ -70,9 +123,9 @@ export const roomsApi = {
   getStatusBoard: () => client.get<StatusBoardEntry[]>('/rooms/status-board'),
 
   // GET /rooms/calendar-matrix
-  getCalendarMatrix: (params?: Record<string, unknown>) =>
-    client.get<CalendarMatrixEntry[]>('/rooms/calendar-matrix', {
-      params: params as Record<string, string | number | boolean | undefined>,
+  getCalendarMatrix: (params: CalendarMatrixParams) =>
+    client.get<CalendarMatrixResponse>('/rooms/calendar-matrix', {
+      params: params as unknown as Record<string, string | number | boolean | undefined>,
     }),
 
   // GET /rooms/:id

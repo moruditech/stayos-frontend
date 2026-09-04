@@ -764,6 +764,24 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
 [data-day-weekday] { display: block; font-size: 10.5px; font-weight: 600; text-transform: uppercase; color: var(--color-text-muted); }
 [data-day-date]    { display: block; font-size: 13px; font-weight: 600; color: var(--color-text); }
 
+/* Room-type group header — spans the full table width, sticky on the left
+   like the room-label column so it stays visible while scrolling
+   horizontally through the week. */
+[data-calendar-type-header] td {
+  padding: var(--space-2) var(--space-3);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  background: var(--color-bg-sunk);
+  border-bottom: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-border);
+  position: sticky;
+  left: 0;
+}
+[data-calendar-type-header]:first-child td { border-top: none; }
+
 [data-calendar-room-label] {
   padding: var(--space-2) var(--space-3);
   border-bottom: 1px solid var(--color-border);
@@ -796,8 +814,24 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   padding: 0 6px;
   border-radius: var(--radius-sm);
   overflow: hidden;
+  transition: filter 0.12s ease;
 }
+[data-booking-chip]:hover { filter: brightness(0.93); }
+[data-booking-chip][data-conflict='true'] { outline: 2px solid var(--color-danger); outline-offset: -2px; }
+
+/* Status → colour, solid rather than the pale -bg tint since this is a
+   filled calendar block rather than a text pill. Same semantic family
+   [data-status-badge] already uses for these exact states elsewhere in
+   the app (design-system.css groups 'confirmed' under success and
+   'checked_in' under info) — no purple anywhere in this mapping. */
+[data-booking-chip][data-status='confirmed']  { background: var(--color-success); }
+[data-booking-chip][data-status='checked_in'] { background: var(--color-info); }
+[data-booking-chip][data-status='tentative']  { background: var(--color-warning); }
+
+[data-booking-chip-icon] { width: 11px; height: 11px; color: #fff; opacity: 0.85; flex: none; margin-right: 4px; }
 [data-booking-chip-guest] {
+  flex: 1;
+  min-width: 0;
   font-size: 11px;
   font-weight: 600;
   color: #fff;
@@ -810,10 +844,22 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   align-items: center;
   justify-content: center;
   height: 100%;
+  padding: 0 4px;
   font-size: 10.5px;
   color: var(--color-text-muted);
   background: repeating-linear-gradient(45deg, var(--color-bg-sunk), var(--color-bg-sunk) 4px, var(--color-border) 4px, var(--color-border) 8px);
   border-radius: var(--radius-sm);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+/* Room's current status is specifically 'maintenance' rather than a plain
+   'blocked'/'out_of_order' hold — same stripe motif, warning tone instead
+   of neutral, matching [data-status-badge]'s own 'maintenance' grouping
+   (design-system.css groups it with the amber/warning states, not purple). */
+[data-blocked-chip][data-reason='maintenance'] {
+  color: var(--color-warning);
+  background: repeating-linear-gradient(45deg, var(--color-warning-bg), var(--color-warning-bg) 4px, var(--color-warning-border) 4px, var(--color-warning-border) 8px);
 }
 
 [data-calendar-legend] {
@@ -825,6 +871,16 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
 }
 [data-legend-item] { display: flex; align-items: center; gap: var(--space-2); font-size: 12px; color: var(--color-text-secondary); }
 [data-legend-dot]  { width: 10px; height: 10px; border-radius: var(--radius-pill); flex-shrink: 0; }
+[data-legend-dot][data-status='confirmed']  { background: var(--color-success); }
+[data-legend-dot][data-status='checked_in'] { background: var(--color-info); }
+[data-legend-dot][data-status='tentative']  { background: var(--color-warning); }
+[data-legend-dot][data-pattern='striped'] {
+  border-radius: 3px;
+  background: repeating-linear-gradient(45deg, var(--color-bg-sunk), var(--color-bg-sunk) 2px, var(--color-border) 2px, var(--color-border) 4px);
+}
+[data-legend-dot][data-pattern='striped'][data-tone='warning'] {
+  background: repeating-linear-gradient(45deg, var(--color-warning-bg), var(--color-warning-bg) 2px, var(--color-warning-border) 2px, var(--color-warning-border) 4px);
+}
 
 /* ────────────────────────────────────────────────────────────────────────────
    CROSS-PAGE PATTERNS — form/table/tab/alert/detail conventions used by
