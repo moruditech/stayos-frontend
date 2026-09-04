@@ -446,7 +446,8 @@ function PropertySearchCard({
           )}
         </div>
         <div data-property-card-location>
-          <Icons.MapPin size={14} /> {p['city'] as string} · {p['distanceFromCentre'] as string ?? '—'} km from centre
+          <Icons.MapPin size={14} /> {(p['city'] as string) ?? 'Location unavailable'}
+          {p['distanceFromCentre'] != null && <> · {p['distanceFromCentre'] as string} km from centre</>}
         </div>
         <div data-property-card-amenities>
           {((p['amenities'] as string[]) ?? []).slice(0, 3).map((a) => (

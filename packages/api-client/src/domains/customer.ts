@@ -67,6 +67,13 @@ export const customerApi = {
   cancelBooking: (id: string, reason?: string) =>
     client.post<Record<string, unknown>>(`/customers/me/bookings/${id}/cancel`, { reason }),
 
+  // GET/POST /customers/me/bookings/:id/messages — one GuestThread per
+  // (tenant, customer); the same thread staff see and reply to.
+  getBookingMessages: (bookingId: string) =>
+    client.get<Record<string, unknown>>(`/customers/me/bookings/${bookingId}/messages`),
+  sendBookingMessage: (bookingId: string, body: string) =>
+    client.post<Record<string, unknown>>(`/customers/me/bookings/${bookingId}/messages`, { body }),
+
   // POST /payments/booking/:bookingId — customer-initiated payment against a
   // booking they own; the backend resolves tenantId from the ownership
   // check, so no tenantId is passed here. Returns { paymentUrl, ... } to
