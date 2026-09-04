@@ -11,16 +11,25 @@ import Link from 'next/link';
  * blocks } for the requested range — NOT a pre-built per-room-per-date
  * matrix (see rooms.service.js#getCalendarMatrix). Cells here are derived
  * client-side from each booking's checkIn/checkOut and each block's
- * from/to against the currently visible week.
+ * from/to against the currently visible range.
+ *
+ * Every filter in the toolbar is backed by a real query param on that
+ * endpoint (roomType, ratePlanId, source, status) — none are decorative.
+ * The Rate Plan filter additionally only renders for roles that actually
+ * hold rate:*, since GET /pricing/rate-plans requires it and most
+ * front-desk roles (receptionist, front_desk_manager) don't — showing it
+ * to everyone would mean a 403 on page load for most staff.
  */
 
 import React, { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
-import type { CalendarBooking, CalendarBlock, CalendarRoom } from '@stayos/api-client';
+import type { CalendarBooking, CalendarBlock, CalendarRoom, CalendarMatrixParams } from '@stayos/api-client';
 import { SkeletonLoader, useSocketEvent, Icons } from '@stayos/ui';
 import { SOCKET_EVENTS } from '@stayos/constants';
-import { roomKeys } from '@/lib/query-keys';
+import { PERMISSIONS } from '@stayos/constants';
+import { useSession, hasPermission } from '@stayos/auth';
+import { roomKeys, pricingKeys } from '@/lib/query-keys';
 
 function addDays(date: Date, days: number): Date {
   const d = new Date(date);
@@ -32,6 +41,10 @@ function startOfDay(date: Date): Date {
   const d = new Date(date);
   d.setHours(0, 0, 0, 0);
   return d;
+}
+
+function startOfMonth(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
 }
 
 // Local calendar-day string (YYYY-MM-DD) — deliberately NOT
@@ -53,7 +66,8 @@ function dayLabel(d: Date): { weekday: string; date: number } {
   };
 }
 
-const VIEW_DAYS = 7;
+const WEEK_DAYS = 7;
+type ViewMode = 'day' | 'week' | 'month';
 
 // Room.model.js's type enum, reordered smallest-to-largest rather than
 // alphabetical (which would put "apartment" before "single") — and given
@@ -70,11 +84,34 @@ const TYPE_LABELS: Record<string, string> = {
   dormitory: 'Dormitories',
 };
 
+// Matches BOOKING_SOURCE in the backend's constants.js exactly.
+const SOURCE_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: 'direct', label: 'Direct / In-person' },
+  { value: 'walk_in', label: 'Walk-in' },
+  { value: 'phone', label: 'Phone' },
+  { value: 'agency', label: 'Agency' },
+  { value: 'corporate', label: 'Corporate' },
+  { value: 'ota_airbnb', label: 'Airbnb' },
+  { value: 'ota_booking', label: 'Booking.com' },
+  { value: 'ota_agoda', label: 'Agoda' },
+  { value: 'ota_lekkeslaap', label: 'LekkeSlaap' },
+  { value: 'ota_safarinow', label: 'SafariNow' },
+  { value: 'ota_other', label: 'OTA (other)' },
+];
+
+const STATUS_OPTIONS: Array<{ value: NonNullable<CalendarMatrixParams['status']>; label: string }> = [
+  { value: 'confirmed', label: 'Confirmed' },
+  { value: 'checked_in', label: 'Checked in' },
+  { value: 'tentative', label: 'Tentative' },
+  { value: 'blocked', label: 'Blocked' },
+  { value: 'maintenance', label: 'Maintenance' },
+];
+
 type Cell =
   | { kind: 'booking'; booking: CalendarBooking }
   | { kind: 'blocked'; block: CalendarBlock; isMaintenance: boolean };
 
-function statusOf(booking: CalendarBooking): 'confirmed' | 'checked_in' | 'tentative' {
+function chipStatusOf(booking: CalendarBooking): 'confirmed' | 'checked_in' | 'tentative' {
   if (booking.status === 'checked_in') return 'checked_in';
   if (booking.isTentative) return 'tentative';
   return 'confirmed';
@@ -82,37 +119,77 @@ function statusOf(booking: CalendarBooking): 'confirmed' | 'checked_in' | 'tenta
 
 export default function CalendarPage(): React.ReactElement {
   const queryClient = useQueryClient();
-  const [startDate, setStartDate] = useState(() => startOfDay(new Date()));
+  const session = useSession();
+  const canViewRatePlans = !!session && hasPermission(session.permissions, PERMISSIONS.RATE_ALL);
+
+  const [viewMode, setViewMode] = useState<ViewMode>('week');
+  const [anchorDate, setAnchorDate] = useState(() => startOfDay(new Date()));
   const [roomType, setRoomType] = useState('');
+  const [ratePlanId, setRatePlanId] = useState('');
+  const [source, setSource] = useState('');
+  const [status, setStatus] = useState<CalendarMatrixParams['status'] | ''>('');
 
-  const dates = useMemo(
-    () => Array.from({ length: VIEW_DAYS }, (_, i) => addDays(startDate, i)),
-    [startDate]
-  );
+  // Visible dates + the [start, endExclusive) window sent to the backend —
+  // derived from viewMode + anchorDate, so switching modes naturally lands
+  // on "the day/week/month containing whatever's currently in view" with
+  // no extra bookkeeping.
+  const { dates, rangeStart, rangeEndExclusive } = useMemo(() => {
+    if (viewMode === 'day') {
+      const d = startOfDay(anchorDate);
+      return { dates: [d], rangeStart: d, rangeEndExclusive: addDays(d, 1) };
+    }
+    if (viewMode === 'month') {
+      const first = startOfMonth(anchorDate);
+      const firstOfNext = new Date(first.getFullYear(), first.getMonth() + 1, 1);
+      const dayCount = Math.round((firstOfNext.getTime() - first.getTime()) / 86_400_000);
+      return {
+        dates: Array.from({ length: dayCount }, (_, i) => addDays(first, i)),
+        rangeStart: first,
+        rangeEndExclusive: firstOfNext,
+      };
+    }
+    const start = startOfDay(anchorDate);
+    return {
+      dates: Array.from({ length: WEEK_DAYS }, (_, i) => addDays(start, i)),
+      rangeStart: start,
+      rangeEndExclusive: addDays(start, WEEK_DAYS),
+    };
+  }, [viewMode, anchorDate]);
 
-  const params = useMemo(
+  const params = useMemo<CalendarMatrixParams>(
     () => ({
-      startDate: isoDate(startDate),
-      // Exclusive upper bound, one day past the last visible night — matches
-      // the backend's `checkIn < end` / `checkOut > start` overlap query
-      // (availabilityMatrix.service.js#computeAvailabilityMatrix).
-      endDate: isoDate(addDays(startDate, VIEW_DAYS)),
+      startDate: isoDate(rangeStart),
+      endDate: isoDate(rangeEndExclusive),
       ...(roomType ? { roomType } : {}),
+      ...(ratePlanId ? { ratePlanId } : {}),
+      ...(source ? { source } : {}),
+      ...(status ? { status } : {}),
     }),
-    [startDate, roomType]
+    [rangeStart, rangeEndExclusive, roomType, ratePlanId, source, status]
   );
 
   const { data: matrix, isLoading } = useQuery({
-    queryKey: roomKeys.calendar(params),
+    queryKey: roomKeys.calendar(params as unknown as Record<string, unknown>),
     queryFn: () => api.rooms.getCalendarMatrix(params),
     staleTime: 30_000,
   });
 
+  // Only fetched for roles that actually hold rate:* — GET /pricing/rate-plans
+  // requires it, and most front-desk roles don't have it, so fetching
+  // unconditionally would 403 on every calendar page load for most staff.
+  const { data: ratePlans } = useQuery({
+    queryKey: pricingKeys.ratePlans(),
+    queryFn: () => api.pricing.listRatePlans(),
+    enabled: canViewRatePlans,
+    staleTime: 120_000,
+  });
+  const activeRatePlans = useMemo(() => (ratePlans ?? []).filter((p) => p.isActive), [ratePlans]);
+
   useSocketEvent(SOCKET_EVENTS.BOOKING_CREATED, () => {
-    void queryClient.invalidateQueries({ queryKey: roomKeys.calendar(params) });
+    void queryClient.invalidateQueries({ queryKey: roomKeys.calendar(params as unknown as Record<string, unknown>) });
   });
   useSocketEvent(SOCKET_EVENTS.BOOKING_UPDATED, () => {
-    void queryClient.invalidateQueries({ queryKey: roomKeys.calendar(params) });
+    void queryClient.invalidateQueries({ queryKey: roomKeys.calendar(params as unknown as Record<string, unknown>) });
   });
 
   const today = isoDate(new Date());
@@ -175,6 +252,37 @@ export default function CalendarPage(): React.ReactElement {
       .map((type) => ({ type, rooms: groups.get(type)! }));
   }, [matrix]);
 
+  function goPrev() {
+    setAnchorDate((d) => {
+      if (viewMode === 'day') return addDays(d, -1);
+      if (viewMode === 'month') return new Date(d.getFullYear(), d.getMonth() - 1, 1);
+      return addDays(d, -WEEK_DAYS);
+    });
+  }
+  function goNext() {
+    setAnchorDate((d) => {
+      if (viewMode === 'day') return addDays(d, 1);
+      if (viewMode === 'month') return new Date(d.getFullYear(), d.getMonth() + 1, 1);
+      return addDays(d, WEEK_DAYS);
+    });
+  }
+
+  function rangeLabel(): string {
+    if (viewMode === 'day') {
+      return anchorDate.toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+    if (viewMode === 'month') {
+      return anchorDate.toLocaleDateString('en-ZA', { month: 'long', year: 'numeric' });
+    }
+    const first = dates[0];
+    const last = dates[dates.length - 1];
+    if (!first || !last) return '';
+    return `${first.toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })} – ${last.toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+  }
+
+  const compact = viewMode === 'month';
+  const activeFilterCount = [roomType, ratePlanId, source, status].filter(Boolean).length;
+
   return (
     <div data-page="rooms-calendar">
       <div data-page-header>
@@ -189,27 +297,28 @@ export default function CalendarPage(): React.ReactElement {
         </div>
       </div>
 
-      {/* Week navigator */}
+      {/* Navigator + view mode */}
       <div data-calendar-nav>
-        <button type="button" data-btn-ghost onClick={() => setStartDate((d) => addDays(d, -7))} aria-label="Previous week">
+        <button type="button" data-btn-ghost onClick={goPrev} aria-label={`Previous ${viewMode}`}>
           <Icons.ChevronLeft aria-hidden="true" />
         </button>
-        <span data-calendar-range>
-          {startDate.toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })}
-          {' – '}
-          {addDays(startDate, VIEW_DAYS - 1).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })}
-        </span>
-        <button type="button" data-btn-ghost onClick={() => setStartDate(startOfDay(new Date()))}>
+        <span data-calendar-range>{rangeLabel()}</span>
+        <button type="button" data-btn-ghost onClick={() => setAnchorDate(startOfDay(new Date()))}>
           Today
         </button>
-        <button type="button" data-btn-ghost onClick={() => setStartDate((d) => addDays(d, 7))} aria-label="Next week">
+        <button type="button" data-btn-ghost onClick={goNext} aria-label={`Next ${viewMode}`}>
           <Icons.ChevronRight aria-hidden="true" />
         </button>
+
+        <div data-segmented role="tablist" aria-label="Calendar view">
+          <button type="button" data-segmented-option data-active={viewMode === 'day' || undefined} onClick={() => setViewMode('day')}>Day</button>
+          <button type="button" data-segmented-option data-active={viewMode === 'week' || undefined} onClick={() => setViewMode('week')}>Week</button>
+          <button type="button" data-segmented-option data-active={viewMode === 'month' || undefined} onClick={() => setViewMode('month')}>Month</button>
+        </div>
       </div>
 
-      {/* Room type is the one filter the backend actually supports for this
-          endpoint (calendarMatrixQuerySchema) — no Rate Plan/Source/Status
-          filters here since there's nothing real on the server to back them. */}
+      {/* Every control here is a real, working query param on
+          GET /rooms/calendar-matrix — see calendarMatrixQuerySchema. */}
       <div data-filter-bar>
         <div data-filter-select>
           <span>Room type</span>
@@ -220,6 +329,49 @@ export default function CalendarPage(): React.ReactElement {
             ))}
           </select>
         </div>
+
+        {canViewRatePlans && (
+          <div data-filter-select>
+            <span>Rate plan</span>
+            <select value={ratePlanId} onChange={(e) => setRatePlanId(e.target.value)}>
+              <option value="">All rate plans</option>
+              {activeRatePlans.map((plan) => (
+                <option key={plan._id} value={plan._id}>{plan.name} ({plan.code})</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <div data-filter-select>
+          <span>Source</span>
+          <select value={source} onChange={(e) => setSource(e.target.value)}>
+            <option value="">All sources</option>
+            {SOURCE_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
+
+        <div data-filter-select>
+          <span>Status</span>
+          <select value={status} onChange={(e) => setStatus(e.target.value as CalendarMatrixParams['status'] | '')}>
+            <option value="">All statuses</option>
+            {STATUS_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {activeFilterCount > 0 && (
+          <button
+            type="button"
+            data-btn-ghost
+            data-btn-sm
+            onClick={() => { setRoomType(''); setRatePlanId(''); setSource(''); setStatus(''); }}
+          >
+            Clear filters ({activeFilterCount})
+          </button>
+        )}
       </div>
 
       {isLoading ? (
@@ -228,7 +380,7 @@ export default function CalendarPage(): React.ReactElement {
         <p data-empty-note>No rooms match this filter.</p>
       ) : (
         <div data-calendar-matrix>
-          <table data-calendar-table>
+          <table data-calendar-table data-density={compact ? 'compact' : undefined}>
             <thead>
               <tr>
                 <th data-calendar-room-col>Room</th>
@@ -237,7 +389,7 @@ export default function CalendarPage(): React.ReactElement {
                   const iso = isoDate(d);
                   return (
                     <th key={iso} data-calendar-day data-today={iso === today || undefined}>
-                      <span data-day-weekday>{lbl.weekday}</span>
+                      {!compact && <span data-day-weekday>{lbl.weekday}</span>}
                       <span data-day-date>{lbl.date}</span>
                     </th>
                   );
@@ -248,7 +400,7 @@ export default function CalendarPage(): React.ReactElement {
               {groupedRooms.map(({ type, rooms }) => (
                 <React.Fragment key={type}>
                   <tr data-calendar-type-header>
-                    <td colSpan={1 + VIEW_DAYS}>{TYPE_LABELS[type] ?? type}</td>
+                    <td colSpan={1 + dates.length}>{TYPE_LABELS[type] ?? type}</td>
                   </tr>
                   {rooms.map((room) => {
                     const roomCells = cellsByRoom.get(String(room._id));
@@ -256,7 +408,7 @@ export default function CalendarPage(): React.ReactElement {
                       <tr key={room._id} data-calendar-row>
                         <td data-calendar-room-label>
                           <span data-room-num>{room.roomNumber}</span>
-                          {room.name && <span data-room-type>{room.name}</span>}
+                          {!compact && room.name && <span data-room-type>{room.name}</span>}
                         </td>
                         {dates.map((d) => {
                           const iso = isoDate(d);
@@ -267,11 +419,11 @@ export default function CalendarPage(): React.ReactElement {
                                 <Link
                                   href={`/bookings/${cell.booking._id}`}
                                   data-booking-chip
-                                  data-status={statusOf(cell.booking)}
+                                  data-status={chipStatusOf(cell.booking)}
                                   data-conflict={cell.booking.hasConflict || undefined}
                                   title={`${cell.booking.guestName ?? 'Guest'} — ${cell.booking.confirmationNumber}`}
                                 >
-                                  {cell.booking.isExternal && (
+                                  {!compact && cell.booking.isExternal && (
                                     <Icons.RefreshCcw data-booking-chip-icon aria-hidden="true" />
                                   )}
                                   <span data-booking-chip-guest>

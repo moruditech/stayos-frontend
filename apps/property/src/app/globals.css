@@ -882,6 +882,21 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   background: repeating-linear-gradient(45deg, var(--color-warning-bg), var(--color-warning-bg) 2px, var(--color-warning-border) 2px, var(--color-warning-border) 4px);
 }
 
+/* Month view — 28-31 day columns can't show weekday labels or guest names
+   at any readable width, so it degrades to a dense strip of colour per
+   room/day. Same chips, same colours, same data — just less text. */
+[data-calendar-table][data-density='compact'] [data-calendar-day],
+[data-calendar-table][data-density='compact'] [data-calendar-cell] {
+  min-width: 24px;
+  width: 24px;
+}
+[data-calendar-table][data-density='compact'] [data-calendar-room-label] { min-width: 96px; }
+[data-calendar-table][data-density='compact'] [data-day-date] { font-size: 11px; }
+[data-calendar-table][data-density='compact'] [data-calendar-cell] { padding: 2px; height: 32px; }
+[data-calendar-table][data-density='compact'] [data-booking-chip] { padding: 0; justify-content: center; }
+[data-calendar-table][data-density='compact'] [data-booking-chip-guest] { display: none; }
+[data-calendar-table][data-density='compact'] [data-blocked-chip] { font-size: 0; }
+
 /* ────────────────────────────────────────────────────────────────────────────
    CROSS-PAGE PATTERNS — form/table/tab/alert/detail conventions used by
    20+ pages under property. Property consistently uses simpler names than

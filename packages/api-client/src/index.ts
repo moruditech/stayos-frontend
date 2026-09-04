@@ -9,7 +9,6 @@ import { roomsApi }      from './domains/rooms';
 import { housekeepingApi } from './domains/housekeeping';
 import { maintenanceApi }  from './domains/maintenance';
 import { foliosApi }       from './domains/folios';
-import { contactApi, newsletterApi, mailboxApi } from './domains/public';
 import {
   pricingApi,
   promotionsApi,
@@ -76,11 +75,6 @@ export const api = {
   support:       supportApi,
   university:    universityApi,
   payments:      paymentsApi,
-
-  // ── Marketing site (Next.js — apps/public / stayos.co.za) & mailbox ──
-  contact:       contactApi,
-  newsletter:    newsletterApi,
-  mailbox:       mailboxApi,
 } as const;
 
 export { ApiError, setTokenGetter, setTenantIdGetter, setRefreshCallback } from './client';
@@ -97,3 +91,4 @@ export type {
   CalendarMatrixResponse,
   CalendarMatrixParams,
 } from './domains/rooms';
+export type { RatePlanSummary } from './domains/property-ops';

@@ -103,6 +103,13 @@ export interface CalendarMatrixParams {
   floor?: string;
   includeBlocked?: boolean;
   includeCancelled?: boolean;
+  ratePlanId?: string;
+  source?: string;
+  // Spans both bookings and blocks — 'blocked'/'maintenance' clear the
+  // bookings list and filter blocks by the room's current status instead,
+  // since neither is a real Booking.status value. See
+  // rooms.service.js#getCalendarMatrix.
+  status?: 'confirmed' | 'checked_in' | 'tentative' | 'blocked' | 'maintenance';
 }
 
 export const roomsApi = {
