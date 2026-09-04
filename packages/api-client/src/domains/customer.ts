@@ -28,12 +28,14 @@ export const discoveryApi = {
     }),
 
   // Bridge from a property's public slug to its (independently-slugged)
-  // student housing application form.
-  getApplicationForm: (slug: string) =>
-    client.get<Record<string, unknown>>(`/discovery/properties/${slug}/application-form`),
+  // student housing application form(s). A property may have more than one
+  // currently-open form at a time, so this returns a list — the applicant
+  // picks which one to submit (see discovery.routes.js §"application-forms").
+  listApplicationForms: (slug: string) =>
+    client.get<Record<string, unknown>[]>(`/discovery/properties/${slug}/application-forms`),
 
-  submitApplicationForProperty: (slug: string, input: Record<string, unknown>) =>
-    client.post<Record<string, unknown>>(`/discovery/properties/${slug}/application-form/apply`, input),
+  submitApplicationForProperty: (slug: string, formId: string, input: Record<string, unknown>) =>
+    client.post<Record<string, unknown>>(`/discovery/properties/${slug}/application-forms/${formId}/apply`, input),
 };
 
 export const customerApi = {
