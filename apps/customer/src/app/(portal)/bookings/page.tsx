@@ -140,7 +140,7 @@ function BookingCard({ booking }: { booking: Record<string, unknown> }): React.R
   const propertyCity  = (address['city']        as string)  ?? null;
   const coverImage    = (tenant['coverImage']   as string)  ?? null;
   const slug          = (tenant['slug']         as string)  ?? null;
-  const roomType      = (room['type']           as string)  ?? null;
+  const roomType      = formatRoomType(room['type'] as string | undefined);
 
   const checkIn   = new Date(booking['checkIn'] as string);
   const checkOut  = new Date(booking['checkOut'] as string);
@@ -150,7 +150,7 @@ function BookingCard({ booking }: { booking: Record<string, unknown> }): React.R
   const isUpcoming = ['confirmed', 'pending_confirmation'].includes(status) && daysUntil > 0;
 
   const cancelMutation = useMutation({
-    mutationFn: () => api.bookings.cancel(bookingId),
+    mutationFn: () => api.customer.cancelBooking(bookingId, 'Cancelled by guest via app'),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: bookingKeys.list() });
       toast('Booking cancelled.', 'success');
@@ -221,7 +221,6 @@ function BookingCard({ booking }: { booking: Record<string, unknown> }): React.R
           <div data-booking-card-body>
             <div data-booking-card-name>
               {propertyName}
-              <Icons.ChevronRight size={16} style={{ color: 'var(--color-text-muted)' }} />
             </div>
             {propertyCity && (
               <div data-booking-card-meta><Icons.MapPin size={14} />{propertyCity}</div>
@@ -260,9 +259,12 @@ function BookingCard({ booking }: { booking: Record<string, unknown> }): React.R
           {daysUntil > 0 && status === 'confirmed' && (
             <span data-checkin-countdown>Check-in in {daysUntil} day{daysUntil !== 1 ? 's' : ''}</span>
           )}
-          <div data-booking-total>
-            <div data-booking-total-label>Total</div>
-            <div data-booking-total-amount>R{((booking['totalAmount'] as number) ?? 0).toLocaleString()}</div>
+          <div data-booking-total-group>
+            <div data-booking-total>
+              <div data-booking-total-label>Total</div>
+              <div data-booking-total-amount>R{((booking['totalAmount'] as number) ?? 0).toLocaleString()}</div>
+            </div>
+            <Icons.ChevronRight size={18} data-booking-total-chevron />
           </div>
         </div>
       </div>
@@ -335,4 +337,15 @@ function BookingCard({ booking }: { booking: Record<string, unknown> }): React.R
       />
     </>
   );
+}
+
+// Room types come back from the API as lowercase enum values (e.g. 'single',
+// 'deluxe') — display them Title Case, with a trailing "Room" if the value
+// doesn't already read as a full room name.
+function formatRoomType(type: string | undefined): string | null {
+  if (!type) return null;
+  const words = type.replace(/_/g, ' ').trim().split(/\s+/)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+  return /room$/i.test(words) ? words : `${words} Room`;
 }

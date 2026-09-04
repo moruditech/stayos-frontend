@@ -26,7 +26,7 @@ export default function BookingDetailPage({ params }: Props): React.ReactElement
   });
 
   const cancelMutation = useMutation({
-    mutationFn: () => api.bookings.cancel(params.id),
+    mutationFn: () => api.customer.cancelBooking(params.id, 'Cancelled by guest via app'),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: bookingKeys.list() });
       qc.invalidateQueries({ queryKey: bookingKeys.detail(params.id) });
@@ -53,7 +53,7 @@ export default function BookingDetailPage({ params }: Props): React.ReactElement
   const propertyCity = (tenantAddr['city']   as string) ?? null;
   const coverImage   = (tenant['coverImage'] as string) ?? null;
   const tenantSlug   = (tenant['slug']       as string) ?? null;
-  const roomType     = (room['type']         as string) ?? null;
+  const roomType     = formatRoomType(room['type'] as string | undefined);
 
   const status      = b['status'] as string;
   const checkIn     = new Date(b['checkIn'] as string);

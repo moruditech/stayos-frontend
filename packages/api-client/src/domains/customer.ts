@@ -62,6 +62,15 @@ export const customerApi = {
   // GET /customers/me/bookings
   listBookings: () => client.get<Record<string, unknown>[]>('/customers/me/bookings'),
   getBooking: (id: string) => client.get<Record<string, unknown>>(`/customers/me/bookings/${id}`),
+  cancelBooking: (id: string, reason?: string) =>
+    client.post<Record<string, unknown>>(`/customers/me/bookings/${id}/cancel`, { reason }),
+
+  // POST /payments/booking/:bookingId — customer-initiated payment against a
+  // booking they own; the backend resolves tenantId from the ownership
+  // check, so no tenantId is passed here. Returns { paymentUrl, ... } to
+  // redirect the browser to for gateway checkout.
+  initiateBookingPayment: (bookingId: string, input: { type: string; gateway: string; amount: number; currency?: string }) =>
+    client.post<Record<string, unknown>>(`/payments/booking/${bookingId}`, input),
 
   // GET /customers/me/applications
   listApplications: () =>

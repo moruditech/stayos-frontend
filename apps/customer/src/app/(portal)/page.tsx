@@ -289,17 +289,33 @@ function UpcomingBookingCard({ booking }: { booking: Record<string, unknown> }):
     (checkIn.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
   );
 
+  // Backend populates tenantId → { name, slug, coverImage, address: { city } }
+  // and roomId → { roomNumber, type }
+  const tenant  = (typeof booking['tenantId'] === 'object' && booking['tenantId'] !== null
+    ? booking['tenantId'] : {}) as Record<string, unknown>;
+  const room    = (typeof booking['roomId'] === 'object' && booking['roomId'] !== null
+    ? booking['roomId'] : {}) as Record<string, unknown>;
+  const address = (typeof tenant['address'] === 'object' && tenant['address'] !== null
+    ? tenant['address'] : {}) as Record<string, unknown>;
+
+  const propertyName = (tenant['name']      as string) ?? 'Property';
+  const propertyCity = (address['city']     as string) ?? null;
+  const coverImage   = (tenant['coverImage'] as string) ?? null;
+  const tenantSlug   = (tenant['slug']      as string) ?? null;
+  const roomType     = formatRoomType(room['type'] as string | undefined);
+
   return (
     <div data-booking-card style={{ marginBottom: 'var(--space-4)' }}>
       <Link href={`/bookings/${booking['_id'] as string}`} data-booking-card-top>
         <div data-booking-card-image>
-          {/* Property image — /images/properties/[propertyId].jpg */}
-          <img
-            src={`/images/properties/${booking['tenantId'] as string}.jpg`}
-            alt=""
-            loading="lazy"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-          />
+          {(coverImage ?? tenantSlug) && (
+            <img
+              src={coverImage ?? `/images/properties/${tenantSlug}-thumb.jpg`}
+              alt={propertyName}
+              loading="lazy"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+          )}
           <span data-booking-status-badge>
             <span data-status-badge data-status="confirmed">Confirmed</span>
           </span>
@@ -310,13 +326,17 @@ function UpcomingBookingCard({ booking }: { booking: Record<string, unknown> }):
         </div>
 
         <div data-booking-card-body>
-          <div data-booking-card-name>
-            {(booking['propertyName'] as string) ?? 'Property'}
-          </div>
-          <div data-booking-card-meta>
-            <Icons.MapPin size={14} />
-            {(booking['propertyCity'] as string) ?? '—'}
-          </div>
+          <div data-booking-card-name>{propertyName}</div>
+          {propertyCity && (
+            <div data-booking-card-meta>
+              <Icons.MapPin size={14} /> {propertyCity}
+            </div>
+          )}
+          {roomType && (
+            <div data-booking-card-meta>
+              <Icons.BedDouble size={14} /> {roomType}
+            </div>
+          )}
           <div data-booking-card-meta>
             <Icons.Calendar size={14} /> Booking #{booking['confirmationNumber'] as string ?? '—'}
           </div>
@@ -328,12 +348,7 @@ function UpcomingBookingCard({ booking }: { booking: Record<string, unknown> }):
           <span data-checkin-countdown>Check-in in {daysUntil} day{daysUntil !== 1 ? 's' : ''}</span>
         )}
         <div data-booking-card-actions>
-          <div data-booking-card-actions-left>
-            <Link href={`/bookings/${booking['_id'] as string}`} data-btn-secondary>View booking</Link>
-            <button type="button" data-btn-icon-square aria-label="More options">
-              <Icons.MoreHorizontal size={16} />
-            </button>
-          </div>
+          <Link href={`/bookings/${booking['_id'] as string}`} data-btn-secondary>View booking</Link>
           <div data-booking-total>
             <div data-booking-total-label>Total</div>
             <div data-booking-total-amount>
@@ -344,6 +359,18 @@ function UpcomingBookingCard({ booking }: { booking: Record<string, unknown> }):
       </div>
     </div>
   );
+}
+
+// Room types come back from the API as lowercase enum values (e.g. 'single',
+// 'deluxe') — display them the way the booking cards elsewhere show room
+// names: Title Case, with a trailing "Room" if the value doesn't already
+// read as a full room name.
+function formatRoomType(type: string | undefined): string | null {
+  if (!type) return null;
+  const words = type.replace(/_/g, ' ').trim().split(/\s+/)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+  return /room$/i.test(words) ? words : `${words} Room`;
 }
 
 function PropertyCard({ property }: { property: Record<string, unknown> }): React.ReactElement {
