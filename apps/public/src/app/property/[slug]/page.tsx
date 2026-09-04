@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
 import { PublicHeader, PublicFooter } from '@/components/PublicLayout';
@@ -48,7 +49,7 @@ export default function PublicPropertyPage({ params }: Props): React.ReactElemen
       <PublicHeader />
       <div data-container style={{ padding:'var(--space-20)', textAlign:'center' }}>
         <h1>Property not found</h1>
-        <a href="/search" data-btn-primary style={{ marginTop:'var(--space-6)', display:'inline-flex' }}>Back to search</a>
+        <Link href="/search" data-btn-primary style={{ marginTop:'var(--space-6)', display:'inline-flex' }}>Back to search</Link>
       </div>
       <PublicFooter />
     </>
@@ -58,6 +59,14 @@ export default function PublicPropertyPage({ params }: Props): React.ReactElemen
   const roomList  = (rooms as Record<string,unknown>[] | undefined) ?? [];
   const reviewList= (reviews as Record<string,unknown>[] | undefined) ?? [];
   const nights    = (checkIn && checkOut) ? Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86400000) : 0;
+
+  // The tenant document carries no rate of its own — only its rooms do —
+  // so "From R{x}" is the cheapest active room, once rooms have loaded.
+  const roomRates = roomList.map((r) => r['baseRate'] as number).filter((r) => typeof r === 'number');
+  const fromRate  = roomRates.length > 0 ? Math.min(...roomRates) : null;
+
+  const address = p['address'] as Record<string,unknown> | undefined;
+  const ratings = p['ratings'] as Record<string,unknown> | undefined;
 
   // TAD 09 §4: student_housing → Apply (no account, no redirect)
   //            all others → "Book now" → my.stayos.co.za/login?redirect=...
@@ -78,8 +87,8 @@ export default function PublicPropertyPage({ params }: Props): React.ReactElemen
       {/* Breadcrumb */}
       <div data-container style={{ padding:'var(--space-4) var(--page-padding-x) 0' }}>
         <nav style={{ display:'flex', gap:'var(--space-2)', fontSize:'var(--text-sm)', color:'var(--color-text-muted)' }}>
-          <a href="/" data-link>Home</a> <span>›</span>
-          <a href="/search" data-link>Search</a> <span>›</span>
+          <Link href="/" data-link>Home</Link> <span>›</span>
+          <Link href="/search" data-link>Search</Link> <span>›</span>
           <span style={{ color:'var(--color-text-primary)' }}>{p['name'] as string}</span>
         </nav>
       </div>
@@ -114,11 +123,11 @@ export default function PublicPropertyPage({ params }: Props): React.ReactElemen
                   {p['name'] as string}
                 </h1>
                 <div style={{ display:'flex', gap:'var(--space-5)', fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', flexWrap:'wrap' }}>
-                  <span style={{ display:'flex', alignItems:'center', gap:4 }}><MapPin size={14} aria-hidden="true" /> {p['city'] as string}, {p['province'] as string ?? 'South Africa'}</span>
-                  {Boolean(p['rating']) && (
+                  <span style={{ display:'flex', alignItems:'center', gap:4 }}><MapPin size={14} aria-hidden="true" /> {[address?.['city'], address?.['province']].filter(Boolean).join(', ') || 'South Africa'}</span>
+                  {Boolean(ratings?.['overall']) && (
                     <span style={{ display:'flex', alignItems:'center', gap:'var(--space-1)', color:'var(--color-text-primary)', fontWeight:'var(--font-semibold)' }}>
-                      <Star size={14} fill="currentColor" aria-hidden="true" /> {(p['rating'] as number).toFixed(1)}
-                      <span style={{ color:'var(--color-text-muted)', fontWeight:'normal' }}>({p['reviewCount'] as number ?? 0} reviews)</span>
+                      <Star size={14} fill="currentColor" aria-hidden="true" /> {(ratings?.['overall'] as number).toFixed(1)}
+                      <span style={{ color:'var(--color-text-muted)', fontWeight:'normal' }}>({ratings?.['totalReviews'] as number ?? 0} reviews)</span>
                     </span>
                   )}
                 </div>
@@ -196,9 +205,9 @@ export default function PublicPropertyPage({ params }: Props): React.ReactElemen
                                 )}
                               </div>
                               {isStudent ? (
-                                <a href={`/property/${params.slug}/apply`} data-btn-primary style={{ padding:'var(--space-2) var(--space-4)' }}>
+                                <Link href={`/property/${params.slug}/apply`} data-btn-primary style={{ padding:'var(--space-2) var(--space-4)' }}>
                                   Apply now
-                                </a>
+                                </Link>
                               ) : (
                                 <a href={bookHref(r['_id'] as string)} data-btn-primary style={{ padding:'var(--space-2) var(--space-4)' }}>
                                   Book now
@@ -247,9 +256,9 @@ export default function PublicPropertyPage({ params }: Props): React.ReactElemen
                 <p style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', marginBottom:'var(--space-5)', lineHeight:'var(--leading-relaxed)' }}>
                   No account required. Complete the application form and submit your documents.
                 </p>
-                <a href={`/property/${params.slug}/apply`} data-btn-primary data-btn-full>
+                <Link href={`/property/${params.slug}/apply`} data-btn-primary data-btn-full>
                   Apply now <ArrowRight size={16} aria-hidden="true" />
-                </a>
+                </Link>
                 <p style={{ fontSize:'var(--text-xs)', color:'var(--color-text-muted)', marginTop:'var(--space-3)', textAlign:'center' }}>
                   Applications are free to submit
                 </p>
@@ -258,10 +267,14 @@ export default function PublicPropertyPage({ params }: Props): React.ReactElemen
               <>
                 <div style={{ marginBottom:'var(--space-4)' }}>
                   <div style={{ fontSize:'var(--text-xs)', color:'var(--color-text-muted)' }}>From</div>
-                  <span data-property-rate style={{ fontSize:'var(--text-3xl)' }}>
-                    R{((p['baseRate'] as number) ?? 0).toLocaleString()}
-                  </span>
-                  <span data-property-rate-label> / night</span>
+                  {fromRate != null ? (
+                    <>
+                      <span data-property-rate style={{ fontSize:'var(--text-3xl)' }}>R{fromRate.toLocaleString()}</span>
+                      <span data-property-rate-label> / night</span>
+                    </>
+                  ) : (
+                    <span style={{ fontSize:'var(--text-lg)', color:'var(--color-text-muted)' }}>Price on request</span>
+                  )}
                 </div>
                 <div style={{ display:'flex', flexDirection:'column', gap:'var(--space-3)', marginBottom:'var(--space-4)' }}>
                   <div data-form-group>
@@ -283,15 +296,15 @@ export default function PublicPropertyPage({ params }: Props): React.ReactElemen
                     </select>
                   </div>
                 </div>
-                {nights > 0 && (
+                {nights > 0 && fromRate != null && (
                   <div style={{ padding:'var(--space-3)', background:'var(--color-surface-muted)', borderRadius:'var(--radius-md)', marginBottom:'var(--space-4)', fontSize:'var(--text-sm)' }}>
                     <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'var(--space-2)' }}>
-                      <span>R{((p['baseRate'] as number)??0).toLocaleString()} × {nights} night{nights!==1?'s':''}</span>
-                      <span>R{(((p['baseRate'] as number)??0)*nights).toLocaleString()}</span>
+                      <span>R{fromRate.toLocaleString()} × {nights} night{nights!==1?'s':''}</span>
+                      <span>R{(fromRate*nights).toLocaleString()}</span>
                     </div>
                     <div style={{ display:'flex', justifyContent:'space-between', fontWeight:'var(--font-bold)' }}>
                       <span>Total (indicative)</span>
-                      <span>R{(((p['baseRate'] as number)??0)*nights*1.15).toLocaleString()}</span>
+                      <span>R{(fromRate*nights*1.15).toLocaleString()}</span>
                     </div>
                   </div>
                 )}

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, Suspense } from 'react';
+import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { api } from '@stayos/api-client';
@@ -180,7 +181,9 @@ function SearchContent(): React.ReactElement {
               {properties.map((item) => {
                 const p          = item as Record<string,unknown>;
                 const isStudent  = (p['type'] as string)==='student_housing';
-                const rate       = p['baseRate'] as number ?? 0;
+                const address    = p['address'] as Record<string,unknown> | undefined;
+                const ratings    = p['ratings'] as Record<string,unknown> | undefined;
+                const fromRate   = p['fromRate'] as number | null | undefined;
                 return (
                   <div key={p['_id'] as string} data-card data-cols-media-md>
                     <div style={{ position:'relative', background:'var(--color-surface-muted)', overflow:'hidden', minHeight:200 }}>
@@ -193,9 +196,9 @@ function SearchContent(): React.ReactElement {
                     <div style={{ padding:'var(--space-5)', display:'flex', flexDirection:'column', gap:'var(--space-3)' }}>
                       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
                         <h3 style={{ fontSize:'var(--text-lg)', fontWeight:'var(--font-bold)', lineHeight:'var(--leading-snug)' }}>{p['name'] as string}</h3>
-                        {Boolean(p['rating']) && <span style={{ display:'flex', alignItems:'center', gap:4, fontSize:'var(--text-sm)', fontWeight:'var(--font-bold)', flexShrink:0 }}><Star size={14} fill="currentColor" aria-hidden="true" /> {(p['rating'] as number).toFixed(1)} <span style={{ color:'var(--color-text-muted)', fontWeight:'normal' }}>({p['reviewCount'] as number ?? 0})</span></span>}
+                        {Boolean(ratings?.['overall']) && <span style={{ display:'flex', alignItems:'center', gap:4, fontSize:'var(--text-sm)', fontWeight:'var(--font-bold)', flexShrink:0 }}><Star size={14} fill="currentColor" aria-hidden="true" /> {(ratings?.['overall'] as number).toFixed(1)} <span style={{ color:'var(--color-text-muted)', fontWeight:'normal' }}>({ratings?.['totalReviews'] as number ?? 0})</span></span>}
                       </div>
-                      <div style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', display:'flex', alignItems:'center', gap:4 }}><MapPin size={14} aria-hidden="true" /> {p['city'] as string}{p['distanceFromCentre'] ? ` · ${p['distanceFromCentre'] as string} km from centre` : ''}</div>
+                      <div style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', display:'flex', alignItems:'center', gap:4 }}><MapPin size={14} aria-hidden="true" /> {[address?.['city'], address?.['province']].filter(Boolean).join(', ') || 'South Africa'}</div>
                       <div style={{ display:'flex', flexWrap:'wrap', gap:'var(--space-3)' }}>
                         {((p['amenities'] as string[]) ?? []).slice(0,4).map((a) => (
                           <span key={a} style={{ fontSize:'var(--text-xs)', color:'var(--color-text-secondary)', display:'flex', alignItems:'center', gap:4 }}><Check size={12} aria-hidden="true" /> {a}</span>
@@ -205,16 +208,18 @@ function SearchContent(): React.ReactElement {
                       {Boolean(p['breakfastIncluded']) && <span data-property-tag="breakfast">Breakfast included</span>}
                       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'end', marginTop:'auto' }}>
                         <div>
-                          {!isStudent && <>
-                            <div style={{ fontSize:'var(--text-xs)', color:'var(--color-text-muted)' }}>From</div>
-                            <span data-property-rate>R{rate.toLocaleString()}</span>
-                            <span data-property-rate-label> / night</span>
-                            {nights>0 && <div data-property-rate-total>Total R{(rate*nights).toLocaleString()} for {nights} night{nights!==1?'s':''}<br/>Includes taxes and fees</div>}
-                          </>}
+                          {!isStudent && (
+                            fromRate != null ? <>
+                              <div style={{ fontSize:'var(--text-xs)', color:'var(--color-text-muted)' }}>From</div>
+                              <span data-property-rate>R{fromRate.toLocaleString()}</span>
+                              <span data-property-rate-label> / night</span>
+                              {nights>0 && <div data-property-rate-total>Total R{(fromRate*nights).toLocaleString()} for {nights} night{nights!==1?'s':''}<br/>Includes taxes and fees</div>}
+                            </> : <span style={{ fontSize:'var(--text-sm)', color:'var(--color-text-muted)' }}>Price on request</span>
+                          )}
                         </div>
-                        <a href={ctaHref(p)} data-btn-primary style={{ whiteSpace:'nowrap' }}>
+                        <Link href={ctaHref(p)} data-btn-primary style={{ whiteSpace:'nowrap' }}>
                           {isStudent ? 'Apply now' : 'View details'}
-                        </a>
+                        </Link>
                       </div>
                     </div>
                   </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { Suspense, useState } from 'react';
+import Link from 'next/link';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 import { api } from '@stayos/api-client';
@@ -180,7 +181,7 @@ function ApplyContent({ params }: Props): React.ReactElement {
           <p style={{ color:'var(--color-text-secondary)', marginTop:'var(--space-3)' }}>
             This property may not currently be accepting student housing applications.
           </p>
-          <a href={`/property/${slug}`} data-btn-primary style={{ marginTop:'var(--space-6)', display:'inline-flex' }}>Back to property</a>
+          <Link href={`/property/${slug}`} data-btn-primary style={{ marginTop:'var(--space-6)', display:'inline-flex' }}>Back to property</Link>
         </div>
         <PublicFooter />
       </>
@@ -198,7 +199,7 @@ function ApplyContent({ params }: Props): React.ReactElement {
             <p style={{ fontSize:'var(--text-sm)', color:'var(--color-text-secondary)', marginBottom:'var(--space-6)' }}>
               We&apos;ve emailed you a confirmation of your application to {propertyName}.
             </p>
-            <a href="/search" data-btn-primary style={{ display:'inline-flex' }}>Back to search</a>
+            <Link href="/search" data-btn-primary style={{ display:'inline-flex' }}>Back to search</Link>
           </div>
         </div>
         <PublicFooter />
@@ -217,8 +218,8 @@ function ApplyContent({ params }: Props): React.ReactElement {
 
       <div data-container style={{ padding:'var(--space-4) var(--page-padding-x) 0' }}>
         <nav style={{ display:'flex', gap:'var(--space-2)', fontSize:'var(--text-sm)', color:'var(--color-text-muted)' }}>
-          <a href="/" data-link>Home</a> <span>›</span>
-          <a href={`/property/${slug}`} data-link>{propertyName}</a> <span>›</span>
+          <Link href="/" data-link>Home</Link> <span>›</span>
+          <Link href={`/property/${slug}`} data-link>{propertyName}</Link> <span>›</span>
           <span style={{ color:'var(--color-text-primary)' }}>Apply</span>
         </nav>
       </div>
