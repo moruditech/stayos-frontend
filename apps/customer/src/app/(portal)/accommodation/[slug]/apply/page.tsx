@@ -36,9 +36,10 @@ export default function ApplyPage({ params }: Props): React.ReactElement {
   const roomId        = searchParams.get('roomId') ?? undefined;
   const { toast }     = useToast();
 
-  const [submitted, setSubmitted]     = useState<string | null>(null);
-  const [formError, setFormError]     = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [submitted, setSubmitted]         = useState<string | null>(null);
+  const [formError, setFormError]         = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors]     = useState<Record<string, string>>({});
+  const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
 
   const [applicant, setApplicant] = useState({
     applicantFirstName: '', applicantLastName: '', applicantEmail: '', applicantPhone: '',
@@ -49,14 +50,23 @@ export default function ApplyPage({ params }: Props): React.ReactElement {
   const [customAnswers, setCustomAnswers] = useState<Record<string, string>>({});
   const [agreed, setAgreed] = useState(false);
 
-  const { data: form, isLoading, error: loadError } = useQuery({
-    queryKey: ['accommodation', 'application-form', slug],
-    queryFn:  () => api.discovery.getApplicationForm(slug),
+  const { data: forms, isLoading, error: loadError } = useQuery({
+    queryKey: ['accommodation', 'application-forms', slug],
+    queryFn:  () => api.discovery.listApplicationForms(slug),
     retry: false,
   });
 
+  const formList = (forms as Record<string, unknown>[] | undefined) ?? [];
+  // Default to the only open form, or the first (soonest-closing) one when there's a choice —
+  // the applicant can still switch via the picker below.
+  const activeFormId = selectedFormId ?? (formList[0]?.['_id'] as string | undefined) ?? null;
+  const form = formList.find((f) => (f['_id'] as string) === activeFormId);
+
   const submitMutation = useMutation({
-    mutationFn: (payload: Record<string, unknown>) => api.discovery.submitApplicationForProperty(slug, payload),
+    mutationFn: (payload: Record<string, unknown>) => {
+      if (!activeFormId) throw new Error('No application form selected');
+      return api.discovery.submitApplicationForProperty(slug, activeFormId, payload);
+    },
     onSuccess:  (result) => {
       setSubmitted((result as Record<string, unknown>)['applicationId'] as string ?? 'submitted');
     },
@@ -181,6 +191,20 @@ export default function ApplyPage({ params }: Props): React.ReactElement {
       <h1 data-page-title>Apply for {template['propertyName'] as string}</h1>
       {!!template['welcomeMessage'] && (
         <p data-page-subtitle>{template['welcomeMessage'] as string}</p>
+      )}
+
+      {formList.length > 1 && (
+        <div data-form-group style={{ marginTop: 'var(--space-4)' }}>
+          <label htmlFor="form-picker">Which application would you like to submit?</label>
+          <select id="form-picker" value={activeFormId ?? ''}
+            onChange={(e) => setSelectedFormId(e.target.value)}>
+            {formList.map((f) => (
+              <option key={f['_id'] as string} value={f['_id'] as string}>
+                {f['title'] as string} ({f['academicYear'] as string})
+              </option>
+            ))}
+          </select>
+        </div>
       )}
 
       {isClosed ? (
