@@ -5,7 +5,13 @@
 // only carries dates, not specific check-in/out clock times.
 
 interface BookingForCalendar {
-  confirmationNumber?: string;
+  // Both call sites pass `booking['confirmationNumber'] as string | undefined`
+  // (the field is present but its value can genuinely be undefined) rather
+  // than omitting the key entirely. Under exactOptionalPropertyTypes those
+  // are different things — `confirmationNumber?: string` only permits the
+  // key to be *absent*, not present-with-undefined — so the union needs to
+  // be spelled out explicitly to accept what's actually being passed.
+  confirmationNumber?: string | undefined;
   checkIn: string;   // ISO date
   checkOut: string;  // ISO date
   propertyName: string;
