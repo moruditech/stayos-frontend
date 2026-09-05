@@ -21,7 +21,7 @@ import {
   Modal,
   useSocketEvent,
 } from '@stayos/ui';
-import { PERMISSIONS } from '@stayos/constants';
+import { PERMISSIONS, SOCKET_EVENTS } from '@stayos/constants';
 import { roomKeys } from '@/lib/query-keys';
 
 export default function RoomsPage(): React.ReactElement {
@@ -36,8 +36,14 @@ export default function RoomsPage(): React.ReactElement {
     staleTime: 30_000,
   });
 
-  // Real-time room status updates
-  useSocketEvent('room:status:updated', () => {
+  // Real-time room status updates. Was listening for 'room:status:updated'
+  // (an unverified guess) while the backend actually emits
+  // 'room:status_changed' — so a status change made in one tab/session
+  // never live-updated any other open tab or session; it only showed up
+  // after a manual refresh, since the direct invalidateQueries() call in
+  // the mutation's own onSuccess below was masking this for the tab that
+  // made the change.
+  useSocketEvent(SOCKET_EVENTS.ROOM_STATUS_CHANGED, () => {
     void queryClient.invalidateQueries({ queryKey: roomKeys.statusBoard() });
   });
 

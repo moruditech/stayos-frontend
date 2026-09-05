@@ -2,9 +2,10 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
-import { SkeletonLoader, StatusBadge, Icons, PageHeader, StatCard, Panel, LinkArrow } from '@stayos/ui';
+import { SkeletonLoader, StatusBadge, Icons, PageHeader, StatCard, Panel, LinkArrow, useSocketEvent } from '@stayos/ui';
+import { SOCKET_EVENTS } from '@stayos/constants';
 import { dashboardKeys, bookingKeys, roomKeys } from '@/lib/query-keys';
 
 // tenants.service.js#getDashboard only ever returns these four counts —
@@ -18,6 +19,7 @@ interface DashboardSummary {
 
 export default function DashboardPage(): React.ReactElement {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const { data: dashboard, isLoading } = useQuery({
     queryKey: dashboardKeys.summary(),
@@ -35,6 +37,12 @@ export default function DashboardPage(): React.ReactElement {
     queryKey: roomKeys.statusBoard(),
     queryFn: () => api.rooms.getStatusBoard(),
     staleTime: 30_000,
+  });
+
+  // Same fix as rooms/page.tsx — see SOCKET_EVENTS.ROOM_STATUS_CHANGED's
+  // comment for why this couldn't just be 'room:status:updated'.
+  useSocketEvent(SOCKET_EVENTS.ROOM_STATUS_CHANGED, () => {
+    void queryClient.invalidateQueries({ queryKey: roomKeys.statusBoard() });
   });
 
   if (isLoading) return <SkeletonLoader rows={6} />;

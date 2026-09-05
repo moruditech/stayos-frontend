@@ -10,10 +10,12 @@
 export const SOCKET_EVENTS = {
   BOOKING_CREATED: 'booking:created',
   BOOKING_UPDATED: 'booking:updated',
-  // Confirmed against messaging.service.js — emitted to staff on customer
-  // inbound (emitToProperty) and to the customer on staff in_app reply
-  // (emitToUser), same event name and payload shape both directions.
-  MESSAGING_NEW_MESSAGE: 'messaging:new_message',
+  // Confirmed against rooms.service.js#updateRoomStatus's literal emit —
+  // note it's status_changed (underscore), not the more tempting-looking
+  // status:updated. A previous guess at this name in rooms/page.tsx used
+  // the wrong one and the handler simply never fired, silently, exactly
+  // as the warning above predicts.
+  ROOM_STATUS_CHANGED: 'room:status_changed',
   // Additional confirmed events are added here per-portal, in the phase
   // that needs them, each individually verified.
 } as const;

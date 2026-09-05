@@ -17,7 +17,6 @@ import Link from 'next/link';
  */
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -46,12 +45,19 @@ const schema = z.object({
   description:   z.string().max(2000).optional(),
   baseRate:      z.coerce.number().positive('Base rate must be a positive number'),
   rateUnit:      z.enum(RATE_UNITS).default('per_night'),
-  weekendRate:   z.coerce.number().positive().optional(),
+  // z.coerce.number() alone doesn't work for an optional-but-positive
+  // field: react-hook-form sends '' (not undefined) for an untouched
+  // number input, and Number('') is 0 — which then fails .positive()
+  // regardless of .optional(). Preprocessing '' to undefined first is
+  // what actually lets the field be left blank.
+  weekendRate: z.preprocess(
+    (val) => (val === '' ? undefined : val),
+    z.coerce.number().positive('Weekend rate must be a positive number').optional()
+  ),
 });
 type FormInput = z.infer<typeof schema>;
 
 export default function NewRoomPage(): React.ReactElement {
-  const router = useRouter();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -71,10 +77,15 @@ export default function NewRoomPage(): React.ReactElement {
         ...(amenitiesList ? { amenities: amenitiesList } : {}),
       } as unknown as Parameters<typeof api.rooms.create>[0]);
     },
-    onSuccess: (room) => {
+    onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: roomKeys.all });
       toast('Room created.', 'success');
-      router.replace(`/rooms/${room._id}`);
+      // No /rooms/[id] detail page exists yet to redirect to (that's a
+      // separate, bigger piece of work) — clear the form back to its
+      // defaults instead, so adding several rooms in a row doesn't
+      // require re-navigating here each time.
+      form.reset({ bedCount: 1, rateUnit: 'per_night' });
+      form.setFocus('roomNumber');
     },
     onError: (err: ApiError) => {
       if (err.code === 'VALIDATION_ERROR') applyServerErrors(form, err);
