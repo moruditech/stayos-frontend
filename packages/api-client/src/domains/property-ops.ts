@@ -12,8 +12,21 @@ import { client } from '../client';
 
 // ── Pricing ────────────────────────────────────────────────────────────────────
 
+// Matches RatePlan.model.js's real fields — just enough for a picker/filter.
+// NOTE: the rate-plans management page (pricing/rate-plans) posts a
+// different, non-matching shape (ratePerNight/description/isDefault) that
+// isn't on this model at all — a separate, pre-existing bug in that page's
+// create form, not touched here. This type only covers what listing needs.
+export interface RatePlanSummary {
+  _id: string;
+  name: string;
+  code: string;
+  type: string;
+  isActive: boolean;
+}
+
 export const pricingApi = {
-  listRatePlans: () => client.get<Record<string, unknown>[]>('/pricing/rate-plans'),
+  listRatePlans: () => client.get<RatePlanSummary[]>('/pricing/rate-plans'),
   createRatePlan: (input: Record<string, unknown>) =>
     client.post<Record<string, unknown>>('/pricing/rate-plans', input),
   getRatePlan: (id: string) => client.get<Record<string, unknown>>(`/pricing/rate-plans/${id}`),

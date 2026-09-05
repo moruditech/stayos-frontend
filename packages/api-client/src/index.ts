@@ -97,3 +97,4 @@ export type {
   CalendarMatrixResponse,
   CalendarMatrixParams,
 } from './domains/rooms';
+export type { RatePlanSummary } from './domains/property-ops';
