@@ -54,7 +54,12 @@ export default function RoomsPage(): React.ReactElement {
 
   if (isLoading) return <SkeletonLoader rows={6} />;
 
-  const rooms = statusBoard ?? [];
+  // getStatusBoard returns { rooms, grouped } — not a bare array. Calling
+  // .filter/.map directly on the whole response (as this used to) throws
+  // "TypeError: statusBoard.filter is not a function", since a plain
+  // object has no .filter — that's the "Application error: a client-side
+  // exception" this page was producing.
+  const rooms = statusBoard?.rooms ?? [];
 
   return (
     <div data-page="rooms">
@@ -74,9 +79,7 @@ export default function RoomsPage(): React.ReactElement {
       {/* Quick counts */}
       <div data-room-summary-bar>
         {(['occupied', 'available', 'dirty', 'out_of_order', 'blocked'] as const).map((s) => {
-          const count = rooms.filter(
-            (r) => r.status === s || r.housekeepingStatus === s
-          ).length;
+          const count = rooms.filter((r) => r.status === s).length;
           return (
             <div key={s} data-summary-chip data-room-status={s}>
               <span data-summary-count>{count}</span>
@@ -105,7 +108,6 @@ export default function RoomsPage(): React.ReactElement {
                 <th>Type</th>
                 <th>Floor</th>
                 <th>Status</th>
-                <th>Housekeeping</th>
                 <th>Current guest</th>
                 <th>Check-out</th>
                 <th>Rate</th>
@@ -121,23 +123,22 @@ export default function RoomsPage(): React.ReactElement {
                     </Link>
                   </td>
                   <td>{room.type}</td>
-                  <td>{String((room as unknown as Record<string,unknown>)['floor'] ?? '—')}</td>
+                  <td>{room.floor ?? '—'}</td>
                   <td><StatusBadge status={room.status} /></td>
-                  <td><StatusBadge status={room.housekeepingStatus} /></td>
                   <td>
-                    {room.currentGuest
-                      ? room.currentGuest.name
+                    {room.currentBooking?.customerId
+                      ? `${room.currentBooking.customerId.firstName} ${room.currentBooking.customerId.lastName}`
                       : <span data-empty-cell>—</span>}
                   </td>
                   <td>
-                    {room.checkOut
-                      ? new Date(room.checkOut).toLocaleDateString('en-ZA')
+                    {room.currentBooking?.checkOut
+                      ? new Date(room.currentBooking.checkOut).toLocaleDateString('en-ZA')
                       : <span data-empty-cell>—</span>}
                   </td>
                   <td>
                     {new Intl.NumberFormat('en-ZA', {
                       style: 'currency', currency: 'ZAR', maximumFractionDigits: 0,
-                    }).format(room.ratePerNight)}
+                    }).format(room.baseRate)}
                   </td>
                   <td>
                     <RoleGate perm={PERMISSIONS.ROOM_STATUS_WRITE}>

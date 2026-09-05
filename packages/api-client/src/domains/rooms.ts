@@ -1,20 +1,28 @@
 import { client } from '../client';
 
+// Matches Room.model.js exactly. Note: baseRate, not ratePerNight — and
+// there is no separate housekeepingStatus field. 'dirty'/'cleaning'/
+// 'inspection' are values of the one status enum, not a second dimension.
+// Actual housekeeping work is tracked by the separate HousekeepingTask
+// model (see the /housekeeping module), not a field on Room itself.
 export interface Room {
   _id: string;
   tenantId: string;
-  name: string;
+  name?: string;
   roomNumber: string;
   type: string;
   floor?: string;
-  building?: string;
-  status: string;
-  housekeepingStatus: string;
   capacity: number;
-  bedType: string;
+  adultCapacity?: number;
+  childCapacity?: number;
+  bedCount: number;
   amenities: string[];
-  ratePerNight: number;
-  images: { url: string; order: number }[];
+  description?: string;
+  status: string; // 'available' | 'occupied' | 'dirty' | 'cleaning' | 'inspection' | 'maintenance' | 'blocked' | 'out_of_order'
+  baseRate: number;
+  rateUnit: string;
+  weekendRate?: number;
+  images: { url: string; caption?: string; order: number }[];
   createdAt: string;
   updatedAt: string;
 }
@@ -33,16 +41,25 @@ export interface RoomAvailability {
   blocks: RoomBlock[];
 }
 
-export interface StatusBoardEntry {
-  _id: string;
-  roomNumber: string;
-  type: string;
-  floor?: string;
-  status: string;
-  housekeepingStatus: string;
-  currentGuest?: { name: string };
-  checkOut?: string;
-  ratePerNight: number;
+// GET /rooms/status-board — see rooms.service.js#getStatusBoard. Returns
+// { rooms, grouped }, NOT a bare array — a page that does
+// `statusBoard.map(...)` directly on the response (instead of
+// `statusBoard.rooms.map(...)`) will throw, since a plain object has no
+// .map. currentBooking is the full populated booking (or null), not a
+// flat { name } shape.
+export interface StatusBoardEntry extends Room {
+  currentBooking: {
+    _id: string;
+    confirmationNumber: string;
+    checkIn: string;
+    checkOut: string;
+    customerId: { firstName: string; lastName: string } | null;
+  } | null;
+}
+
+export interface StatusBoardResponse {
+  rooms: StatusBoardEntry[];
+  grouped: Record<string, StatusBoardEntry[]>;
 }
 
 // GET /rooms/calendar-matrix — see rooms.service.js#getCalendarMatrix. This
@@ -127,7 +144,7 @@ export const roomsApi = {
     }),
 
   // GET /rooms/status-board
-  getStatusBoard: () => client.get<StatusBoardEntry[]>('/rooms/status-board'),
+  getStatusBoard: () => client.get<StatusBoardResponse>('/rooms/status-board'),
 
   // GET /rooms/calendar-matrix
   getCalendarMatrix: (params: CalendarMatrixParams) =>

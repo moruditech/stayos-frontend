@@ -121,16 +121,18 @@ export default function DashboardPage(): React.ReactElement {
           title="Room status"
           headerActions={<LinkArrow onClick={() => router.push('/rooms')}>Status board</LinkArrow>}
         >
-          {!statusBoard?.length ? (
+          {/* getStatusBoard returns { rooms, grouped } — statusBoard itself
+              has no .length, so this used to always take the empty-state
+              branch below regardless of how many rooms actually existed. */}
+          {!statusBoard?.rooms.length ? (
             <p data-empty-note>No rooms configured.</p>
           ) : (
             <div data-room-status-list>
-              {(statusBoard ?? []).slice(0, 8).map((room) => (
+              {statusBoard.rooms.slice(0, 8).map((room) => (
                 <div key={room._id} data-room-status-row>
                   <span data-room-number>{room.roomNumber}</span>
                   <span data-room-type>{room.type}</span>
                   <StatusBadge status={room.status} />
-                  <StatusBadge status={room.housekeepingStatus} />
                 </div>
               ))}
             </div>
