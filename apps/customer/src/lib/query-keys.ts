@@ -27,6 +27,7 @@ export const messageKeys = {
 export const applicationKeys = {
   list: () => ['customer', 'applications'] as const,
   detail: (id: string) => ['customer', 'applications', id] as const,
+  messages: (id: string) => ['customer', 'applications', id, 'messages'] as const,
 };
 
 export const paymentKeys = {

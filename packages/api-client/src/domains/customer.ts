@@ -86,6 +86,10 @@ export const customerApi = {
     client.get<Record<string, unknown>[]>('/customers/me/applications'),
   getApplication: (id: string) =>
     client.get<Record<string, unknown>>(`/customers/me/applications/${id}`),
+  getApplicationMessages: (applicationId: string) =>
+    client.get<Record<string, unknown>>(`/customers/me/applications/${applicationId}/messages`),
+  sendApplicationMessage: (applicationId: string, body: string) =>
+    client.post<Record<string, unknown>>(`/customers/me/applications/${applicationId}/messages`, { body }),
 
   // GET /customers/me/payments
   listPayments: () => client.get<Record<string, unknown>[]>('/customers/me/payments'),

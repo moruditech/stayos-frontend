@@ -630,6 +630,7 @@
 [data-application-card] {
   display: grid;
   grid-template-columns: 120px 1fr;
+  align-items: stretch;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -639,7 +640,7 @@
 }
 [data-application-card]:hover { box-shadow: var(--shadow-raised); }
 [data-application-card-image] {
-  height: 140px;
+  min-height: 140px;
   background: var(--color-bg-sunk);
   position: relative;
   overflow: hidden;

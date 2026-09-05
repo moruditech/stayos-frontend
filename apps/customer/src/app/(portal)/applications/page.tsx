@@ -106,6 +106,12 @@ const TYPE_ICON_MAP: Record<string, LucideIcon> = {
   other:      Icons.Home,
 };
 
+const TYPE_LABEL_MAP: Record<string, string> = {
+  student:    'Student Housing',
+  long_term:  'Long Term Accommodation',
+  other:      'Application',
+};
+
 function ApplicationCard({ application: app }: { application: Record<string, unknown> }): React.ReactElement {
   const status = (app['status'] as string) ?? 'submitted';
   const appliedDate = new Date(app['createdAt'] as string).toLocaleDateString('en-ZA', {
@@ -136,7 +142,7 @@ function ApplicationCard({ application: app }: { application: Record<string, unk
         </div>
         <div data-application-card-type>
           <TypeIcon size={14} aria-hidden="true" />
-          {(app['type'] as string)?.replace(/_/g, ' ') ?? 'Application'}
+          {TYPE_LABEL_MAP[category] ?? (app['type'] as string)?.replace(/_/g, ' ') ?? 'Application'}
         </div>
         <div data-application-card-meta><Icons.Calendar size={14} aria-hidden="true" /> Applied on {appliedDate}</div>
         {academicYear && (

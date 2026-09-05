@@ -145,15 +145,19 @@ export default function ApplicationDetailPage({ params }: Props): React.ReactEle
       )}
 
       {/* Actions */}
-      {(status === 'submitted' || status === 'under_review') && (
-        <button type="button" data-btn-ghost data-btn-full
-          disabled={withdrawMutation.isPending}
-          style={{ color: 'var(--color-danger)', marginTop: 'var(--space-4)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}
-          onClick={() => withdrawMutation.mutate()}>
-          Withdraw application
-          <span data-badge-soon>Coming soon</span>
-        </button>
-      )}
+      <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap', marginTop: 'var(--space-4)' }}>
+        <Link href={`/applications/${params.id}/chat`} data-btn-ghost style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}>
+          <Icons.MessageCircle size={16} /> Contact property
+        </Link>
+        {(status === 'submitted' || status === 'under_review') && (
+          <button type="button" data-btn-ghost style={{ flex: 1, color: 'var(--color-danger)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}
+            disabled={withdrawMutation.isPending}
+            onClick={() => withdrawMutation.mutate()}>
+            Withdraw application
+            <span data-badge-soon>Coming soon</span>
+          </button>
+        )}
+      </div>
 
       <div data-support-callout style={{ marginTop: 'var(--space-5)' }}>
         <div data-support-callout-text>
