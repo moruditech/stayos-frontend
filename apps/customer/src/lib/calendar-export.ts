@@ -14,11 +14,11 @@
 // since a booking only carries dates, not specific check-in/out clock times.
 
 interface BookingForCalendar {
-  confirmationNumber?: string;
+  confirmationNumber?: string | undefined;
   checkIn: string;   // ISO date
   checkOut: string;  // ISO date
   propertyName: string;
-  city?: string | null;
+  city?: string | null | undefined;
 }
 
 function toDateStamp(iso: string): string {
