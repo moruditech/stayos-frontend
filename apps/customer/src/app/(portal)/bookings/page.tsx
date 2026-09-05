@@ -9,7 +9,7 @@ import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
 import { SkeletonLoader, EmptyState, ConfirmDialog, useToast, Icons, type LucideIcon } from '@stayos/ui';
 import { bookingKeys } from '@/lib/query-keys';
-import { downloadBookingICS } from '@/lib/calendar-export';
+import { downloadBookingICS, buildGoogleCalendarUrl, shareBookingICS } from '@/lib/calendar-export';
 
 type Tab = 'upcoming' | 'past' | 'cancelled' | 'all';
 const TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
@@ -79,24 +79,6 @@ export default function BookingsPage(): React.ReactElement {
           </Link>
         </div>
       )}
-
-      <div data-section-header style={{ marginTop: 'var(--space-6)' }}>
-        <span data-section-title>Quick actions</span>
-      </div>
-      <div data-quick-actions>
-        {[
-          { label: 'Modify booking',   icon: Icons.CalendarClock, tint: 'success', path: '/bookings' },
-          { label: 'Cancel booking',   icon: Icons.X,             tint: 'warning', path: '/bookings' },
-          { label: 'Get invoice',      icon: Icons.FileText,      tint: 'info',    path: '/invoices' },
-          { label: 'Contact property', icon: Icons.MessageCircle, tint: 'sand',    path: '/support' },
-          { label: 'Add to calendar',  icon: Icons.Calendar,      tint: 'success', path: '/bookings' },
-        ].map((a) => (
-          <Link key={a.label} href={a.path} data-quick-action>
-            <span data-quick-action-icon data-tint={a.tint} aria-hidden="true"><a.icon size={20} /></span>
-            <span>{a.label}</span>
-          </Link>
-        ))}
-      </div>
 
       <div data-support-callout style={{ marginTop: 'var(--space-6)', borderColor: 'var(--color-primary)' }}>
         <div data-support-callout-text>
@@ -191,8 +173,9 @@ function BookingCard({ booking }: { booking: Record<string, unknown> }): React.R
   }, [menuOpen]);
 
   const MENU_ITEMS = [
-    { label: 'View details',     icon: Icons.Eye,            action: 'view' },
-    { label: 'Add to calendar',  icon: Icons.Calendar,       action: 'calendar' },
+    { label: 'View details',        icon: Icons.Eye,      action: 'view' },
+    { label: 'Add to Google Calendar', icon: Icons.Calendar, action: 'calendar-google' },
+    { label: 'Add to calendar (.ics)', icon: Icons.Download, action: 'calendar-ics' },
     ...(isUpcoming ? [{ label: 'Cancel booking', icon: Icons.X, action: 'cancel' }] : []),
     { label: 'Contact property', icon: Icons.MessageCircle,  action: 'contact' },
     { label: 'View invoice',     icon: Icons.FileText,       action: 'invoice' },
@@ -322,16 +305,39 @@ function BookingCard({ booking }: { booking: Record<string, unknown> }): React.R
                 <Icon size={15} /> {item.label}
               </Link>
             );
-            if (item.action === 'calendar') return (
+            if (item.action === 'calendar-google') return (
               <button key={item.action} type="button" role="menuitem" style={base}
                 onClick={() => {
                   setMenuOpen(false);
-                  downloadBookingICS({
+                  const url = buildGoogleCalendarUrl({
                     confirmationNumber: booking['confirmationNumber'] as string | undefined,
                     checkIn: booking['checkIn'] as string,
                     checkOut: booking['checkOut'] as string,
                     propertyName,
                     city: propertyCity,
+                  });
+                  window.open(url, '_blank', 'noopener,noreferrer');
+                }}>
+                <Icon size={15} /> {item.label}
+              </button>
+            );
+            if (item.action === 'calendar-ics') return (
+              <button key={item.action} type="button" role="menuitem" style={base}
+                onClick={() => {
+                  setMenuOpen(false);
+                  const calBooking = {
+                    confirmationNumber: booking['confirmationNumber'] as string | undefined,
+                    checkIn: booking['checkIn'] as string,
+                    checkOut: booking['checkOut'] as string,
+                    propertyName,
+                    city: propertyCity,
+                  };
+                  // Hands the .ics straight to the OS share sheet where
+                  // supported (mobile), so tapping through lands directly in
+                  // a calendar app instead of a downloaded file. Falls back
+                  // to the plain download wherever share isn't available.
+                  void shareBookingICS(calBooking).then((shared) => {
+                    if (!shared) downloadBookingICS(calBooking);
                   });
                 }}>
                 <Icon size={15} /> {item.label}

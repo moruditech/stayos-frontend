@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@stayos/auth';
@@ -9,7 +9,7 @@ import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
 import { SkeletonLoader, ConfirmDialog, useToast, Icons } from '@stayos/ui';
 import { bookingKeys } from '@/lib/query-keys';
-import { downloadBookingICS } from '@/lib/calendar-export';
+import { downloadBookingICS, buildGoogleCalendarUrl, shareBookingICS } from '@/lib/calendar-export';
 
 interface Props { params: { id: string } }
 
@@ -19,6 +19,11 @@ export default function BookingDetailPage({ params }: Props): React.ReactElement
   const qc          = useQueryClient();
   const { toast }   = useToast();
   const [cancelOpen, setCancelOpen] = useState(false);
+  // Fallback menu (Google Calendar link / .ics download) shown only when
+  // shareBookingICS() reports the Web Share API isn't available — see the
+  // "Add to calendar" button below.
+  const [calMenuOpen, setCalMenuOpen] = useState(false);
+  const calRef = useRef<HTMLDivElement>(null);
 
   const { data: booking, isLoading } = useQuery({
     queryKey: bookingKeys.detail(params.id),
@@ -39,6 +44,15 @@ export default function BookingDetailPage({ params }: Props): React.ReactElement
       setCancelOpen(false);
     },
   });
+
+  useEffect(() => {
+    if (!calMenuOpen) return;
+    const close = (e: MouseEvent) => { if (!calRef.current?.contains(e.target as Node)) setCalMenuOpen(false); };
+    const key   = (e: KeyboardEvent) => { if (e.key === 'Escape') setCalMenuOpen(false); };
+    document.addEventListener('mousedown', close);
+    document.addEventListener('keydown', key);
+    return () => { document.removeEventListener('mousedown', close); document.removeEventListener('keydown', key); };
+  }, [calMenuOpen]);
 
   if (isLoading) return <div data-page><SkeletonLoader rows={5} /></div>;
 
@@ -242,16 +256,56 @@ export default function BookingDetailPage({ params }: Props): React.ReactElement
           <Link href={`/bookings/${params.id}/folio`} data-btn-ghost style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}>
             <Icons.FileText size={16} /> View invoice
           </Link>
-          <button type="button" data-btn-ghost style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}
-            onClick={() => downloadBookingICS({
-              confirmationNumber: b['confirmationNumber'] as string | undefined,
-              checkIn: b['checkIn'] as string,
-              checkOut: b['checkOut'] as string,
-              propertyName,
-              city: propertyCity,
-            })}>
-            <Icons.Calendar size={16} /> Add to calendar
-          </button>
+          <div ref={calRef} style={{ position: 'relative', flex: 1 }}>
+            <button type="button" data-btn-ghost style={{ width: '100%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}
+              aria-haspopup="true" aria-expanded={calMenuOpen}
+              onClick={async () => {
+                const calBooking = {
+                  confirmationNumber: b['confirmationNumber'] as string | undefined,
+                  checkIn: b['checkIn'] as string,
+                  checkOut: b['checkOut'] as string,
+                  propertyName,
+                  city: propertyCity,
+                };
+                // Native share sheet first (mobile Safari/Chrome) — taps
+                // straight into whichever calendar app the person uses, no
+                // download step. Only where that's unavailable do we show
+                // our own two-option fallback below.
+                const shared = await shareBookingICS(calBooking);
+                if (!shared) setCalMenuOpen((o) => !o);
+              }}>
+              <Icons.Calendar size={16} /> Add to calendar
+            </button>
+            {calMenuOpen && (
+              <div role="menu" style={{
+                position: 'absolute', top: 'calc(100% + 6px)', left: '50%', transform: 'translateX(-50%)',
+                minWidth: '230px', background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-raised)', zIndex: 20, overflow: 'hidden',
+              }}>
+                {([
+                  { label: 'Google Calendar', icon: Icons.Calendar, action: 'google' as const },
+                  { label: 'Download .ics (Apple / Outlook)', icon: Icons.Download, action: 'ics' as const },
+                ]).map((item) => (
+                  <button key={item.action} type="button" role="menuitem"
+                    style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '10px 16px', fontSize: '13px', color: 'var(--color-text)', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+                    onClick={() => {
+                      setCalMenuOpen(false);
+                      const calBooking = {
+                        confirmationNumber: b['confirmationNumber'] as string | undefined,
+                        checkIn: b['checkIn'] as string,
+                        checkOut: b['checkOut'] as string,
+                        propertyName,
+                        city: propertyCity,
+                      };
+                      if (item.action === 'google') window.open(buildGoogleCalendarUrl(calBooking), '_blank', 'noopener,noreferrer');
+                      else downloadBookingICS(calBooking);
+                    }}>
+                    <item.icon size={15} /> {item.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <Link href={`/bookings/${params.id}/chat`} data-btn-ghost style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}>
             <Icons.MessageCircle size={16} /> Contact property
           </Link>
