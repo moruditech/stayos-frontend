@@ -535,9 +535,12 @@
   font-size: 12.5px;
   color: var(--color-text-secondary);
 }
-/* Default shape: single row, pill left / total+chevron right — used by the
-   Bookings-list card. Home's card needs an extra buttons row, so it opts
-   into [data-stacked] instead of forcing this shape on every caller. */
+/* Default shape: single row, pill left / total+chevron right. Used as a
+   full-width strip below the image+body grid — currently Home's card only
+   (own left/right/bottom padding since it isn't nested in anything else
+   padded). Home's card also needs an extra buttons row, so it opts into
+   [data-stacked] on top of this instead of forcing that shape on every
+   caller. */
 [data-booking-card-footer] {
   display: flex; flex-wrap: wrap;
   align-items: center;
@@ -549,6 +552,21 @@
 [data-booking-card-footer][data-stacked] {
   flex-direction: column;
   align-items: stretch;
+}
+/* Bookings-list card: footer lives inside [data-booking-card-body], as the
+   last child alongside the meta rows, instead of below the image+body grid.
+   That's what keeps the price beside the photo rather than underneath it —
+   the grid stretches the image to match the text column's full height
+   (name + meta rows + this footer together), so there's no scenario where
+   the image's height can encroach on the price the way it could when this
+   row lived outside the grid as a separately-positioned strip. Padding is
+   handled by the parent body's own padding, so it's zeroed out here;
+   margin-top:auto pins the row to the bottom of the column, flush with the
+   image's bottom edge, matching the prototype even when the photo is
+   taller than the text needs. */
+[data-booking-card-footer][data-inline] {
+  padding: 0;
+  margin-top: auto;
 }
 [data-booking-card-more] {
   position: absolute;

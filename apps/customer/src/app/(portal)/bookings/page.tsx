@@ -240,6 +240,25 @@ function BookingCard({ booking }: { booking: Record<string, unknown> }): React.R
             <div data-booking-card-meta style={{ fontFamily: 'monospace', fontSize: '12px' }}>
               Booking #{(booking['confirmationNumber'] as string) ?? '—'}
             </div>
+
+            {/* Lives inside the text column (not as a full-width strip below
+               the image) so it always sits beside the photo, never under
+               it — the image's height can vary (grid stretch) without ever
+               encroaching on the price. Pinned to the bottom of the column
+               via margin-top:auto so it still lines up with the prototype
+               when the photo is taller than the text needs. */}
+            <div data-booking-card-footer data-inline>
+              {daysUntil > 0 && status === 'confirmed' && (
+                <span data-checkin-countdown>Check-in in {daysUntil} day{daysUntil !== 1 ? 's' : ''}</span>
+              )}
+              <div data-booking-total-group>
+                <div data-booking-total>
+                  <div data-booking-total-label>Total</div>
+                  <div data-booking-total-amount>R{((booking['totalAmount'] as number) ?? 0).toLocaleString()}</div>
+                </div>
+                <Icons.ChevronRight size={18} data-booking-total-chevron />
+              </div>
+            </div>
           </div>
         </Link>
 
@@ -256,19 +275,6 @@ function BookingCard({ booking }: { booking: Record<string, unknown> }): React.R
         >
           <Icons.MoreHorizontal size={16} />
         </button>
-
-        <div data-booking-card-footer>
-          {daysUntil > 0 && status === 'confirmed' && (
-            <span data-checkin-countdown>Check-in in {daysUntil} day{daysUntil !== 1 ? 's' : ''}</span>
-          )}
-          <div data-booking-total-group>
-            <div data-booking-total>
-              <div data-booking-total-label>Total</div>
-              <div data-booking-total-amount>R{((booking['totalAmount'] as number) ?? 0).toLocaleString()}</div>
-            </div>
-            <Icons.ChevronRight size={18} data-booking-total-chevron />
-          </div>
-        </div>
       </div>
 
       {/* Portaled action menu */}
