@@ -1,0 +1,10 @@
+[build]
+  # Only builds @stayos/app-owners + whatever workspace packages it depends on
+  # (turbo build task has dependsOn: ["^build"], so those are pulled in
+  # automatically) — the other apps in this monorepo are skipped.
+  command = "npx turbo run build --filter=@stayos/app-owners"
+
+  # Skip the build entirely when nothing this app depends on has changed —
+  # covers this apps own folder, every shared package (any of them could be
+  # imported here), the lockfile, and the turbo pipeline config itself.
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- apps/owners packages/ pnpm-lock.yaml turbo.json"
