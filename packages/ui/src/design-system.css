@@ -352,6 +352,35 @@ svg { display: block; }
 [data-btn-oauth]:hover { background: var(--color-bg-sunk); border-color: var(--color-border-strong); }
 [data-btn-oauth][data-btn-full] { width: 100%; }
 
+/* DownloadButton (primitives.tsx) had no styling at all — it was
+   rendering as a bare unstyled <button>, indistinguishable from plain
+   text. Styled to match [data-btn-secondary]'s visual weight, since a
+   document download usually sits alongside a more prominent primary
+   action rather than being the main CTA on its own. */
+[data-download-button] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 40px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border-strong);
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+[data-download-button]:hover:not(:disabled) { background: var(--color-bg-sunk); border-color: var(--color-text-muted); }
+[data-download-button]:disabled { opacity: 0.7; cursor: default; }
+[data-download-button] svg { width: 16px; height: 16px; }
+
+.spin { animation: stayos-spin 0.8s linear infinite; }
+@keyframes stayos-spin { to { transform: rotate(360deg); } }
+
 
 [data-btn-ghost] {
   background: transparent;

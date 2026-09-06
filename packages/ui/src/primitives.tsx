@@ -9,7 +9,7 @@ import React, {
   useState,
 } from 'react';
 import type { Pagination as PaginationMeta } from '@stayos/types';
-import { X } from './icons';
+import { X, Download, Loader2 } from './icons';
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
 
@@ -356,6 +356,7 @@ export function DownloadButton({
       data-download-button
       className={className}
     >
+      {loading ? <Loader2 size={16} className="spin" /> : <Download size={16} />}
       {loading ? 'Preparing…' : label}
     </button>
   );
