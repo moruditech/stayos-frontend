@@ -371,6 +371,46 @@
 }
 
 /* ── Tab filters ──────────────────────────────────────────────────────────── */
+/* ==========================================================================
+   APPLICATIONS — "everything in one place" callout. Was relying on the New
+   application button's own nowrap text forcing the paragraph to squeeze and
+   wrap instead — worked by accident, not a real responsive rule. Now stacks
+   deliberately on narrow screens with a full-width button.
+   ========================================================================== */
+[data-application-callout] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding: var(--space-5);
+  margin-bottom: var(--space-5);
+  background: var(--color-primary-tint);
+  border-radius: var(--radius-lg);
+}
+[data-application-callout-content] {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex: 1;
+  min-width: 220px;
+}
+[data-application-callout-icon] {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+@media (max-width: 480px) {
+  [data-application-callout] { flex-direction: column; align-items: stretch; }
+  [data-application-callout] > a { width: 100%; justify-content: center; }
+}
+
 [data-filter-tabs] {
   display: flex;
   gap: var(--space-2);

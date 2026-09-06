@@ -43,9 +43,9 @@ export default function ApplicationsPage(): React.ReactElement {
       </div>
 
       {/* Callout */}
-      <div data-card-padded style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-5)', background: 'var(--color-primary-tint)', borderColor: 'transparent' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
-          <span style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-pill)', background: 'var(--color-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)', flexShrink: 0 }} aria-hidden="true">
+      <div data-application-callout>
+        <div data-application-callout-content>
+          <span data-application-callout-icon aria-hidden="true">
             <Icons.FileCheck2 size={22} />
           </span>
           <div>
@@ -55,7 +55,7 @@ export default function ApplicationsPage(): React.ReactElement {
             </p>
           </div>
         </div>
-        <Link href="/accommodation" data-btn-secondary style={{ whiteSpace: 'nowrap', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+        <Link href="/accommodation" data-btn-secondary style={{ whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}>
           New application <Icons.Plus size={16} />
         </Link>
       </div>
