@@ -38,7 +38,7 @@ export default function LoyaltyPage(): React.ReactElement {
 
   const { data, isLoading } = useQuery({
     queryKey: platformKeys.loyalty(),
-    queryFn:  () => api.platform.getLoyaltyProgramme() as Promise<Programme>,
+    queryFn:  () => api.platform.getLoyaltyProgramme() as unknown as Promise<Programme>,
   });
 
   const [form, setForm] = useState<Partial<Programme>>({});
