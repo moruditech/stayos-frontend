@@ -108,6 +108,23 @@ export const customerApi = {
   redeemLoyalty: (points: number) =>
     client.post<{ message: string }>('/customers/me/loyalty/redeem', { points }),
 
+  // Platform loyalty programme (Q Points) — config, rewards, terms, redemption.
+  // Additive to getLoyalty()/getLoyaltyHistory() above, which are unchanged.
+  getLoyaltyProgramme: () =>
+    client.get<Record<string, unknown>>('/customers/me/loyalty/programme'),
+  getPlatformLoyaltyAccount: () =>
+    client.get<Record<string, unknown>>('/customers/me/loyalty/platform-account'),
+  getPlatformLoyaltyHistory: () =>
+    client.get<Record<string, unknown>[]>('/customers/me/loyalty/platform-history'),
+  getLoyaltyRewards: () =>
+    client.get<Record<string, unknown>[]>('/customers/me/loyalty/rewards'),
+  redeemLoyaltyReward: (rewardId: string) =>
+    client.post<Record<string, unknown>>(`/customers/me/loyalty/rewards/${rewardId}/redeem`, {}),
+  getLoyaltyRedemptions: () =>
+    client.get<Record<string, unknown>[]>('/customers/me/loyalty/redemptions'),
+  acceptLoyaltyTerms: () =>
+    client.post<{ termsAccepted: boolean; termsAcceptedVersion: number }>('/customers/me/loyalty/terms/accept', {}),
+
   // GET/POST /customers/me/complaints
   listComplaints: () => client.get<Record<string, unknown>[]>('/customers/me/complaints'),
   createComplaint: (input: Record<string, unknown>) =>

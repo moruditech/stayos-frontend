@@ -12,6 +12,7 @@ export const platformKeys = {
   plans: () => ['platform', 'plans'] as const,
   coupons: (params?: Record<string, unknown>) => ['platform', 'coupons', params ?? {}] as const,
   coupon: (id: string) => ['platform', 'coupon', id] as const,
+  loyalty: () => ['platform', 'loyalty'] as const,
   referrals: (params?: Record<string, unknown>) => ['platform', 'referrals', params ?? {}] as const,
   auditLogs: (params?: Record<string, unknown>) => ['platform', 'audit-logs', params ?? {}] as const,
   analytics: () => ['platform', 'analytics'] as const,

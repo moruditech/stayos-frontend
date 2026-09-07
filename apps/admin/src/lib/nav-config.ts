@@ -41,6 +41,7 @@ export const adminNav: NavSection[] = [
       { id: 'users', label: 'Users', path: '/users', requiresPerm: [PERMISSIONS.PLATFORM_USERS_MANAGE] },
       { id: 'plans', label: 'Plans', path: '/plans', requiresPerm: [PERMISSIONS.PLATFORM_PLANS_MANAGE] },
       { id: 'coupons', label: 'Coupons', path: '/coupons', requiresPerm: [PERMISSIONS.PLATFORM_COUPONS_MANAGE] },
+      { id: 'loyalty', label: 'Loyalty', path: '/loyalty', requiresPerm: [PERMISSIONS.PLATFORM_LOYALTY_MANAGE] },
       { id: 'referrals', label: 'Referrals', path: '/referrals', requiresPerm: [PERMISSIONS.PLATFORM_READ] },
       { id: 'audit-logs', label: 'Audit Logs', path: '/audit-logs', requiresPerm: [PERMISSIONS.PLATFORM_AUDIT_READ] },
     ],

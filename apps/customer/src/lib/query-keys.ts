@@ -48,6 +48,11 @@ export const leaseKeys = {
 export const loyaltyKeys = {
   balance: () => ['customer', 'loyalty'] as const,
   history: () => ['customer', 'loyalty', 'history'] as const,
+  programme: () => ['customer', 'loyalty', 'programme'] as const,
+  platformAccount: () => ['customer', 'loyalty', 'platform-account'] as const,
+  platformHistory: () => ['customer', 'loyalty', 'platform-history'] as const,
+  rewards: () => ['customer', 'loyalty', 'rewards'] as const,
+  redemptions: () => ['customer', 'loyalty', 'redemptions'] as const,
 };
 
 export const notificationKeys = {

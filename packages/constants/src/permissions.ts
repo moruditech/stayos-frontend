@@ -76,6 +76,7 @@ export const PERMISSIONS = {
 
   PLATFORM_AUDIT_READ: 'platform:audit:read',
   PLATFORM_COUPONS_MANAGE: 'platform:coupons:manage',
+  PLATFORM_LOYALTY_MANAGE: 'platform:loyalty:manage',
   PLATFORM_FINANCE_READ: 'platform:finance:read',
   PLATFORM_PLANS_MANAGE: 'platform:plans:manage',
   PLATFORM_READ: 'platform:read',

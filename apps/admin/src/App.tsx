@@ -25,6 +25,7 @@ const SubscriptionsPage = React.lazy(() => import('./pages/SubscriptionsPage'));
 const UsersPage        = React.lazy(() => import('./pages/UsersPage'));
 const PlansPage        = React.lazy(() => import('./pages/PlansPage'));
 const CouponsPage      = React.lazy(() => import('./pages/CouponsPage'));
+const LoyaltyPage      = React.lazy(() => import('./pages/LoyaltyPage'));
 const ReferralsPage    = React.lazy(() => import('./pages/ReferralsPage'));
 const VettingPage      = React.lazy(() => import('./pages/VettingPage'));
 const SupportPage      = React.lazy(() => import('./pages/SupportPage'));
@@ -96,6 +97,7 @@ function AppRoutes(): React.ReactElement {
             <Route path="/coupons" element={<CouponsPage />} />
             <Route path="/coupons/new" element={<CouponsPage />} />
             <Route path="/coupons/:id" element={<CouponsPage />} />
+            <Route path="/loyalty" element={<LoyaltyPage />} />
 
             <Route path="/referrals" element={<ReferralsPage />} />
 

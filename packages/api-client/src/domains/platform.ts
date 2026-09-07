@@ -99,4 +99,15 @@ export const platformApi = {
     from?: string | undefined;
     to?: string | undefined;
   }) => client.getPaginated<AuditLogEntry>('/platform/audit-logs', { params }),
+
+  // ── Loyalty (Q Points) — platform:loyalty:manage ───────────────────────
+  getLoyaltyProgramme: () => client.get<Record<string, unknown>>('/platform/loyalty'),
+  updateLoyaltyProgramme: (data: Record<string, unknown>) =>
+    client.patch<Record<string, unknown>>('/platform/loyalty', data),
+  createLoyaltyReward: (data: Record<string, unknown>) =>
+    client.post<Record<string, unknown>>('/platform/loyalty/rewards', data),
+  updateLoyaltyReward: (rewardId: string, data: Record<string, unknown>) =>
+    client.patch<Record<string, unknown>>(`/platform/loyalty/rewards/${rewardId}`, data),
+  deleteLoyaltyReward: (rewardId: string) =>
+    client.delete<Record<string, unknown>>(`/platform/loyalty/rewards/${rewardId}`),
 };
