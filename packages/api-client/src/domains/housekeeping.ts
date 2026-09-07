@@ -1,100 +1,148 @@
 import { client } from '../client';
 
+// Matches HousekeepingTask.model.js's real enum exactly. Note: 'completed'
+// and 'inspected' — not the more tempting-looking 'done'/'verified' the
+// board UI's column labels use. The column labels are just display text;
+// these are the real wire values.
+export type HousekeepingTaskStatus =
+  | 'pending' | 'assigned' | 'in_progress' | 'completed' | 'inspected' | 're_clean';
+
+export type HousekeepingTaskType =
+  | 'checkout_clean' | 'stayover_clean' | 'deep_clean' | 'inspection' | 'turndown' | 'linen_change';
+
+export interface ChecklistItem {
+  _id: string;
+  item: string;
+  completed: boolean;
+  completedAt: string | null;
+}
+
 export interface HousekeepingTask {
   _id: string;
   tenantId: string;
-  roomId: { _id: string; roomNumber: string; name: string } | string;
-  type: string;
-  status: string;
-  priority: string;
-  assignedTo?: { _id: string; firstName: string; lastName: string } | null;
-  checklist: { item: string; done: boolean }[];
-  photos: string[];
+  roomId: { _id: string; roomNumber: string; type: string; floor?: string } | string;
+  bookingId?: string | null;
+  assignedTo: { _id: string; firstName: string; lastName: string } | null;
+  // Who is expected to review this task once marked done — see
+  // reviewerId's comment on the model. null means no separate review step:
+  // the assigned housekeeper's own "mark done" self-verifies.
+  reviewerId: { _id: string; firstName: string; lastName: string } | null;
+  scheduledDate: string;
+  type: HousekeepingTaskType;
+  priority: 'low' | 'normal' | 'high';
+  status: HousekeepingTaskStatus;
+  checklist: ChecklistItem[];
   notes?: string;
-  inspectedBy?: string;
+  photos: { url: string; caption?: string; uploadedAt: string }[];
+  startedAt?: string;
+  completedAt?: string;
+  inspectedBy?: { _id: string; firstName: string; lastName: string } | null;
   inspectedAt?: string;
-  dueDate?: string;
+  inspectionPassed?: boolean;
+  reCleanReason?: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface LostFoundItem {
-  _id: string;
-  tenantId: string;
-  description: string;
-  location: string;
-  foundBy?: string;
-  claimedBy?: string;
-  status: string;
-  createdAt: string;
+export interface CreateHousekeepingTaskInput {
+  roomId: string;
+  bookingId?: string;
+  type: HousekeepingTaskType;
+  priority?: 'low' | 'normal' | 'high';
+  assignedTo?: string;
+  reviewerId?: string;
+  scheduledDate?: string;
+  checklist?: string[]; // plain item text — omit to use the resolved template
+  notes?: string;
 }
 
-export interface HousekeepingAnalytics {
-  totalTasks: number;
-  completedToday: number;
-  avgCompletionMinutes: number;
-  byStatus: Record<string, number>;
+export interface HousekeepingTaskFilters {
+  status?: HousekeepingTaskStatus;
+  assignedTo?: string;
+  type?: HousekeepingTaskType;
+  date?: string;
+  // Narrows to completed tasks where the caller is the assigned reviewer
+  // — see housekeeping.service.js#listTasks. Base 'housekeeper' role
+  // accounts are additionally always server-side restricted to their own
+  // assigned (or unassigned) tasks regardless of what's passed here.
+  view?: 'reviewer';
+}
+
+export interface ResolvedChecklist {
+  items: string[];
+  source: 'room_override' | 'template' | 'default';
 }
 
 export const housekeepingApi = {
   // GET /housekeeping/tasks
-  listTasks: (params?: Record<string, unknown>) =>
+  listTasks: (filters?: HousekeepingTaskFilters) =>
     client.get<HousekeepingTask[]>('/housekeeping/tasks', {
-      params: params as Record<string, string | number | boolean | undefined>,
+      params: filters as Record<string, string | undefined>,
     }),
 
   // POST /housekeeping/tasks
-  createTask: (input: {
-    roomId: string;
-    type: string;
-    priority?: string;
-    assignedTo?: string;
-    checklist?: { item: string }[];
-    notes?: string;
-    dueDate?: string;
-  }) => client.post<HousekeepingTask>('/housekeeping/tasks', input),
+  createTask: (input: CreateHousekeepingTaskInput) =>
+    client.post<HousekeepingTask>('/housekeeping/tasks', input),
 
   // GET /housekeeping/schedule
-  getSchedule: () => client.get<Record<string, unknown>>('/housekeeping/schedule'),
+  getSchedule: (date?: string) =>
+    client.get<HousekeepingTask[]>('/housekeeping/schedule', { params: { date } }),
 
   // GET /housekeeping/tasks/:id
   getTask: (id: string) => client.get<HousekeepingTask>(`/housekeeping/tasks/${id}`),
 
-  // PATCH /housekeeping/tasks/:id
-  updateTask: (id: string, input: Partial<HousekeepingTask>) =>
+  // PATCH /housekeeping/tasks/:id — reassign, change priority/reviewer/etc.
+  updateTask: (id: string, input: Partial<CreateHousekeepingTaskInput>) =>
     client.patch<HousekeepingTask>(`/housekeeping/tasks/${id}`, input),
 
-  // PATCH /housekeeping/tasks/:id/status
-  updateStatus: (id: string, status: string) =>
+  // PATCH /housekeeping/tasks/:id/status — only 'in_progress' | 'completed'.
+  // Reaching 'inspected'/'re_clean' goes through inspectTask below instead.
+  updateStatus: (id: string, status: 'in_progress' | 'completed') =>
     client.patch<HousekeepingTask>(`/housekeeping/tasks/${id}/status`, { status }),
 
-  // GET /housekeeping/tasks/:id/checklist
-  getChecklist: (id: string) =>
-    client.get<{ checklist: { item: string; done: boolean }[] }>(`/housekeeping/tasks/${id}/checklist`),
-
-  // PATCH /housekeeping/tasks/:id/checklist
-  updateChecklist: (id: string, checklist: { item: string; done: boolean }[]) =>
-    client.patch<HousekeepingTask>(`/housekeeping/tasks/${id}/checklist`, { checklist }),
+  // PATCH /housekeeping/tasks/:id/checklist — matched by each item's own
+  // _id (see updateChecklistSchema), not array index or item text.
+  updateChecklist: (id: string, items: { _id: string; completed: boolean }[]) =>
+    client.patch<HousekeepingTask>(`/housekeeping/tasks/${id}/checklist`, { items }),
 
   // POST /housekeeping/tasks/:id/inspect
   inspectTask: (id: string, passed: boolean, notes?: string) =>
     client.post<HousekeepingTask>(`/housekeeping/tasks/${id}/inspect`, { passed, notes }),
 
   // POST /housekeeping/tasks/:id/re-clean
-  requestReClean: (id: string, notes?: string) =>
-    client.post<HousekeepingTask>(`/housekeeping/tasks/${id}/re-clean`, { notes }),
+  requestReClean: (id: string, reason: string) =>
+    client.post<HousekeepingTask>(`/housekeeping/tasks/${id}/re-clean`, { reason }),
+
+  // GET /housekeeping/tasks/:id/checklist — returns the array directly.
+  getChecklist: (id: string) => client.get<ChecklistItem[]>(`/housekeeping/tasks/${id}/checklist`),
+
+  // GET /housekeeping/checklist-templates/resolve?taskType=&roomId=
+  // Effective checklist for a type (+ optional room): a saved room
+  // override, else the tenant's general template for that type, else a
+  // built-in default — see housekeeping.service.js#resolveChecklist.
+  resolveChecklist: (taskType: HousekeepingTaskType, roomId?: string) =>
+    client.get<ResolvedChecklist>('/housekeeping/checklist-templates/resolve', {
+      params: { taskType, roomId },
+    }),
+
+  // PUT /housekeeping/checklist-templates — omit roomId to save the
+  // tenant-wide default for this type; include it to save/overwrite that
+  // one room's override.
+  saveChecklistTemplate: (input: { taskType: HousekeepingTaskType; roomId?: string; items: string[] }) =>
+    client.put<{ _id: string; taskType: string; roomId: string | null; items: string[] }>(
+      '/housekeeping/checklist-templates',
+      input
+    ),
 
   // GET /housekeeping/lost-found
-  getLostFound: () => client.get<LostFoundItem[]>('/housekeeping/lost-found'),
+  getLostFound: (status?: string) =>
+    client.get<Record<string, unknown>[]>('/housekeeping/lost-found', { params: { status } }),
 
   // POST /housekeeping/lost-found
-  addLostFound: (input: { description: string; location: string; foundBy?: string }) =>
-    client.post<LostFoundItem>('/housekeeping/lost-found', input),
-
-  // PATCH /housekeeping/lost-found/:itemId
-  updateLostFound: (itemId: string, input: Partial<LostFoundItem>) =>
-    client.patch<LostFoundItem>(`/housekeeping/lost-found/${itemId}`, input),
+  addLostFound: (taskId: string, itemDescription: string) =>
+    client.post<HousekeepingTask>('/housekeeping/lost-found', { taskId, itemDescription }),
 
   // GET /housekeeping/analytics
-  getAnalytics: () => client.get<HousekeepingAnalytics>('/housekeeping/analytics'),
+  getAnalytics: (from?: string, to?: string) =>
+    client.get<Record<string, unknown>>('/housekeeping/analytics', { params: { from, to } }),
 };

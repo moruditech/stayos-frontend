@@ -25,8 +25,9 @@ export const roomKeys = {
 };
 
 export const housekeepingKeys = {
-  tasks:    () => ['housekeeping', 'tasks'] as const,
-  task:     (id: string) => ['housekeeping', 'task', id] as const,
+  tasks:     (filters?: Record<string, unknown>) => ['housekeeping', 'tasks', filters ?? {}] as const,
+  task:      (id: string) => ['housekeeping', 'task', id] as const,
+  checklist: (taskType: string, roomId?: string) => ['housekeeping', 'checklist', taskType, roomId ?? null] as const,
   lostFound: () => ['housekeeping', 'lost-found'] as const,
   analytics: () => ['housekeeping', 'analytics'] as const,
 };

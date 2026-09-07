@@ -661,6 +661,15 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   border-radius: var(--radius-lg);
   padding: var(--space-3);
   min-height: 160px;
+  transition: background-color 0.12s ease, outline-color 0.12s ease;
+  outline: 2px dashed transparent;
+  outline-offset: -2px;
+}
+/* dnd-kit's useDroppable isOver state — a card is currently hovering over
+   this column during a drag. */
+[data-kanban-column][data-drop-active='true'] {
+  background: var(--color-primary-tint);
+  outline-color: var(--color-primary);
 }
 [data-kanban-column-header] {
   display: flex;
@@ -695,11 +704,22 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  cursor: grab;
+  touch-action: none;
+  transition: box-shadow 0.12s ease, opacity 0.12s ease;
 }
-[data-task-card][data-priority='urgent'] { border-left-color: var(--color-danger); }
+[data-task-card]:active { cursor: grabbing; }
+/* The card being dragged, in its original slot — dnd-kit's DragOverlay
+   renders the moving copy separately, so this just fades the source. */
+[data-task-card][data-dragging='true'] { opacity: 0.35; }
+/* The floating copy inside <DragOverlay> — lifted, not fully opaque so
+   it reads as "in motion" rather than a second permanent card. */
+[data-task-card][data-drag-overlay='true'] { box-shadow: var(--shadow-raised); cursor: grabbing; }
+
 [data-task-card][data-priority='high']   { border-left-color: var(--tone-amber-fg); }
-[data-task-card][data-priority='medium'] { border-left-color: var(--tone-blue-fg); }
+[data-task-card][data-priority='normal'] { border-left-color: var(--tone-blue-fg); }
 [data-task-card][data-priority='low']    { border-left-color: var(--color-border-strong); }
+[data-task-card][data-needs-reclean='true'] { border-left-color: var(--color-danger); background: var(--color-danger-bg); }
 
 [data-task-card-header] { display: flex; align-items: center; justify-content: space-between; }
 [data-task-type] { font-size: 12.5px; font-weight: 600; color: var(--color-text); text-transform: capitalize; }
@@ -711,7 +731,15 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   color: var(--color-text-muted);
 }
 [data-task-room] { font-size: 12px; color: var(--color-text-secondary); }
-[data-task-assignee] { font-size: 12px; color: var(--color-text-muted); }
+[data-task-assignee], [data-task-reviewer] { font-size: 12px; color: var(--color-text-muted); }
+[data-task-reviewer] { display: flex; align-items: center; gap: 4px; }
+[data-reclean-note] {
+  font-size: 11.5px;
+  color: var(--color-danger);
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+}
 [data-task-actions] { display: flex; gap: var(--space-2); margin-top: var(--space-1); }
 [data-task-actions] [data-btn-ghost],
 [data-task-actions] [data-btn-primary] { flex: 1; justify-content: center; text-align: center; }
