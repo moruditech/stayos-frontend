@@ -92,6 +92,7 @@ export type {
   CalendarMatrixParams,
 } from './domains/rooms';
 export type { RatePlanSummary } from './domains/property-ops';
+export type { VisitorLogEntry, HostSearchResult, VisitorPolicy } from './domains/property-ops';
 export type {
   HousekeepingTask,
   HousekeepingTaskStatus,

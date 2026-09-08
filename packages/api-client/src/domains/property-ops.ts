@@ -68,16 +68,71 @@ export const promotionsApi = {
 };
 
 // ── Access Control ─────────────────────────────────────────────────────────────
+// Backend routes/schemas: src/modules/access/{access.routes,access.validation}.js
+
+// Matches VisitorLog.model.js's real fields — checkedInAt/checkedOutAt
+// (not checkInTime/checkOutTime), hostName/hostRoomNumber snapshots rather
+// than a free-text host string.
+export interface VisitorLogEntry {
+  _id: string;
+  visitorName: string;
+  idCaptureDeclined: boolean;
+  vehicleReg?: string;
+  hostId: string;
+  hostModel: 'Customer' | 'PropertyStaff';
+  hostName: string;
+  hostRoomNumber?: string | null;
+  purpose: 'guest' | 'delivery' | 'contractor' | 'family' | 'other';
+  visitType: 'day_visit' | 'sleepover';
+  consentGiven: boolean;
+  checkedInAt: string;
+  checkedOutAt?: string | null;
+  checkedInBy?: { firstName: string; lastName: string } | string;
+  gateUsed?: string;
+  notes?: string;
+  overstayAlertSentAt?: string | null;
+}
+
+// GET /access/hosts/search?type=guest|staff&q=... result shape.
+// disambiguated is true when another result in the same response shares this
+// guest's name — the frontend appends the room number to the visible label
+// in that case so the two are told apart.
+export interface HostSearchResult {
+  hostType: 'guest' | 'staff';
+  hostId: string;
+  hostBookingId?: string;
+  label: string;
+  sublabel?: string;
+  disambiguated?: boolean;
+}
+
+export interface VisitorPolicy {
+  enforceVisitingHours: boolean;
+  visitingHoursStart: string;   // HH:mm, 24-hour, tenant-local
+  visitingHoursEnd: string;
+  maxDayVisitHours: number;
+  maxSleepoverHours: number;
+  overstayAlertsEnabled: boolean;
+}
 
 export const accessApi = {
   listVisitors: (params?: Record<string, unknown>) =>
-    client.get<Record<string, unknown>[]>('/access/visitors', {
+    client.get<VisitorLogEntry[]>('/access/visitors', {
       params: params as Record<string, string | number | boolean | undefined>,
     }),
   checkInVisitor: (input: Record<string, unknown>) =>
-    client.post<Record<string, unknown>>('/access/visitors', input),
+    client.post<VisitorLogEntry>('/access/visitors', input),
   checkOutVisitor: (id: string) =>
-    client.patch<Record<string, unknown>>(`/access/visitors/${id}/check-out`),
+    client.patch<VisitorLogEntry>(`/access/visitors/${id}/check-out`),
+  // Debounce this call client-side and only fire once q.length >= 2 — the
+  // backend also enforces the 2-char floor (hostSearchQuerySchema).
+  searchHosts: (type: 'guest' | 'staff', q: string) =>
+    client.get<HostSearchResult[]>('/access/hosts/search', {
+      params: { type, q } as Record<string, string | number | boolean | undefined>,
+    }),
+  getVisitorPolicy: () => client.get<VisitorPolicy>('/access/visitor-policy'),
+  updateVisitorPolicy: (input: Partial<VisitorPolicy>) =>
+    client.patch<VisitorPolicy>('/access/visitor-policy', input),
   generateCode: (input: Record<string, unknown>) =>
     client.post<Record<string, unknown>>('/access/codes', input),
   getCodesForBooking: (bookingId: string) =>

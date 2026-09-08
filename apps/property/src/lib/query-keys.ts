@@ -58,7 +58,9 @@ export const promotionKeys = {
 };
 
 export const accessKeys = {
-  visitors: () => ['access', 'visitors'] as const,
+  visitors:      () => ['access', 'visitors'] as const,
+  hostSearch:    (type: 'guest' | 'staff', q: string) => ['access', 'hosts', 'search', type, q] as const,
+  visitorPolicy: () => ['access', 'visitor-policy'] as const,
 };
 
 export const rosterKeys = {
