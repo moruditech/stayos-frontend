@@ -69,7 +69,43 @@ export interface FolioBalance {
   status: string;
 }
 
+// GET /folios list entries — populated booking (+room) and customer, but
+// NOT a payments array like the single-folio Folio type above has:
+// folios.service.js#listFolios doesn't attach that, only #getFolio does.
+export interface FolioListEntry {
+  _id: string;
+  status: 'open' | 'settled' | 'disputed';
+  subTotal: number;
+  taxTotal: number;
+  grandTotal: number;
+  paidAmount: number;
+  balance: number;
+  bookingId: {
+    _id: string;
+    confirmationNumber: string;
+    checkIn: string;
+    checkOut: string;
+    status: string;
+    roomId: { _id: string; roomNumber: string } | string;
+  };
+  customerId: { _id: string; firstName: string; lastName: string } | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FolioListFilters {
+  // Filters by the associated BOOKING's status — a folio has no status of
+  // its own that maps to "is this guest currently staying" (only
+  // open/settled/disputed, its billing state). See listFoliosQuerySchema.
+  bookingStatus?: 'checked_in' | 'checked_out' | string;
+  folioStatus?: 'open' | 'settled' | 'disputed';
+}
+
 export const foliosApi = {
+  // GET /folios
+  list: (filters?: FolioListFilters) =>
+    client.get<FolioListEntry[]>('/folios', { params: { limit: 100, ...filters } }),
+
   // GET /folios/:id
   get: (id: string) => client.get<Folio>(`/folios/${id}`),
 

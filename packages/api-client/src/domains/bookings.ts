@@ -63,6 +63,9 @@ export const bookingsApi = {
   // guestregisterApi below and stayos-audit-report.md G-02.
   checkIn: (id: string) => client.post<Booking>(`/bookings/${id}/check-in`),
 
+  // POST /bookings/:id/check-out
+  checkOut: (id: string) => client.post<Booking>(`/bookings/${id}/check-out`),
+
   // GET /customers/me/bookings — customer's own bookings
   listMine: () => client.get<Booking[]>('/customers/me/bookings'),
 

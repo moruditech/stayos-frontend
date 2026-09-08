@@ -239,6 +239,15 @@ export default function BookingDetailPage(): React.ReactElement {
     },
   });
 
+  const checkOutMutation = useMutation({
+    mutationFn: () => api.bookings.checkOut(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: bookingKeys.detail(id) });
+      toast('Guest checked out.', 'success');
+    },
+    onError: (err: ApiError) => toast(err.message ?? 'Failed to check out.', 'error'),
+  });
+
   if (isLoading) return <SkeletonLoader rows={6} />;
   if (!booking) return <p>Booking not found.</p>;
 
@@ -249,6 +258,7 @@ export default function BookingDetailPage(): React.ReactElement {
   const isPendingConfirm = b['guestConfirmationStatus'] === 'pending';
   const isCancellable = ['confirmed', 'pending'].includes(booking.status);
   const isCheckInEligible = booking.status === 'confirmed';
+  const isCheckOutEligible = booking.status === 'checked_in';
   const hasRegisterEntry = Boolean(registerEntry);
   const f = folio as unknown as Record<string, unknown> | undefined;
 
@@ -341,6 +351,25 @@ export default function BookingDetailPage(): React.ReactElement {
                 </button>
               </>
             )}
+          </section>
+        </RoleGate>
+      )}
+
+      {/* Check-out */}
+      {isCheckOutEligible && (
+        <RoleGate perm={PERMISSIONS.CHECKIN_PROCESS}>
+          <section data-detail-section>
+            <h2>Check-out</h2>
+            <div data-action-bar>
+              <button
+                type="button"
+                data-btn-primary
+                onClick={() => checkOutMutation.mutate()}
+                disabled={checkOutMutation.isPending}
+              >
+                {checkOutMutation.isPending ? 'Checking out…' : 'Check out guest'}
+              </button>
+            </div>
           </section>
         </RoleGate>
       )}

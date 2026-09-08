@@ -101,3 +101,4 @@ export type {
   ResolvedChecklist,
   CreateHousekeepingTaskInput,
 } from './domains/housekeeping';
+export type { FolioListEntry, FolioListFilters } from './domains/folios';
