@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { api } from '@stayos/api-client';
-import type { ApiError, HostSearchResult, VisitorLogEntry } from '@stayos/api-client';
+import type { ApiError, HostSearchResult } from '@stayos/api-client';
 import { SkeletonLoader, useToast, Modal, InlineError, StatusBadge, applyServerErrors } from '@stayos/ui';
 import { accessKeys } from '@/lib/query-keys';
 
