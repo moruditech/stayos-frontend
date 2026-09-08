@@ -49,7 +49,7 @@ function HostSearchField({
   hostType: 'guest' | 'staff';
   value: { hostId: string; label: string } | null;
   onSelect: (result: HostSearchResult | null) => void;
-  error?: string;
+  error?: string | undefined;
 }): React.ReactElement {
   // Seeded once from `value` at mount only — intentionally not re-synced on
   // every prop change, since the parent clears `value` as soon as the user
