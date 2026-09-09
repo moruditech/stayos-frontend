@@ -56,6 +56,7 @@ export const pricingKeys = {
 export const promotionKeys = {
   list:   () => ['promotions'] as const,
   detail: (id: string) => ['promotions', id] as const,
+  usage:  (id: string) => ['promotions', id, 'usage'] as const,
 };
 
 export const accessKeys = {

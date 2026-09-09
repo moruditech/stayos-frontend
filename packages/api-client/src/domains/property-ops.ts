@@ -67,6 +67,25 @@ export interface Promotion {
   isActive: boolean;
 }
 
+// GET /promotions/:id/usage — src/modules/promotions/promotions.service.js#getUsage
+export interface PromotionUsageBooking {
+  _id: string;
+  confirmationNumber: string;
+  customerId?: { _id: string; firstName: string; lastName: string; email: string } | null;
+  totalAmount: number;
+  discountAmount: number;
+  createdAt: string;
+}
+
+export interface PromotionUsage {
+  code: string;
+  usedCount: number;
+  maxUses?: number;
+  maxUsesPerCustomer: number;
+  bookings: PromotionUsageBooking[];
+  totalDiscountGiven: number;
+}
+
 export const promotionsApi = {
   list: () => client.get<Promotion[]>('/promotions'),
   create: (input: Record<string, unknown>) =>
@@ -75,7 +94,7 @@ export const promotionsApi = {
   update: (id: string, input: Record<string, unknown>) =>
     client.patch<Promotion>(`/promotions/${id}`, input),
   delete: (id: string) => client.delete<{ message: string }>(`/promotions/${id}`),
-  getUsage: (id: string) => client.get<Record<string, unknown>>(`/promotions/${id}/usage`),
+  getUsage: (id: string) => client.get<PromotionUsage>(`/promotions/${id}/usage`),
   // Customer-scope only — a property-staff (tenant scope) session will get a 403
   // from this route. Staff-facing code should use `lookup` instead.
   validate: (code: string) =>

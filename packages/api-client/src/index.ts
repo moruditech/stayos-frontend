@@ -92,7 +92,7 @@ export type {
   CalendarMatrixResponse,
   CalendarMatrixParams,
 } from './domains/rooms';
-export type { RatePlanSummary, Promotion } from './domains/property-ops';
+export type { RatePlanSummary, Promotion, PromotionUsage, PromotionUsageBooking } from './domains/property-ops';
 export type { VisitorLogEntry, HostSearchResult, VisitorPolicy } from './domains/property-ops';
 export type {
   ChatChannel,
