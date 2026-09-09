@@ -103,8 +103,10 @@ export const reportKeys = {
 };
 
 export const chatKeys = {
-  channels: () => ['staffchat', 'channels'] as const,
-  messages: (channelId: string) => ['staffchat', 'channels', channelId, 'messages'] as const,
+  channels:  () => ['staffchat', 'channels'] as const,
+  messages:  (channelId: string) => ['staffchat', 'channels', channelId, 'messages'] as const,
+  directory: () => ['staffchat', 'directory'] as const,
+  members:   (channelId: string) => ['staffchat', 'channels', channelId, 'members'] as const,
 };
 
 export const staffKeys = {

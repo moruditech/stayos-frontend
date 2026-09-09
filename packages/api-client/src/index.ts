@@ -94,6 +94,14 @@ export type {
 export type { RatePlanSummary } from './domains/property-ops';
 export type { VisitorLogEntry, HostSearchResult, VisitorPolicy } from './domains/property-ops';
 export type {
+  ChatChannel,
+  ChatMessage,
+  ChatParticipant,
+  ChatDirectoryEntry,
+  ChatChannelMember,
+  ChatWrappedKey,
+} from './domains/property-ops';
+export type {
   HousekeepingTask,
   HousekeepingTaskStatus,
   HousekeepingTaskType,

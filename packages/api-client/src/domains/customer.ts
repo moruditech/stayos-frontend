@@ -164,6 +164,14 @@ export const notificationsApi = {
   getPreferences: () => client.get<Record<string, unknown>>('/notifications/preferences'),
   updatePreferences: (prefs: Record<string, unknown>) =>
     client.patch<Record<string, unknown>>('/notifications/preferences', prefs),
+
+  // ── Push device registration ──────────────────────────────────────────────
+  // Any authenticated scope can register a browser/device for push delivery
+  // — see PushDevice.model.js and notification.service.js#sendPushToRecipient.
+  registerDevice: (token: string, platform: 'web' | 'ios' | 'android' = 'web') =>
+    client.post<{ _id: string; platform: string }>('/notifications/devices', { token, platform }),
+  unregisterDevice: (token: string) =>
+    client.delete<{ message: string }>(`/notifications/devices/${encodeURIComponent(token)}`),
 };
 
 export const reviewsApi = {

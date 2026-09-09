@@ -8,6 +8,7 @@ const nextConfig = {
     '@stayos/constants',
     '@stayos/types',
     '@stayos/validators',
+    '@stayos/crypto',
   ],
 
   // Proxy /api/v1/* to the backend so the browser never makes a cross-origin

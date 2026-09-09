@@ -324,41 +324,116 @@ export const reportsApi = {
 };
 
 // ── Staff Chat ─────────────────────────────────────────────────────────────────
+// Confirmed against src/modules/staffchat/*.js. End-to-end encrypted: message
+// bodies never travel as plaintext — see ChatMessage.ciphertext/iv and
+// @stayos/crypto, which does the actual encrypt/decrypt in the browser. This
+// api-client layer only ever moves opaque envelopes; it has no crypto in it.
+
+export interface ChatParticipant {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  role?: string;
+}
 
 export interface ChatChannel {
   _id: string;
-  name?: string;
-  type: 'direct' | 'group';
-  participants: { _id: string; firstName: string; lastName: string }[];
-  lastMessage?: { text: string; createdAt: string };
-  unreadCount?: number;
+  type: 'department' | 'direct' | 'property_wide' | 'group';
+  department: string | null;
+  name: string; // always a display-ready label — department label, "All Staff", DM, or the group's name
+  participants: ChatParticipant[]; // populated for 'direct'/'group'; empty for 'department'/'property_wide'
+  createdBy: string | null;
+  createdAt: string;
+  updatedAt: string;
+  // Still-encrypted preview of the most recent message — decrypt client-side
+  // if the channel key is already cached (@stayos/crypto), else show a
+  // placeholder like "Encrypted message".
+  lastMessage: { _id: string; ciphertext: string; iv: string; senderId: string; type: string; createdAt: string } | null;
+  unreadCount: number;
 }
 
 export interface ChatMessage {
   _id: string;
   channelId: string;
-  senderId: { _id: string; firstName: string; lastName: string };
-  text: string;
-  pinned: boolean;
+  senderId: { _id: string; firstName: string; lastName: string; role?: string };
+  type: 'message' | 'announcement' | 'handover_note';
+  ciphertext: string;
+  iv: string;
+  attachments: { url: string; name: string }[];
+  isPinned: boolean;
+  handoverDate?: string;
   readBy: string[];
   createdAt: string;
 }
 
+export interface ChatDirectoryEntry {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  departments: string[];
+  hasKey: boolean; // has this person published an E2EE public key yet?
+}
+
+export interface ChatChannelMember {
+  staffId: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  publicKey: JsonWebKey | null;
+}
+
+export interface ChatWrappedKey {
+  memberId: string;
+  wrappedKey: string;
+  iv: string;
+  ephemeralPublicKey: JsonWebKey;
+}
+
 export const staffchatApi = {
+  // Who can I message? Any active colleague — not gated behind the
+  // staff:manage HR roster permission the way staffApi.list() is.
+  getDirectory: () => client.get<ChatDirectoryEntry[]>('/staffchat/directory'),
+
   getMyChannels: () => client.get<ChatChannel[]>('/staffchat/channels'),
-  getOrCreateDM: (recipientId: string) =>
-    client.post<ChatChannel>('/staffchat/channels/direct', { recipientId }),
-  getMessages: (channelId: string, params?: Record<string, unknown>) =>
-    client.get<ChatMessage[]>(`/staffchat/channels/${channelId}/messages`, {
+  getOrCreateDM: (targetStaffId: string) =>
+    client.post<ChatChannel>('/staffchat/channels/direct', { targetStaffId }),
+  createGroup: (input: { name: string; memberIds: string[]; keys?: ChatWrappedKey[] }) =>
+    client.post<ChatChannel>('/staffchat/channels/group', input),
+  updateGroup: (channelId: string, input: { name?: string; addMemberIds?: string[]; removeMemberIds?: string[] }) =>
+    client.patch<ChatChannel>(`/staffchat/channels/${channelId}`, input),
+
+  getMessages: (channelId: string, params?: { page?: number; limit?: number }) =>
+    client.getPaginated<ChatMessage>(`/staffchat/channels/${channelId}/messages`, {
       params: params as Record<string, string | number | boolean | undefined>,
     }),
-  sendMessage: (channelId: string, text: string) =>
-    client.post<ChatMessage>(`/staffchat/channels/${channelId}/messages`, { text }),
-  pinMessage: (messageId: string) =>
-    client.patch<ChatMessage>(`/staffchat/messages/${messageId}/pin`),
+  sendMessage: (
+    channelId: string,
+    input: { ciphertext: string; iv: string; type?: ChatMessage['type']; attachments?: ChatMessage['attachments']; handoverDate?: string }
+  ) => client.post<ChatMessage>(`/staffchat/channels/${channelId}/messages`, input),
+  pinMessage: (messageId: string, isPinned: boolean) =>
+    client.patch<ChatMessage>(`/staffchat/messages/${messageId}/pin`, { isPinned }),
   markRead: (messageId: string) =>
     client.patch<ChatMessage>(`/staffchat/messages/${messageId}/read`),
-  getHandover: () => client.get<Record<string, unknown>>('/staffchat/handover'),
+  getHandover: (department: string) =>
+    client.get<ChatMessage | null>('/staffchat/handover', { params: { department } }),
+
+  // ── End-to-end encryption ──────────────────────────────────────────────────
+  // The server only stores/relays opaque blobs here — see StaffChannelKey.model.js
+  // and @stayos/crypto for what actually happens to the key material.
+  setMyPublicKey: (publicKey: JsonWebKey) =>
+    client.put<{ publicKey: JsonWebKey; publicKeyUpdatedAt: string }>('/staffchat/keys/me', { publicKey }),
+  setKeyBackup: (input: { salt: string; iv: string; ciphertext: string }) =>
+    client.post<{ updatedAt: string }>('/staffchat/keys/me/backup', input),
+  getKeyBackup: () =>
+    client.get<{ salt: string; iv: string; ciphertext: string; updatedAt: string } | null>('/staffchat/keys/me/backup'),
+
+  getChannelMembers: (channelId: string) =>
+    client.get<{ members: ChatChannelMember[]; channelHasKey: boolean }>(`/staffchat/channels/${channelId}/members`),
+  getMyChannelKey: (channelId: string) =>
+    client.get<ChatWrappedKey | null>(`/staffchat/channels/${channelId}/key`),
+  publishChannelKeys: (channelId: string, wraps: ChatWrappedKey[], bootstrap?: boolean) =>
+    client.post<{ updated: number }>(`/staffchat/channels/${channelId}/keys`, { wraps, bootstrap }),
 };
 
 // ── Channels (iCal sync) ──────────────────────────────────────────────────────

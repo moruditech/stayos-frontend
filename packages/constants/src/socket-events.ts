@@ -20,6 +20,24 @@ export const SOCKET_EVENTS = {
   // inbound (emitToProperty) and to the customer on staff in_app reply
   // (emitToUser), same event name and payload shape both directions.
   MESSAGING_NEW_MESSAGE: 'messaging:new_message',
+
+  // Confirmed against staffchat.service.js#broadcastMessage. Payload is
+  // metadata only (channelId, sender name, channel name, etc.) — never
+  // message content, since staff chat is end-to-end encrypted and the
+  // server cannot read it either. Fired for every channel type; handlers
+  // filter by payload.channelId / channelType as needed.
+  STAFFCHAT_NEW_MESSAGE: 'staffchat:new_message',
+  STAFFCHAT_HANDOVER_POSTED: 'staffchat:handover_posted',
+  // Client -> server -> relayed to the rest of the property (server can't
+  // target just "whoever holds this channel's key", so every other client
+  // gets it and checks for itself). Server -> specific user once someone
+  // services the request (see staffchat.service.js#publishChannelKeys).
+  STAFFCHAT_KEY_REQUEST: 'staffchat:key_request',
+  STAFFCHAT_KEY_GRANTED: 'staffchat:key_granted',
+  // Group channel membership changed (created into / added / removed) —
+  // told to refetch the channel list and, on removal, re-run key bootstrap.
+  STAFFCHAT_MEMBERS_CHANGED: 'staffchat:members_changed',
+
   // Additional confirmed events are added here per-portal, in the phase
   // that needs them, each individually verified.
 } as const;
