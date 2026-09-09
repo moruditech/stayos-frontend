@@ -85,13 +85,14 @@ export type {
   StaffPropertyAssignment,
 } from './domains/agency';
 export type {
+  Room,
   CalendarRoom,
   CalendarBooking,
   CalendarBlock,
   CalendarMatrixResponse,
   CalendarMatrixParams,
 } from './domains/rooms';
-export type { RatePlanSummary } from './domains/property-ops';
+export type { RatePlanSummary, Promotion } from './domains/property-ops';
 export type { VisitorLogEntry, HostSearchResult, VisitorPolicy } from './domains/property-ops';
 export type {
   ChatChannel,

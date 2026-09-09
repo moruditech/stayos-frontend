@@ -45,20 +45,41 @@ export const pricingApi = {
 };
 
 // ── Promotions ─────────────────────────────────────────────────────────────────
+// Backend routes/schemas: src/modules/promotions/{promotions.routes,promotions.validation}.js
+
+// Matches Promotion.model.js's real fields.
+export interface Promotion {
+  _id: string;
+  code: string;
+  description?: string;
+  type: 'percentage' | 'fixed_amount' | 'free_night';
+  value: number;
+  minBookingValue: number;
+  // Actual Room _ids this promotion applies to — empty/absent = all rooms.
+  applicableRoomIds?: string[];
+  // 0=Sunday..6=Saturday — empty/absent = every day within validFrom/validTo.
+  daysOfWeek?: number[];
+  validFrom: string;
+  validTo: string;
+  maxUses?: number;
+  maxUsesPerCustomer: number;
+  usedCount: number;
+  isActive: boolean;
+}
 
 export const promotionsApi = {
-  list: () => client.get<Record<string, unknown>[]>('/promotions'),
+  list: () => client.get<Promotion[]>('/promotions'),
   create: (input: Record<string, unknown>) =>
-    client.post<Record<string, unknown>>('/promotions', input),
-  get: (id: string) => client.get<Record<string, unknown>>(`/promotions/${id}`),
+    client.post<Promotion>('/promotions', input),
+  get: (id: string) => client.get<Promotion>(`/promotions/${id}`),
   update: (id: string, input: Record<string, unknown>) =>
-    client.patch<Record<string, unknown>>(`/promotions/${id}`, input),
+    client.patch<Promotion>(`/promotions/${id}`, input),
   delete: (id: string) => client.delete<{ message: string }>(`/promotions/${id}`),
   getUsage: (id: string) => client.get<Record<string, unknown>>(`/promotions/${id}/usage`),
   // Customer-scope only — a property-staff (tenant scope) session will get a 403
   // from this route. Staff-facing code should use `lookup` instead.
   validate: (code: string) =>
-    client.get<{ valid: boolean; promotion?: Record<string, unknown> }>(`/promotions/${code}/validate`),
+    client.get<{ valid: boolean; promotion?: Promotion }>(`/promotions/${code}/validate`),
   // Tenant-scope: resolves a human-readable code to a promotion for staff use
   // (e.g. the new-booking form), returning the ObjectId the booking endpoint expects.
   lookup: (code: string, subTotal?: number) =>
