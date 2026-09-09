@@ -254,7 +254,6 @@ export default function StaffChatPage(): React.ReactElement {
     // `decrypted` intentionally excluded: this effect's own setDecrypted
     // call is the only thing that would change it, and re-running because
     // of that would just find nothing left to do.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages, chatCrypto, activeChannelId, keyState[activeChannelId ?? '']]);
 
   // ── Opportunistic sidebar previews for channels whose key we already hold ─
@@ -277,7 +276,6 @@ export default function StaffChatPage(): React.ReactElement {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channels, chatCrypto, keyState]);
 
   // ── Mark visible unread messages as read ─────────────────────────────────
