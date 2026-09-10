@@ -88,7 +88,7 @@ export default function FolioDetailPage(): React.ReactElement {
   const chargeForm = useForm<ChargeInput>({ resolver: zodResolver(chargeSchema), defaultValues: { quantity: 1 } });
   const settleForm = useForm<SettleInput>({ resolver: zodResolver(settleSchema) });
   const openSettleModal = (): void => {
-    settleForm.reset({ amount: folio?.balance });
+    settleForm.reset({ amount: folio?.balance ?? 0 });
     setShowSettleModal(true);
   };
 
