@@ -5,9 +5,11 @@ import Link from 'next/link';
 /**
  * Channel Management — iCal sync.
  * TAD 11 §17: calendar-level synchronisation with external OTA channels.
- * Both consuming external calendars and publishing the property's own.
- * Per-room iCal export feeds are enabled per room in /rooms — this page
- * manages the external channel connections.
+ * Every subscription imports ONE external calendar into ONE specific room
+ * (src/models/IcalFeedSubscription.model.js) — there is no property-wide
+ * "channel" or import/export "direction" concept on the backend. Exporting
+ * a room's own availability out is a separate, per-room feature enabled on
+ * the room itself in /rooms (see the info note below).
  */
 
 import React, { useState } from 'react';
@@ -17,27 +19,36 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { SkeletonLoader, EmptyState, StatusBadge, useToast, Modal, InlineError, ConfirmDialog, Icons } from '@stayos/ui';
-import { channelKeys } from '@/lib/query-keys';
+import { SkeletonLoader, EmptyState, StatusBadge, useToast, Modal, InlineError, ConfirmDialog, applyServerErrors, Icons } from '@stayos/ui';
+import { channelKeys, roomKeys } from '@/lib/query-keys';
+
+// Must match the backend exactly (src/modules/channels/ical.validation.js) —
+// field names here are what applyServerErrors maps 422 responses onto.
+const SOURCE_CHANNELS = ['airbnb', 'booking_com', 'agoda', 'lekkeslaap', 'safarinow', 'google_calendar', 'other'] as const;
 
 const connectSchema = z.object({
-  name:     z.string().min(1, 'Channel name required'),
-  feedUrl:  z.string().url('Must be a valid iCal feed URL'),
-  roomId:   z.string().optional(),
-  direction:z.enum(['import', 'export', 'both']).default('import'),
+  roomId:        z.string().min(1, 'Select a room'),
+  label:         z.string().min(1, 'Label is required'),
+  sourceChannel: z.enum(SOURCE_CHANNELS, { errorMap: () => ({ message: 'Select a channel' }) }),
+  externalUrl:   z.string().url('Must be a valid iCal feed URL'),
 });
 type ConnectInput = z.infer<typeof connectSchema>;
 
-const OTA_PRESETS = [
-  { name: 'Booking.com',  placeholder: 'https://ical.booking.com/...' },
-  { name: 'Airbnb',       placeholder: 'https://www.airbnb.com/calendar/ical/...' },
-  { name: 'Expedia',      placeholder: 'https://vacation.rentals.expedia.com/...' },
-  { name: 'VRBO',         placeholder: 'https://www.vrbo.com/icalendar/...' },
-  { name: 'Other',        placeholder: 'https://...' },
-] as const;
+const CHANNEL_LABELS: Record<(typeof SOURCE_CHANNELS)[number], string> = {
+  airbnb: 'Airbnb', booking_com: 'Booking.com', agoda: 'Agoda',
+  lekkeslaap: 'LekkeSlaap', safarinow: 'SafariNow', google_calendar: 'Google Calendar', other: 'Other',
+};
 
 function fmtDate(iso: string): string {
   return new Date(iso).toLocaleString('en-ZA', { dateStyle: 'short', timeStyle: 'short' });
+}
+
+// isActive + lastFetchStatus + lastFetchedAt together decide the badge — the
+// model has no single "status" field (see IcalFeedSubscription.model.js).
+function statusOf(sub: { isActive: boolean; lastFetchedAt?: string | null; lastFetchStatus?: string | null }): string {
+  if (!sub.isActive) return 'disconnected';
+  if (!sub.lastFetchedAt) return 'pending first sync';
+  return sub.lastFetchStatus ?? 'pending first sync';
 }
 
 export default function ChannelsPage(): React.ReactElement {
@@ -46,7 +57,7 @@ export default function ChannelsPage(): React.ReactElement {
   const [showConnect, setShowConnect] = useState(false);
   const [syncingId, setSyncingId] = useState<string | null>(null);
   const [disconnectId, setDisconnectId] = useState<string | null>(null);
-  const [selectedPreset, setSelectedPreset] = useState<string>('');
+  const [selectedChannel, setSelectedChannel] = useState<(typeof SOURCE_CHANNELS)[number] | ''>('');
 
   const { data: channels, isLoading } = useQuery({
     queryKey: channelKeys.ical(),
@@ -54,31 +65,49 @@ export default function ChannelsPage(): React.ReactElement {
     staleTime: 120_000,
   });
 
-  const form = useForm<ConnectInput>({
-    resolver: zodResolver(connectSchema),
-    defaultValues: { direction: 'import' },
+  const { data: rooms, isLoading: roomsLoading } = useQuery({
+    queryKey: roomKeys.list({ limit: 100 }),
+    queryFn: () => api.rooms.list({ limit: 100 }),
+    staleTime: 60_000,
   });
+
+  const form = useForm<ConnectInput>({ resolver: zodResolver(connectSchema) });
+
+  function resetModal(): void {
+    form.reset();
+    setSelectedChannel('');
+  }
 
   const connectMutation = useMutation({
     mutationFn: (input: ConnectInput) => api.channels.connect(input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: channelKeys.ical() });
-      setShowConnect(false); form.reset(); setSelectedPreset('');
-      toast('Channel connected. First sync will run shortly.', 'success');
+      setShowConnect(false);
+      resetModal();
+      toast('Channel connected. Use "Sync now" to pull in bookings immediately.', 'success');
     },
     onError: (err: ApiError) => {
       if (err.code === 'VALIDATION_ERROR') {
-        for (const f of err.fields ?? []) form.setError(f.field as keyof ConnectInput, { message: f.message });
-      } else toast(err.message ?? 'Failed to connect channel.', 'error');
+        applyServerErrors(form, err);
+        const hasUnattachedError = err.fields?.some((f) => !f.field);
+        if (hasUnattachedError || !err.fields?.length) toast(err.message, 'error');
+      } else {
+        toast(err.message ?? 'Failed to connect channel.', 'error');
+      }
     },
   });
 
   const syncMutation = useMutation({
     mutationFn: (id: string) => api.channels.sync(id),
-    onSuccess: () => {
+    onSuccess: (result) => {
       void queryClient.invalidateQueries({ queryKey: channelKeys.ical() });
       setSyncingId(null);
-      toast('Sync triggered. Updates will appear within a few minutes.', 'success');
+      toast(
+        result.status === 'suspicious'
+          ? 'Sync paused — an unusually large number of cancellations was detected and skipped for safety. Check the feed.'
+          : `Synced — ${result.created} new, ${result.cancelled} cancelled, ${result.modified} modified.`,
+        result.status === 'suspicious' ? 'error' : 'success'
+      );
     },
     onError: (err: ApiError) => { setSyncingId(null); toast(err.message ?? 'Sync failed.', 'error'); },
   });
@@ -99,7 +128,7 @@ export default function ChannelsPage(): React.ReactElement {
         <div>
           <Link href="/settings/property" data-breadcrumb><Icons.ChevronLeft data-breadcrumb-icon aria-hidden="true" /> Settings</Link>
           <h1>Channel management</h1>
-          <p data-page-subtitle>Sync bookings with external OTA calendars via iCal</p>
+          <p data-page-subtitle>Import external OTA bookings into a room via its iCal feed</p>
         </div>
         <button type="button" data-btn-primary onClick={() => setShowConnect(true)}>
           + Connect channel
@@ -108,20 +137,20 @@ export default function ChannelsPage(): React.ReactElement {
 
       <div data-channels-info>
         <p>
-          Connect your OTA channel calendars to automatically import external bookings
-          and export your availability. Syncs run automatically every hour. You can
-          also trigger a manual sync at any time.
+          Each connection imports one external calendar into one room. A room can have
+          more than one connection (e.g. Airbnb and a personal Google Calendar). Syncs
+          run automatically roughly every 45 minutes — you can also trigger one manually.
         </p>
         <p data-info-note>
-          To export a per-room iCal feed to your OTA, go to <Link href="/rooms" data-link>Rooms</Link> and
-          enable the iCal export feed on the individual room.
+          To export a room&apos;s own availability to an OTA, go to <Link href="/rooms" data-link>Rooms</Link> and
+          enable the iCal export feed on that room — that&apos;s a separate, per-room setting.
         </p>
       </div>
 
       {isLoading ? <SkeletonLoader rows={3} /> : !channels?.length ? (
         <EmptyState
           title="No channels connected"
-          description="Connect your OTA channels to automatically sync bookings."
+          description="Connect an external calendar to automatically import its bookings into a room."
           action={
             <button type="button" data-btn-primary onClick={() => setShowConnect(true)}>
               Connect first channel
@@ -130,38 +159,28 @@ export default function ChannelsPage(): React.ReactElement {
         />
       ) : (
         <div data-channel-list>
-          {channels.map((channel) => {
-            const ch = channel as unknown as Record<string, unknown>;
-            const id = String(ch['_id']);
-            const status = String(ch['status'] ?? 'active');
-            const lastSync = ch['lastSyncAt'] ? fmtDate(String(ch['lastSyncAt'])) : 'Never';
-            const importCount = Number(ch['importedBookings'] ?? 0);
-
+          {channels.map((sub) => {
+            const roomLabel = sub.roomId && typeof sub.roomId === 'object' ? `Room ${sub.roomId.roomNumber}` : '—';
+            const status = statusOf(sub);
             return (
-              <div key={id} data-channel-card>
+              <div key={sub._id} data-channel-card>
                 <div data-channel-header>
                   <div>
-                    <h2 data-channel-name>{String(ch['name'] ?? '—')}</h2>
+                    <h2 data-channel-name>{sub.label}</h2>
                     <p data-channel-direction>
-                      {String(ch['direction'] ?? 'import')} · Last sync: {lastSync}
+                      {CHANNEL_LABELS[sub.sourceChannel] ?? sub.sourceChannel} · {roomLabel} · Last sync: {sub.lastFetchedAt ? fmtDate(sub.lastFetchedAt) : 'Never'}
                     </p>
-                    {importCount > 0 && (
-                      <p data-channel-count>{importCount} bookings imported</p>
+                    {sub.isActive && sub.lastFetchedAt && (
+                      <p data-channel-count>{sub.lastKnownUidCount} event(s) in last sync</p>
                     )}
                   </div>
                   <StatusBadge status={status} />
                 </div>
 
-                <div data-channel-url>
-                  <code data-truncated-url>
-                    {String(ch['feedUrl'] ?? '').slice(0, 60)}
-                    {String(ch['feedUrl'] ?? '').length > 60 ? '…' : ''}
-                  </code>
-                </div>
-
-                {Boolean(ch['lastSyncError']) && (
+                {!!sub.lastFetchError && (
                   <div role="alert" data-sync-error>
-                    Last sync error: {String(ch['lastSyncError'])}
+                    Last sync error: {sub.lastFetchError}
+                    {sub.consecutiveFailures > 1 && ` (${sub.consecutiveFailures} consecutive failures)`}
                   </div>
                 )}
 
@@ -169,15 +188,15 @@ export default function ChannelsPage(): React.ReactElement {
                   <button
                     type="button"
                     data-btn-ghost data-btn-sm
-                    disabled={syncMutation.isPending && syncingId === id}
-                    onClick={() => { setSyncingId(id); syncMutation.mutate(id); }}
+                    disabled={syncMutation.isPending && syncingId === sub._id}
+                    onClick={() => { setSyncingId(sub._id); syncMutation.mutate(sub._id); }}
                   >
-                    {syncMutation.isPending && syncingId === id ? 'Syncing…' : 'Sync now'}
+                    {syncMutation.isPending && syncingId === sub._id ? 'Syncing…' : 'Sync now'}
                   </button>
                   <button
                     type="button"
                     data-btn-ghost data-btn-sm data-destructive
-                    onClick={() => setDisconnectId(id)}
+                    onClick={() => setDisconnectId(sub._id)}
                   >
                     Disconnect
                   </button>
@@ -189,36 +208,48 @@ export default function ChannelsPage(): React.ReactElement {
       )}
 
       {/* Connect channel modal */}
-      <Modal open={showConnect} onClose={() => { setShowConnect(false); setSelectedPreset(''); form.reset(); }} title="Connect a channel">
+      <Modal open={showConnect} onClose={() => { setShowConnect(false); resetModal(); }} title="Connect a channel">
         <form onSubmit={form.handleSubmit((v) => connectMutation.mutate(v))} noValidate data-form>
 
-          {/* OTA quick-select */}
           <div data-form-group>
-            <label>Select OTA</label>
+            <label>Channel</label>
             <div data-ota-presets>
-              {OTA_PRESETS.map((ota) => (
+              {SOURCE_CHANNELS.map((c) => (
                 <button
-                  key={ota.name}
+                  key={c}
                   type="button"
                   data-ota-preset
-                  data-active={selectedPreset === ota.name || undefined}
+                  data-active={selectedChannel === c || undefined}
                   onClick={() => {
-                    setSelectedPreset(ota.name);
-                    if (ota.name !== 'Other') form.setValue('name', ota.name);
+                    setSelectedChannel(c);
+                    form.setValue('sourceChannel', c, { shouldValidate: true });
+                    if (!form.getValues('label')) form.setValue('label', CHANNEL_LABELS[c]);
                   }}
                 >
-                  {ota.name}
+                  {CHANNEL_LABELS[c]}
                 </button>
               ))}
             </div>
+            <InlineError message={form.formState.errors.sourceChannel?.message} />
           </div>
 
           <div data-form-group>
-            <label htmlFor="ch-name">Channel name</label>
-            <input id="ch-name" type="text"
-              placeholder={selectedPreset || 'e.g. Booking.com'}
-              {...form.register('name')} />
-            <InlineError message={form.formState.errors.name?.message} />
+            <label htmlFor="ch-room">Room</label>
+            <select id="ch-room" defaultValue="" {...form.register('roomId')}>
+              <option value="" disabled>{roomsLoading ? 'Loading rooms…' : 'Select a room…'}</option>
+              {(rooms ?? []).map((room) => (
+                <option key={room._id} value={room._id}>Room {room.roomNumber}</option>
+              ))}
+            </select>
+            <InlineError message={form.formState.errors.roomId?.message} />
+          </div>
+
+          <div data-form-group>
+            <label htmlFor="ch-label">Label</label>
+            <input id="ch-label" type="text"
+              placeholder="e.g. Airbnb — Ocean View Room"
+              {...form.register('label')} />
+            <InlineError message={form.formState.errors.label?.message} />
           </div>
 
           <div data-form-group>
@@ -226,27 +257,18 @@ export default function ChannelsPage(): React.ReactElement {
             <input
               id="ch-url"
               type="url"
-              placeholder={OTA_PRESETS.find((o) => o.name === selectedPreset)?.placeholder ?? 'https://...'}
-              {...form.register('feedUrl')}
+              placeholder="https://..."
+              {...form.register('externalUrl')}
             />
             <p data-field-hint>
               Find this URL in your OTA&apos;s calendar / connectivity settings.
             </p>
-            <InlineError message={form.formState.errors.feedUrl?.message} />
-          </div>
-
-          <div data-form-group>
-            <label htmlFor="ch-direction">Sync direction</label>
-            <select id="ch-direction" {...form.register('direction')}>
-              <option value="import">Import only — pull external bookings in</option>
-              <option value="export">Export only — push your availability out</option>
-              <option value="both">Two-way sync</option>
-            </select>
+            <InlineError message={form.formState.errors.externalUrl?.message} />
           </div>
 
           <div data-modal-actions>
             <button type="button" data-btn-ghost
-              onClick={() => { setShowConnect(false); setSelectedPreset(''); form.reset(); }}>
+              onClick={() => { setShowConnect(false); resetModal(); }}>
               Cancel
             </button>
             <button type="submit" data-btn-primary disabled={connectMutation.isPending}>

@@ -499,15 +499,39 @@ export const staffchatApi = {
 };
 
 // ── Channels (iCal sync) ──────────────────────────────────────────────────────
+// Matches IcalFeedSubscription.model.js's real fields. externalUrl is
+// select:false server-side — only ever present in the create response,
+// never in list/get afterward (§10.2 of the iCal sync spec).
+export interface IcalSubscription {
+  _id: string;
+  roomId: string | { _id: string; roomNumber: string };
+  label: string;
+  sourceChannel: 'airbnb' | 'booking_com' | 'agoda' | 'lekkeslaap' | 'safarinow' | 'google_calendar' | 'other';
+  externalUrl?: string;
+  isActive: boolean;
+  lastFetchedAt?: string | null;
+  lastFetchStatus?: 'success' | 'failed' | 'suspicious' | null;
+  lastFetchError?: string | null;
+  consecutiveFailures: number;
+  lastKnownUidCount: number;
+  createdAt: string;
+}
+
+export interface IcalSyncResult {
+  status: 'success' | 'suspicious';
+  created: number;
+  cancelled: number;
+  modified: number;
+}
 
 export const channelsApi = {
   // Channel management routes are under /channels/ical/subscriptions/*
   // Confirmed against src/modules/channels/ical.routes.js.
-  list: () => client.get<Record<string, unknown>[]>('/channels/ical/subscriptions'),
+  list: () => client.get<IcalSubscription[]>('/channels/ical/subscriptions'),
   connect: (input: Record<string, unknown>) =>
-    client.post<Record<string, unknown>>('/channels/ical/subscriptions', input),
+    client.post<IcalSubscription>('/channels/ical/subscriptions', input),
   sync: (id: string) =>
-    client.post<{ message: string }>(`/channels/ical/subscriptions/${id}/sync-now`),
+    client.post<IcalSyncResult>(`/channels/ical/subscriptions/${id}/sync-now`),
   disconnect: (id: string) =>
     client.delete<{ message: string }>(`/channels/ical/subscriptions/${id}`),
 };
