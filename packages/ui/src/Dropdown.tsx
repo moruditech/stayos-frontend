@@ -11,9 +11,9 @@ export interface DropdownOption {
 // ── Shared popover shell ─────────────────────────────────────────────────────
 // Handles open/close state, outside-click, and Escape — both Dropdown and
 // MultiSelectDropdown render their own trigger/panel content inside it.
-function useDropdownOpenState(): [boolean, (v: boolean) => void, React.RefObject<HTMLDivElement | null>] {
+function useDropdownOpenState(): [boolean, (v: boolean) => void, React.RefObject<HTMLDivElement>] {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>;
 
   useEffect(() => {
     if (!open) return;

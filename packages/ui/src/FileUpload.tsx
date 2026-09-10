@@ -23,7 +23,7 @@ export function FileUpload({
   error,
   className,
 }: FileUploadProps): React.ReactElement {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null) as React.RefObject<HTMLInputElement>;
   const [dragOver, setDragOver] = useState(false);
 
   function handleFiles(files: FileList | null): void {
