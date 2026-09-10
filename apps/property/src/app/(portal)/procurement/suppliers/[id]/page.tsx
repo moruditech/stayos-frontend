@@ -74,7 +74,7 @@ export default function SupplierDetailPage(): React.ReactElement {
       notes:        String(s['notes'] ?? ''),
       isActive:     s['isActive'] !== false,
     });
-  }, [supplier]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [supplier]);
 
   const updateMutation = useMutation({
     mutationFn: (input: FormInput) => {

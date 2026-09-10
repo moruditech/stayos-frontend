@@ -63,7 +63,7 @@ export default function RestockConfigPage(): React.ReactElement {
       groupMinItemsLow: Number(editingConfig['groupMinItemsLow'] ?? 2),
       autoSend: Boolean(editingConfig['autoSend']),
     });
-  }, [editingConfig]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [editingConfig]);
 
   const saveMutation = useMutation({
     mutationFn: ({ supplierId, input }: { supplierId: string; input: FormInput }) =>
