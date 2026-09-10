@@ -305,7 +305,7 @@ export const procurementApi = {
   // `type` must be one of 'receive' | 'consume' | 'adjustment' | 'wastage'.
   adjustStock: (
     id: string,
-    input: { type: 'receive' | 'consume' | 'adjustment' | 'wastage'; quantity: number; reference?: string }
+    input: { type: 'receive' | 'consume' | 'adjustment' | 'wastage'; quantity: number; reference?: string | undefined }
   ) => client.post<Record<string, unknown>>(`/procurement/stock-items/${id}/adjust`, input),
   getLowStock: () =>
     client.get<Record<string, unknown>[]>('/procurement/stock-items/low-stock'),
