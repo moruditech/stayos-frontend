@@ -12,13 +12,25 @@ import type { ApiError } from '@stayos/api-client';
 import { SkeletonLoader, EmptyState, StatusBadge, useToast, Modal, InlineError, applyServerErrors, Icons } from '@stayos/ui';
 import { maintenanceKeys } from '@/lib/query-keys';
 
+// Must match the backend exactly (src/models/Asset.model.js).
+const CATEGORIES = [
+  'hvac', 'electrical', 'plumbing', 'appliance', 'lift', 'pool',
+  'generator', 'security', 'it', 'furniture', 'fire_safety', 'structural', 'other',
+] as const;
+
+const CATEGORY_LABELS: Record<(typeof CATEGORIES)[number], string> = {
+  hvac: 'HVAC', electrical: 'Electrical', plumbing: 'Plumbing', appliance: 'Appliance',
+  lift: 'Elevator / Lift', pool: 'Pool', generator: 'Generator', security: 'Security',
+  it: 'IT', furniture: 'Furniture', fire_safety: 'Fire safety', structural: 'Structural', other: 'Other',
+};
+
 const assetSchema = z.object({
-  name:          z.string().min(1, 'Name is required'),
-  category:      z.string().min(1, 'Category is required'),
-  location:      z.string().optional(),
-  serialNumber:  z.string().optional(),
-  purchaseDate:  z.string().optional(),
-  warrantyExpiry:z.string().optional(),
+  name:           z.string().min(1, 'Name is required'),
+  category:       z.enum(CATEGORIES, { errorMap: () => ({ message: 'Select a category' }) }),
+  area:           z.string().optional(),
+  serialNumber:   z.string().optional(),
+  purchaseDate:   z.string().optional(),
+  warrantyExpiry: z.string().optional(),
 });
 type AssetInput = z.infer<typeof assetSchema>;
 
@@ -36,7 +48,7 @@ export default function AssetsPage(): React.ReactElement {
   const form = useForm<AssetInput>({ resolver: zodResolver(assetSchema) });
 
   const createMutation = useMutation({
-    mutationFn: (input: AssetInput) => api.maintenance.createAsset(input as unknown as Parameters<typeof api.maintenance.createAsset>[0]),
+    mutationFn: (input: AssetInput) => api.maintenance.createAsset(input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: maintenanceKeys.assets() });
       setShowNew(false);
@@ -44,8 +56,13 @@ export default function AssetsPage(): React.ReactElement {
       toast('Asset added.', 'success');
     },
     onError: (err: ApiError) => {
-      if (err.code === 'VALIDATION_ERROR') applyServerErrors(form, err);
-      else toast(err.message ?? 'Failed.', 'error');
+      if (err.code === 'VALIDATION_ERROR') {
+        applyServerErrors(form, err);
+        const hasUnattachedError = err.fields?.some((f) => !f.field);
+        if (hasUnattachedError || !err.fields?.length) toast(err.message, 'error');
+      } else {
+        toast(err.message ?? 'Failed to add asset.', 'error');
+      }
     },
   });
 
@@ -76,7 +93,7 @@ export default function AssetsPage(): React.ReactElement {
             <tr>
               <th>Name</th>
               <th>Category</th>
-              <th>Location</th>
+              <th>Area</th>
               <th>Serial #</th>
               <th>Warranty expiry</th>
               <th>Status</th>
@@ -87,8 +104,8 @@ export default function AssetsPage(): React.ReactElement {
             {assets.map((asset) => (
               <tr key={asset._id}>
                 <td>{asset.name}</td>
-                <td>{asset.category}</td>
-                <td>{asset.location ?? '—'}</td>
+                <td>{CATEGORY_LABELS[asset.category] ?? asset.category}</td>
+                <td>{asset.area ?? '—'}</td>
                 <td>{asset.serialNumber ?? '—'}</td>
                 <td>
                   {asset.warrantyExpiry
@@ -118,22 +135,15 @@ export default function AssetsPage(): React.ReactElement {
           </div>
           <div data-form-group>
             <label htmlFor="ast-cat">Category</label>
-            <select id="ast-cat" {...form.register('category')}>
-              <option value="">Select…</option>
-              <option value="hvac">HVAC</option>
-              <option value="plumbing">Plumbing</option>
-              <option value="electrical">Electrical</option>
-              <option value="furniture">Furniture</option>
-              <option value="appliance">Appliance</option>
-              <option value="security">Security</option>
-              <option value="elevator">Elevator / Lift</option>
-              <option value="other">Other</option>
+            <select id="ast-cat" defaultValue="" {...form.register('category')}>
+              <option value="" disabled>Select…</option>
+              {CATEGORIES.map((c) => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
             </select>
             <InlineError message={form.formState.errors.category?.message} />
           </div>
           <div data-form-group>
-            <label htmlFor="ast-loc">Location <span data-optional>(optional)</span></label>
-            <input id="ast-loc" type="text" placeholder="e.g. Room 101, Lobby" {...form.register('location')} />
+            <label htmlFor="ast-area">Area <span data-optional>(optional)</span></label>
+            <input id="ast-area" type="text" placeholder="e.g. Room 101, Pump room" {...form.register('area')} />
           </div>
           <div data-form-group>
             <label htmlFor="ast-serial">Serial number <span data-optional>(optional)</span></label>

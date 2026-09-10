@@ -111,3 +111,4 @@ export type {
   CreateHousekeepingTaskInput,
 } from './domains/housekeeping';
 export type { FolioListEntry, FolioListFilters } from './domains/folios';
+export type { WorkOrder, Asset, MaintenanceSchedule, MaintenanceAnalytics } from './domains/maintenance';

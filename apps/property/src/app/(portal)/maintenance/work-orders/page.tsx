@@ -4,8 +4,6 @@ import Link from 'next/link';
 
 /**
  * Maintenance — work orders list and summary.
- * Matches the design image showing metrics bar, work order table with
- * status/priority, preventive maintenance list, and analytics.
  *
  * TAD 11 §7:
  *  - Any staff member can create a work order (no permission check on POST).
@@ -35,13 +33,27 @@ import {
 } from '@stayos/ui';
 import { maintenanceKeys } from '@/lib/query-keys';
 
+// Must match the backend exactly (src/models/MaintenanceWorkOrder.model.js) —
+// field names here are what applyServerErrors maps 422 responses onto.
+const CATEGORIES = ['plumbing', 'electrical', 'hvac', 'appliance', 'structural', 'pest', 'cosmetic', 'it', 'pool', 'other'] as const;
+const PRIORITIES = ['critical', 'high', 'normal', 'low'] as const;
+
 const createSchema = z.object({
   title:       z.string().min(1, 'Title is required'),
   description: z.string().min(1, 'Description is required'),
+  category:    z.enum(CATEGORIES, { errorMap: () => ({ message: 'Select a category' }) }),
   location:    z.string().optional(),
-  priority:    z.enum(['low', 'medium', 'high']).default('medium'),
+  priority:    z.enum(PRIORITIES).default('normal'),
 });
 type CreateInput = z.infer<typeof createSchema>;
+
+const CATEGORY_LABELS: Record<(typeof CATEGORIES)[number], string> = {
+  plumbing: 'Plumbing', electrical: 'Electrical', hvac: 'HVAC', appliance: 'Appliance',
+  structural: 'Structural', pest: 'Pest control', cosmetic: 'Cosmetic', it: 'IT',
+  pool: 'Pool', other: 'Other',
+};
+
+const STATUS_FILTERS = ['submitted', 'assigned', 'in_progress', 'on_hold', 'completed', 'verified', 'closed'] as const;
 
 export default function MaintenancePage(): React.ReactElement {
   const { toast } = useToast();
@@ -76,31 +88,43 @@ export default function MaintenancePage(): React.ReactElement {
 
   const form = useForm<CreateInput>({
     resolver: zodResolver(createSchema),
-    defaultValues: { priority: 'medium' },
+    defaultValues: { priority: 'normal' },
   });
 
   const createMutation = useMutation({
-    mutationFn: (input: CreateInput) => api.maintenance.createWorkOrder(input as unknown as Parameters<typeof api.maintenance.createWorkOrder>[0]),
+    mutationFn: (input: CreateInput) => api.maintenance.createWorkOrder(input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: maintenanceKeys.workOrders({}) });
+      void queryClient.invalidateQueries({ queryKey: maintenanceKeys.analytics() });
       setShowNewModal(false);
-      form.reset();
+      form.reset({ priority: 'normal' });
       toast('Work order created.', 'success');
     },
     onError: (err: ApiError) => {
-      if (err.code === 'VALIDATION_ERROR') applyServerErrors(form, err);
-      else toast(err.message ?? 'Failed.', 'error');
+      if (err.code === 'VALIDATION_ERROR') {
+        applyServerErrors(form, err);
+        const hasUnattachedError = err.fields?.some((f) => !f.field);
+        if (hasUnattachedError || !err.fields?.length) toast(err.message, 'error');
+      } else {
+        toast(err.message ?? 'Failed to create work order.', 'error');
+      }
     },
   });
 
-  const a = analytics as unknown as Record<string, unknown> ?? {};
-  const metrics: Array<{ label: string; value: unknown; icon: keyof typeof Icons; tone: 'amber' | 'blue' | 'rose' | 'green' | 'purple' }> = [
-    { label: 'Open', value: a['openWorkOrders'] ?? '—', icon: 'Wrench', tone: 'amber' },
-    { label: 'In progress', value: a['inProgress'] ?? '—', icon: 'Clock', tone: 'blue' },
-    { label: 'High priority', value: a['highPriority'] ?? '—', icon: 'AlertTriangle', tone: 'rose' },
-    { label: 'Completed today', value: a['completedToday'] ?? '—', icon: 'CheckCircle2', tone: 'green' },
-    { label: 'Overdue', value: a['overdue'] ?? '—', icon: 'AlertCircle', tone: 'rose' },
-    { label: 'Total assets', value: a['totalAssets'] ?? '—', icon: 'ClipboardList', tone: 'purple' },
+  // byStatus/byCategory are unfiltered totals from the analytics endpoint —
+  // independent of the table's status filter above, so these stay accurate
+  // no matter what's selected in the dropdown.
+  const byStatus = analytics?.byStatus ?? [];
+  const statusCount = (s: string): number => byStatus.find((b) => b._id === s)?.count ?? 0;
+  const openCount = byStatus.reduce((sum, b) => (
+    ['closed', 'verified'].includes(b._id) ? sum : sum + b.count
+  ), 0);
+
+  const metrics: Array<{ label: string; value: string; icon: keyof typeof Icons; tone: 'amber' | 'blue' | 'rose' | 'green' }> = [
+    { label: 'Open', value: String(openCount), icon: 'Wrench', tone: 'amber' },
+    { label: 'In progress', value: String(statusCount('in_progress')), icon: 'Clock', tone: 'blue' },
+    { label: 'SLA breaches', value: String(analytics?.slaBreaches ?? '—'), icon: 'AlertTriangle', tone: 'rose' },
+    { label: 'Avg resolution', value: analytics ? `${analytics.avgResolutionHours}h` : '—', icon: 'CheckCircle2', tone: 'green' },
   ];
 
   return (
@@ -125,7 +149,7 @@ export default function MaintenancePage(): React.ReactElement {
       {/* Metrics */}
       <div data-stat-grid>
         {metrics.map((m) => (
-          <StatCard key={m.label} icon={Icons[m.icon]} tone={m.tone} label={m.label} value={String(m.value)} />
+          <StatCard key={m.label} icon={Icons[m.icon]} tone={m.tone} label={m.label} value={m.value} />
         ))}
       </div>
 
@@ -141,10 +165,9 @@ export default function MaintenancePage(): React.ReactElement {
                 data-filter-select
               >
                 <option value="">All ({workOrders?.length ?? 0})</option>
-                <option value="open">Open</option>
-                <option value="in_progress">In progress</option>
-                <option value="on_hold">On hold</option>
-                <option value="closed">Completed</option>
+                {STATUS_FILTERS.map((s) => (
+                  <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
+                ))}
               </select>
             </div>
           </div>
@@ -163,7 +186,6 @@ export default function MaintenancePage(): React.ReactElement {
                   <th>Priority</th>
                   <th>Status</th>
                   <th>Assigned to</th>
-                  <th>Due</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -173,11 +195,13 @@ export default function MaintenancePage(): React.ReactElement {
                     wo.assignedTo && typeof wo.assignedTo === 'object'
                       ? `${wo.assignedTo.firstName} ${wo.assignedTo.lastName}`
                       : '—';
+                  const locationLabel =
+                    wo.roomId && typeof wo.roomId === 'object' ? `Room ${wo.roomId.roomNumber}` : wo.location ?? '—';
                   return (
                     <tr key={wo._id} data-wo-row>
                       <td data-wo-id>WO-{wo._id.slice(-4).toUpperCase()}</td>
                       <td>{wo.title}</td>
-                      <td>{wo.location ?? '—'}</td>
+                      <td>{locationLabel}</td>
                       <td>
                         <span data-priority-badge data-priority={wo.priority}>
                           {wo.priority}
@@ -185,11 +209,6 @@ export default function MaintenancePage(): React.ReactElement {
                       </td>
                       <td><StatusBadge status={wo.status} /></td>
                       <td>{assigneeName}</td>
-                      <td>
-                        {wo.dueDate
-                          ? new Date(wo.dueDate).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })
-                          : '—'}
-                      </td>
                       <td>
                         <Link href={`/maintenance/work-orders/${wo._id}`} data-btn-ghost data-btn-sm>
                           View
@@ -218,7 +237,7 @@ export default function MaintenancePage(): React.ReactElement {
                   <span data-pm-title>{s.title}</span>
                   <span data-pm-frequency>{s.frequency}</span>
                   <span data-pm-next>
-                    {new Date(s.nextRun).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })}
+                    {new Date(s.nextRunDate).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })}
                   </span>
                 </div>
               ))}
@@ -248,17 +267,28 @@ export default function MaintenancePage(): React.ReactElement {
             <textarea id="woDesc" rows={3} {...form.register('description')} />
             <InlineError message={form.formState.errors.description?.message} />
           </div>
+          <div data-form-row>
+            <div data-form-group>
+              <label htmlFor="woCategory">Category</label>
+              <select id="woCategory" defaultValue="" {...form.register('category')}>
+                <option value="" disabled>Select…</option>
+                {CATEGORIES.map((c) => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
+              </select>
+              <InlineError message={form.formState.errors.category?.message} />
+            </div>
+            <div data-form-group>
+              <label htmlFor="woPriority">Priority</label>
+              <select id="woPriority" {...form.register('priority')}>
+                <option value="low">Low</option>
+                <option value="normal">Normal</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </select>
+            </div>
+          </div>
           <div data-form-group>
             <label htmlFor="woLocation">Location <span data-optional>(optional)</span></label>
             <input id="woLocation" type="text" placeholder="e.g. Room 418, Lobby" {...form.register('location')} />
-          </div>
-          <div data-form-group>
-            <label htmlFor="woPriority">Priority</label>
-            <select id="woPriority" {...form.register('priority')}>
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
           </div>
           <div data-modal-actions>
             <button type="button" data-btn-ghost onClick={() => setShowNewModal(false)}>

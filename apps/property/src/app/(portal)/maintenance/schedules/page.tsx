@@ -9,14 +9,29 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { SkeletonLoader, EmptyState, useToast, Modal, InlineError, ConfirmDialog, Icons } from '@stayos/ui';
+import { SkeletonLoader, EmptyState, useToast, Modal, InlineError, ConfirmDialog, applyServerErrors, Icons } from '@stayos/ui';
 import { maintenanceKeys } from '@/lib/query-keys';
 
+// Must match the backend exactly (src/models/MaintenanceSchedule.model.js).
+const CATEGORIES = ['inspection', 'servicing', 'cleaning', 'testing', 'replacement', 'other'] as const;
+const FREQUENCIES = ['daily', 'weekly', 'fortnightly', 'monthly', 'quarterly', 'bi_annual', 'annual', 'custom'] as const;
+
+const CATEGORY_LABELS: Record<(typeof CATEGORIES)[number], string> = {
+  inspection: 'Inspection', servicing: 'Servicing', cleaning: 'Cleaning',
+  testing: 'Testing', replacement: 'Replacement', other: 'Other',
+};
+const FREQUENCY_LABELS: Record<(typeof FREQUENCIES)[number], string> = {
+  daily: 'Daily', weekly: 'Weekly', fortnightly: 'Fortnightly', monthly: 'Monthly',
+  quarterly: 'Every 3 months', bi_annual: 'Every 6 months', annual: 'Annually', custom: 'Custom interval',
+};
+
 const scheduleSchema = z.object({
-  title:       z.string().min(1, 'Title is required'),
-  description: z.string().optional(),
-  frequency:   z.enum(['daily', 'weekly', 'monthly', 'quarterly', 'annually']),
-  nextRun:     z.string().min(1, 'Next run date is required'),
+  title:        z.string().min(1, 'Title is required'),
+  description:  z.string().optional(),
+  category:     z.enum(CATEGORIES, { errorMap: () => ({ message: 'Select a category' }) }),
+  frequency:    z.enum(FREQUENCIES),
+  intervalDays: z.coerce.number().int().positive().optional(),
+  nextRunDate:  z.string().min(1, 'Next run date is required'),
 });
 type ScheduleInput = z.infer<typeof scheduleSchema>;
 
@@ -33,18 +48,27 @@ export default function SchedulesPage(): React.ReactElement {
     staleTime: 120_000,
   });
 
-  const form = useForm<ScheduleInput>({ resolver: zodResolver(scheduleSchema) });
+  const form = useForm<ScheduleInput>({
+    resolver: zodResolver(scheduleSchema),
+    defaultValues: { frequency: 'monthly' },
+  });
+  const frequency = form.watch('frequency');
 
   const createMutation = useMutation({
-    mutationFn: (input: ScheduleInput) => api.maintenance.createSchedule(input as unknown as Parameters<typeof api.maintenance.createSchedule>[0]),
+    mutationFn: (input: ScheduleInput) => api.maintenance.createSchedule(input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: maintenanceKeys.schedules() });
-      setShowNew(false); form.reset();
+      setShowNew(false); form.reset({ frequency: 'monthly' });
       toast('Schedule created.', 'success');
     },
     onError: (err: ApiError) => {
-      if (err.code === 'VALIDATION_ERROR') applyServerErrors(form, err);
-      else toast(err.message ?? 'Failed.', 'error');
+      if (err.code === 'VALIDATION_ERROR') {
+        applyServerErrors(form, err);
+        const hasUnattachedError = err.fields?.some((f) => !f.field);
+        if (hasUnattachedError || !err.fields?.length) toast(err.message, 'error');
+      } else {
+        toast(err.message ?? 'Failed to create schedule.', 'error');
+      }
     },
   });
 
@@ -52,6 +76,7 @@ export default function SchedulesPage(): React.ReactElement {
     mutationFn: (id: string) => api.maintenance.runScheduleNow(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: maintenanceKeys.workOrders({}) });
+      void queryClient.invalidateQueries({ queryKey: maintenanceKeys.schedules() });
       setRunNowId(null);
       toast('Work order created from schedule.', 'success');
     },
@@ -67,12 +92,6 @@ export default function SchedulesPage(): React.ReactElement {
     },
     onError: (err: ApiError) => { setDeleteId(null); toast(err.message ?? 'Failed.', 'error'); },
   });
-
-  function applyServerErrors(form: ReturnType<typeof useForm<ScheduleInput>>, err: ApiError): void {
-    for (const f of err.fields ?? []) {
-      form.setError(f.field as keyof ScheduleInput, { message: f.message });
-    }
-  }
 
   return (
     <div data-page="schedules">
@@ -97,6 +116,7 @@ export default function SchedulesPage(): React.ReactElement {
           <thead>
             <tr>
               <th>Title</th>
+              <th>Category</th>
               <th>Frequency</th>
               <th>Next run</th>
               <th>Last run</th>
@@ -108,9 +128,10 @@ export default function SchedulesPage(): React.ReactElement {
             {schedules.map((s) => (
               <tr key={s._id}>
                 <td>{s.title}</td>
-                <td>{s.frequency}</td>
-                <td>{new Date(s.nextRun).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
-                <td>{s.lastRun ? new Date(s.lastRun).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' }) : '—'}</td>
+                <td>{CATEGORY_LABELS[s.category] ?? s.category}</td>
+                <td>{FREQUENCY_LABELS[s.frequency] ?? s.frequency}</td>
+                <td>{new Date(s.nextRunDate).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                <td>{s.lastRunDate ? new Date(s.lastRunDate).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' }) : '—'}</td>
                 <td>{s.isActive ? 'Yes' : 'No'}</td>
                 <td>
                   <div data-action-cluster>
@@ -139,24 +160,35 @@ export default function SchedulesPage(): React.ReactElement {
             <label htmlFor="sch-desc">Description <span data-optional>(optional)</span></label>
             <textarea id="sch-desc" rows={2} {...form.register('description')} />
           </div>
+          <div data-form-group>
+            <label htmlFor="sch-cat">Category</label>
+            <select id="sch-cat" defaultValue="" {...form.register('category')}>
+              <option value="" disabled>Select…</option>
+              {CATEGORIES.map((c) => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
+            </select>
+            <InlineError message={form.formState.errors.category?.message} />
+          </div>
           <div data-form-row>
             <div data-form-group>
               <label htmlFor="sch-freq">Frequency</label>
               <select id="sch-freq" {...form.register('frequency')}>
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-                <option value="quarterly">Every 3 months</option>
-                <option value="annually">Annually</option>
+                {FREQUENCIES.map((f) => <option key={f} value={f}>{FREQUENCY_LABELS[f]}</option>)}
               </select>
               <InlineError message={form.formState.errors.frequency?.message} />
             </div>
             <div data-form-group>
               <label htmlFor="sch-next">First run date</label>
-              <input id="sch-next" type="date" {...form.register('nextRun')} />
-              <InlineError message={form.formState.errors.nextRun?.message} />
+              <input id="sch-next" type="date" {...form.register('nextRunDate')} />
+              <InlineError message={form.formState.errors.nextRunDate?.message} />
             </div>
           </div>
+          {frequency === 'custom' && (
+            <div data-form-group>
+              <label htmlFor="sch-interval">Repeat every (days)</label>
+              <input id="sch-interval" type="number" min={1} {...form.register('intervalDays')} />
+              <InlineError message={form.formState.errors.intervalDays?.message} />
+            </div>
+          )}
           <div data-modal-actions>
             <button type="button" data-btn-ghost onClick={() => setShowNew(false)}>Cancel</button>
             <button type="submit" data-btn-primary disabled={createMutation.isPending}>
