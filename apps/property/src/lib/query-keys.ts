@@ -96,6 +96,15 @@ export const procurementKeys = {
   restockConfig:   () => ['procurement', 'restock-config'] as const,
 };
 
+export const accountingKeys = {
+  accounts:      () => ['accounting', 'ledger-accounts'] as const,
+  journalList:   (params: Record<string, unknown>) => ['accounting', 'journal-entries', params] as const,
+  journalEntry:  (id: string) => ['accounting', 'journal-entries', id] as const,
+  trialBalance:  (params: Record<string, unknown>) => ['accounting', 'trial-balance', params] as const,
+  nightAudits:   (params: Record<string, unknown>) => ['accounting', 'night-audits', params] as const,
+  nightAudit:    (id: string) => ['accounting', 'night-audits', id] as const,
+};
+
 export const reportKeys = {
   occupancy:   (params: Record<string, unknown>) => ['reports', 'occupancy', params] as const,
   revenue:     (params: Record<string, unknown>) => ['reports', 'revenue', params] as const,

@@ -162,21 +162,25 @@ async function requestEnvelope<T>(
     }
   }
 
-  // Step 3 — build headers
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
+  // Step 3 — build headers. Skip the JSON Content-Type when the body is a
+  // FormData (file uploads) — the browser sets 'multipart/form-data' with
+  // the correct boundary itself; setting it manually breaks the boundary.
+  const isFormDataBody = typeof FormData !== 'undefined' && body instanceof FormData;
+  const headers: Record<string, string> = {};
+  if (!isFormDataBody) headers['Content-Type'] = 'application/json';
   const token = getAccessToken?.();
   if (token) headers['Authorization'] = `Bearer ${token}`;
   const tenantId = getTenantId?.();
   if (tenantId) headers['X-Tenant-ID'] = tenantId;
 
-  // Step 4 — issue request
+  // Step 4 — issue request. FormData bodies are passed through as-is
+  // (never JSON.stringify'd — that would serialize a FormData instance to
+  // the string "{}", silently dropping every field and file).
   const response = await fetch(url.toString(), {
     method,
     headers,
     credentials: 'include', // browser attaches HttpOnly refresh cookie on /auth/* paths
-    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    ...(body !== undefined ? { body: isFormDataBody ? (body as FormData) : JSON.stringify(body) } : {}),
     ...(signal ? { signal } : {}),
   });
 

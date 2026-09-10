@@ -130,6 +130,7 @@ export {
   Palmtree,
   Lightbulb,
   BookOpen,
+  Calculator,
   PenLine,
   CalendarCheck2,
   XCircle,

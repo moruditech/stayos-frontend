@@ -9,6 +9,7 @@ import { roomsApi }      from './domains/rooms';
 import { housekeepingApi } from './domains/housekeeping';
 import { maintenanceApi }  from './domains/maintenance';
 import { foliosApi }       from './domains/folios';
+import { accountingApi }   from './domains/accounting';
 import {
   pricingApi,
   promotionsApi,
@@ -54,6 +55,7 @@ export const api = {
   housekeeping:  housekeepingApi,
   maintenance:   maintenanceApi,
   folios:        foliosApi,
+  accounting:    accountingApi,
   pricing:       pricingApi,
   promotions:    promotionsApi,
   access:        accessApi,
@@ -113,3 +115,5 @@ export type {
 export type { FolioListEntry, FolioListFilters } from './domains/folios';
 export type { WorkOrder, Asset, MaintenanceSchedule, MaintenanceAnalytics } from './domains/maintenance';
 export type { IcalSubscription, IcalSyncResult } from './domains/property-ops';
+export type { LedgerAccount, JournalEntryInput, JournalLineInput, OtherIncomeEntryInput } from './domains/accounting';
+export type { SubmitExpenseInput } from './domains/property-ops';

@@ -73,6 +73,7 @@ export const PERMISSIONS = {
   PAYROLL_EXPORT_READ: 'payroll_export:read',
 
   PETTYCASH_MANAGE: 'pettycash:manage',
+  ACCOUNTING_MANAGE: 'accounting:manage',
 
   PLATFORM_AUDIT_READ: 'platform:audit:read',
   PLATFORM_COUPONS_MANAGE: 'platform:coupons:manage',

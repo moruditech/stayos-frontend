@@ -246,15 +246,40 @@ export const hrApi = {
     client.get<Record<string, unknown>[]>('/hr/timesheets/exports'),
 };
 
-// ── Expenses ──────────────────────────────────────────────────────────────────
+// ── Expenses & Petty Cash (part of the Accounting module — see accounting.ts
+//    for the General Ledger / Night Audit side) ─────────────────────────────
+//
+// submit() sends multipart/form-data, not JSON: the backend requires an
+// actual receipt image file (upload.single('receipt'), see
+// expenses.routes.js) — client.post() only skips JSON.stringify and the
+// JSON Content-Type header when the body is a FormData instance (see
+// client.ts), so the caller must build one, not pass a plain object.
+export interface SubmitExpenseInput {
+  category: string;
+  description: string;
+  amount: number;
+  date?: string | undefined;          // ISO date the expense was incurred; defaults to today server-side
+  notes?: string | undefined;
+  pettyCashFloatId?: string | undefined;
+  receipt: File;
+}
 
 export const expensesApi = {
   list: (params?: Record<string, unknown>) =>
     client.get<Record<string, unknown>[]>('/expenses', {
       params: params as Record<string, string | number | boolean | undefined>,
     }),
-  submit: (input: Record<string, unknown>) =>
-    client.post<Record<string, unknown>>('/expenses', input),
+  submit: (input: SubmitExpenseInput) => {
+    const fd = new FormData();
+    fd.append('category', input.category);
+    fd.append('description', input.description);
+    fd.append('amount', String(input.amount));
+    if (input.date) fd.append('date', input.date);
+    if (input.notes) fd.append('notes', input.notes);
+    if (input.pettyCashFloatId) fd.append('pettyCashFloatId', input.pettyCashFloatId);
+    fd.append('receipt', input.receipt);
+    return client.post<Record<string, unknown>>('/expenses', fd);
+  },
   get: (id: string) => client.get<Record<string, unknown>>(`/expenses/${id}`),
   approve: (id: string) =>
     client.patch<Record<string, unknown>>(`/expenses/${id}/approve`),

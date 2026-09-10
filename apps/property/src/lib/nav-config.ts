@@ -150,9 +150,9 @@ export const NAV_CONFIG: NavGroup[] = [
         requiresPerm: [PERMISSIONS.REPORT_READ, PERMISSIONS.REPORT_REVENUE_READ, PERMISSIONS.REPORT_FINANCE_READ],
       },
       {
-        id: 'expenses',
-        label: 'Expenses',
-        path: '/expenses',
+        id: 'accounting',
+        label: 'Accounting',
+        path: '/accounting',
         icon: Icons.Wallet,
       },
       {
@@ -161,13 +161,6 @@ export const NAV_CONFIG: NavGroup[] = [
         path: '/procurement/suppliers',
         icon: Icons.Building2,
         requiresPerm: [PERMISSIONS.PROCUREMENT_MANAGE],
-      },
-      {
-        id: 'pettycash',
-        label: 'Petty Cash',
-        path: '/pettycash/floats',
-        icon: Icons.Coins,
-        requiresPerm: [PERMISSIONS.PETTYCASH_MANAGE],
       },
     ],
   },
