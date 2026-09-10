@@ -128,11 +128,11 @@ export const foliosApi = {
 
   // POST /folios/:id/settle
   settle: (id: string, input: {
-    paymentMethod: string;
-    reference?: string;
-    last4?: string;
-    amount?: number;
-    note?: string;
+    gateway: 'cash' | 'card' | 'manual_eft';
+    amount: number;
+    reference?: string | undefined;
+    last4?: string | undefined;
+    note?: string | undefined;
   }) => client.post<Folio>(`/folios/${id}/settle`, input),
 
   // GET /folios/:id/pdf — see folios.service.js#getPdfUrl, returns { pdfUrl }

@@ -59,10 +59,15 @@ const chargeSchema = z.object({
 type ChargeInput = z.infer<typeof chargeSchema>;
 
 const settleSchema = z.object({
-  paymentMethod: z.string().min(1, 'Payment method is required'),
-  reference:     z.string().optional(),
-  last4:         z.string().max(4).optional(),
-  note:          z.string().optional(),
+  // Matches Payment.gateway exactly — cash/card/manual_eft are the three
+  // staff-recorded-in-person options (see Payment.model.js for why the
+  // other enum values — payfast, ozow, etc — are online-gateway-only and
+  // don't belong in this manual-entry form).
+  gateway:   z.enum(['cash', 'card', 'manual_eft'], { errorMap: () => ({ message: 'Payment method is required' }) }),
+  amount:    z.number({ invalid_type_error: 'Enter an amount' }).positive('Amount must be greater than 0'),
+  reference: z.string().optional(),
+  last4:     z.string().max(4).optional(),
+  note:      z.string().optional(),
 });
 type SettleInput = z.infer<typeof settleSchema>;
 
@@ -82,6 +87,10 @@ export default function FolioDetailPage(): React.ReactElement {
 
   const chargeForm = useForm<ChargeInput>({ resolver: zodResolver(chargeSchema), defaultValues: { quantity: 1 } });
   const settleForm = useForm<SettleInput>({ resolver: zodResolver(settleSchema) });
+  const openSettleModal = (): void => {
+    settleForm.reset({ amount: folio?.balance });
+    setShowSettleModal(true);
+  };
 
   const chargeMutation = useMutation({
     mutationFn: (input: ChargeInput) => api.folios.postCharge(id, input),
@@ -113,12 +122,18 @@ export default function FolioDetailPage(): React.ReactElement {
   });
 
   const settleMutation = useMutation({
-    mutationFn: (input: SettleInput) => api.folios.settle(id, input as unknown as Parameters<typeof api.folios.settle>[1]),
-    onSuccess: () => {
+    mutationFn: (input: SettleInput) => api.folios.settle(id, input),
+    onSuccess: (updatedFolio) => {
       void queryClient.invalidateQueries({ queryKey: folioKeys.detail(id) });
       setShowSettleModal(false);
       settleForm.reset();
-      toast('Folio settled.', 'success');
+      const stillOwing = updatedFolio.balance;
+      toast(
+        stillOwing > 0.01
+          ? `Payment recorded — ${fmtCurrency(stillOwing)} still outstanding.`
+          : 'Payment recorded — folio settled.',
+        'success'
+      );
     },
     onError: (err: ApiError) => {
       if (err.code === 'READ_ONLY_ACCESS') toast('Not available in view-only mode.', 'error');
@@ -261,7 +276,7 @@ export default function FolioDetailPage(): React.ReactElement {
                 <button
                   type="button"
                   data-btn-ghost data-btn-sm
-                  onClick={() => setShowSettleModal(true)}
+                  onClick={openSettleModal}
                 >
                   + Add payment
                 </button>
@@ -317,7 +332,7 @@ export default function FolioDetailPage(): React.ReactElement {
                 <button
                   type="button"
                   data-btn-primary data-btn-full
-                  onClick={() => setShowSettleModal(true)}
+                  onClick={openSettleModal}
                 >
                   Settle folio
                 </button>
@@ -398,19 +413,25 @@ export default function FolioDetailPage(): React.ReactElement {
         >
           <div data-form-group>
             <label htmlFor="settleMethod">Payment method</label>
-            <select id="settleMethod" {...settleForm.register('paymentMethod')}>
+            <select id="settleMethod" {...settleForm.register('gateway')}>
               <option value="">Select…</option>
-              <option value="credit_card">Credit card</option>
-              <option value="debit_card">Debit card</option>
               <option value="cash">Cash</option>
-              <option value="bank_transfer">Bank transfer</option>
-              <option value="eft">EFT</option>
+              <option value="card">Card (in-person)</option>
+              <option value="manual_eft">EFT / bank transfer</option>
             </select>
-            <InlineError message={settleForm.formState.errors.paymentMethod?.message} />
+            <InlineError message={settleForm.formState.errors.gateway?.message} />
           </div>
+          {settleForm.watch('gateway') === 'card' && (
+            <div data-form-group>
+              <label htmlFor="settleLast4">Last 4 digits <span data-optional>(optional)</span></label>
+              <input id="settleLast4" type="text" maxLength={4} {...settleForm.register('last4')} />
+            </div>
+          )}
           <div data-form-group>
-            <label htmlFor="settleLast4">Last 4 digits <span data-optional>(card only)</span></label>
-            <input id="settleLast4" type="text" maxLength={4} {...settleForm.register('last4')} />
+            <label htmlFor="settleAmount">Amount</label>
+            <input id="settleAmount" type="number" step="0.01" min="0.01"
+              {...settleForm.register('amount', { valueAsNumber: true })} />
+            <InlineError message={settleForm.formState.errors.amount?.message} />
           </div>
           <div data-form-group>
             <label htmlFor="settleRef">Reference <span data-optional>(optional)</span></label>
@@ -421,7 +442,7 @@ export default function FolioDetailPage(): React.ReactElement {
             <textarea id="settleNote" rows={2} {...settleForm.register('note')} />
           </div>
           <div data-settle-summary>
-            <ReadOnlyField label="Amount to collect" value={fmtCurrency(f.balance)} />
+            <ReadOnlyField label="Outstanding balance" value={fmtCurrency(f.balance)} />
           </div>
           <div data-modal-actions>
             <button type="button" data-btn-ghost onClick={() => setShowSettleModal(false)}>
