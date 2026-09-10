@@ -10,13 +10,13 @@ import Link from 'next/link';
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { InlineError, applyServerErrors, useToast, Icons } from '@stayos/ui';
+import { InlineError, applyServerErrors, useToast, Icons, MultiSelectDropdown, Dropdown } from '@stayos/ui';
 import { procurementKeys } from '@/lib/query-keys';
 
 const SUPPLIER_TYPES = ['stock_supplier', 'service_contractor', 'both'] as const;
@@ -28,6 +28,8 @@ const SUPPLIER_TYPE_LABELS: Record<(typeof SUPPLIER_TYPES)[number], string> = {
 };
 
 const STOCK_CATEGORIES = ['linen', 'cleaning', 'toiletries', 'kitchen', 'office', 'maintenance', 'other'] as const;
+const CATEGORY_OPTIONS = STOCK_CATEGORIES.map((c) => ({ value: c, label: c.charAt(0).toUpperCase() + c.slice(1) }));
+const SUPPLIER_TYPE_OPTIONS = SUPPLIER_TYPES.map((t) => ({ value: t, label: SUPPLIER_TYPE_LABELS[t] }));
 
 const schema = z.object({
   name:         z.string().min(1, 'Name is required'),
@@ -89,23 +91,38 @@ export default function NewSupplierPage(): React.ReactElement {
 
           <div data-form-group>
             <label htmlFor="sup-type">Supplier type</label>
-            <select id="sup-type" {...form.register('supplierType')}>
-              <option value="">Select type…</option>
-              {SUPPLIER_TYPES.map((t) => (
-                <option key={t} value={t}>{SUPPLIER_TYPE_LABELS[t]}</option>
-              ))}
-            </select>
+            <Controller
+              control={form.control}
+              name="supplierType"
+              render={({ field }) => (
+                <Dropdown
+                  id="sup-type"
+                  options={SUPPLIER_TYPE_OPTIONS}
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                  placeholder="Select type…"
+                />
+              )}
+            />
             <InlineError message={form.formState.errors.supplierType?.message} />
           </div>
 
           <div data-form-group>
             <label htmlFor="sup-categories">Categories <span data-optional>(optional)</span></label>
-            <select id="sup-categories" multiple {...form.register('categories')}>
-              {STOCK_CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
-              ))}
-            </select>
-            <p data-field-hint>Hold Ctrl/Cmd to select multiple categories.</p>
+            <Controller
+              control={form.control}
+              name="categories"
+              render={({ field }) => (
+                <MultiSelectDropdown
+                  id="sup-categories"
+                  options={CATEGORY_OPTIONS}
+                  value={field.value ?? []}
+                  onChange={field.onChange}
+                  placeholder="Select categories…"
+                />
+              )}
+            />
+            <p data-field-hint>What this supplier provides — used to match them against stock items.</p>
           </div>
 
           <div data-form-row>
@@ -122,6 +139,7 @@ export default function NewSupplierPage(): React.ReactElement {
           <div data-form-group>
             <label htmlFor="sup-contact-email">Contact email <span data-optional>(optional)</span></label>
             <input id="sup-contact-email" type="email" {...form.register('contactEmail')} />
+            <p data-field-hint>Needed if you want to send purchase orders to this supplier by email.</p>
             <InlineError message={form.formState.errors.contactEmail?.message} />
           </div>
 

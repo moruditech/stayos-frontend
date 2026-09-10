@@ -87,9 +87,13 @@ export const expenseKeys = {
 
 export const procurementKeys = {
   suppliers:       () => ['procurement', 'suppliers'] as const,
+  supplier:        (id: string) => ['procurement', 'suppliers', id] as const,
   stockItems:      () => ['procurement', 'stock-items'] as const,
   purchaseOrders:  () => ['procurement', 'purchase-orders'] as const,
+  purchaseOrder:   (id: string) => ['procurement', 'purchase-orders', id] as const,
   vendorContracts: () => ['procurement', 'vendor-contracts'] as const,
+  vendorContract:  (id: string) => ['procurement', 'vendor-contracts', id] as const,
+  restockConfig:   () => ['procurement', 'restock-config'] as const,
 };
 
 export const reportKeys = {

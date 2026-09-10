@@ -29,9 +29,11 @@ export default function ProcurementSuppliersPage(): React.ReactElement {
     <div data-page="procurement">
       <div data-page-header>
         <h1>Procurement</h1>
-        <Link href="/procurement/purchase-orders" data-btn-ghost>Purchase orders</Link>
-        <Link href="/procurement/stock-items" data-btn-ghost>Stock items</Link>
+        {/* Order: Contracts, Stock items, Purchase orders */}
         <Link href="/procurement/vendor-contracts" data-btn-ghost>Contracts</Link>
+        <Link href="/procurement/stock-items" data-btn-ghost>Stock items</Link>
+        <Link href="/procurement/purchase-orders" data-btn-ghost>Purchase orders</Link>
+        <Link href="/procurement/restock-config" data-btn-ghost>Auto-restock</Link>
       </div>
 
       {/* Low-stock alert */}
@@ -73,12 +75,17 @@ export default function ProcurementSuppliersPage(): React.ReactElement {
             <tbody>
               {suppliers.map((s) => {
                 const sup = s as unknown as Record<string, unknown>;
+                const categories = Array.isArray(sup['categories']) ? (sup['categories'] as string[]) : [];
                 return (
                   <tr key={String(sup['_id'])}>
                     <td>{String(sup['name'] ?? '—')}</td>
                     <td>{String(sup['contactEmail'] ?? sup['contactPhone'] ?? '—')}</td>
-                    <td>{String(sup['category'] ?? '—')}</td>
-                    <td><StatusBadge status={String(sup['status'] ?? 'active')} /></td>
+                    <td>
+                      {categories.length
+                        ? categories.map((c) => c.charAt(0).toUpperCase() + c.slice(1)).join(', ')
+                        : '—'}
+                    </td>
+                    <td><StatusBadge status={sup['isActive'] === false ? 'inactive' : 'active'} /></td>
                     <td>
                       <Link href={`/procurement/suppliers/${String(sup['_id'])}`}
                         data-btn-ghost data-btn-sm

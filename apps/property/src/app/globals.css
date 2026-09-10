@@ -1679,3 +1679,26 @@ a[data-link]:hover { text-decoration: underline; }
 [data-reassign-row] { display: flex; gap: var(--space-2); align-items: center; }
 [data-reassign-select] { flex: 1; }
 [data-arrow] { color: var(--color-text-muted); }
+
+[data-auto-badge] {
+  display: inline-block;
+  margin-left: var(--space-2);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-info);
+  background: var(--color-info-bg);
+  border-radius: var(--radius-pill);
+  padding: 1px 8px;
+}
+[data-po-item-row] {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  gap: var(--space-3);
+  align-items: end;
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+@media (max-width: 768px) {
+  [data-po-item-row] { grid-template-columns: 1fr; }
+}

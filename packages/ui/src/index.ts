@@ -78,3 +78,8 @@ export { MfaStep } from './MfaStep';
 // Shared auth page components
 export { default as ForgotPasswordPage } from './ForgotPasswordPage';
 export { default as ResetPasswordPage } from './ResetPasswordPage';
+
+// Dropdowns — styled popover single/multi-select (replaces native
+// <select multiple>, which renders as an always-open scroll box)
+export { Dropdown, MultiSelectDropdown } from './Dropdown';
+export type { DropdownOption } from './Dropdown';

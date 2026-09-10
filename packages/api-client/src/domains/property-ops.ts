@@ -275,10 +275,17 @@ export const expensesApi = {
 };
 
 // ── Procurement ───────────────────────────────────────────────────────────────
+//
+// Field names below are kept in exact lockstep with the backend Zod schemas
+// in src/modules/procurement/procurement.validation.js. Previous versions of
+// this client used different shapes than the backend expected (e.g.
+// `{quantity, reason}` for adjustStock vs the backend's `{type, quantity,
+// reference}`), which meant every write silently 422'd. Do not rename fields
+// here without also checking the backend schema.
 
 export const procurementApi = {
   listSuppliers: () =>
-    client.get<Record<string, unknown>[]>('/procurement/suppliers'),
+    client.get<Record<string, unknown>[]>('/procurement/suppliers', { params: { limit: 100 } }),
   createSupplier: (input: Record<string, unknown>) =>
     client.post<Record<string, unknown>>('/procurement/suppliers', input),
   getSupplier: (id: string) =>
@@ -287,30 +294,39 @@ export const procurementApi = {
     client.patch<Record<string, unknown>>(`/procurement/suppliers/${id}`, input),
   deleteSupplier: (id: string) =>
     client.delete<{ message: string }>(`/procurement/suppliers/${id}`),
+
   listStockItems: () =>
-    client.get<Record<string, unknown>[]>('/procurement/stock-items'),
+    client.get<Record<string, unknown>[]>('/procurement/stock-items', { params: { limit: 100 } }),
   createStockItem: (input: Record<string, unknown>) =>
     client.post<Record<string, unknown>>('/procurement/stock-items', input),
   updateStockItem: (id: string, input: Record<string, unknown>) =>
     client.patch<Record<string, unknown>>(`/procurement/stock-items/${id}`, input),
-  adjustStock: (id: string, input: { quantity: number; reason: string }) =>
-    client.post<Record<string, unknown>>(`/procurement/stock-items/${id}/adjust`, input),
+  // Matches backend adjustStockSchema exactly: { type, quantity, reference }.
+  // `type` must be one of 'receive' | 'consume' | 'adjustment' | 'wastage'.
+  adjustStock: (
+    id: string,
+    input: { type: 'receive' | 'consume' | 'adjustment' | 'wastage'; quantity: number; reference?: string }
+  ) => client.post<Record<string, unknown>>(`/procurement/stock-items/${id}/adjust`, input),
   getLowStock: () =>
     client.get<Record<string, unknown>[]>('/procurement/stock-items/low-stock'),
+
   listPurchaseOrders: () =>
-    client.get<Record<string, unknown>[]>('/procurement/purchase-orders'),
+    client.get<Record<string, unknown>[]>('/procurement/purchase-orders', { params: { limit: 100 } }),
   createPurchaseOrder: (input: Record<string, unknown>) =>
     client.post<Record<string, unknown>>('/procurement/purchase-orders', input),
   getPurchaseOrder: (id: string) =>
     client.get<Record<string, unknown>>(`/procurement/purchase-orders/${id}`),
   updatePurchaseOrder: (id: string, input: Record<string, unknown>) =>
     client.patch<Record<string, unknown>>(`/procurement/purchase-orders/${id}`, input),
+  // "Send" = place the order — the backend emails the supplier the itemized
+  // order and flips status draft -> sent.
   sendPurchaseOrder: (id: string) =>
     client.post<Record<string, unknown>>(`/procurement/purchase-orders/${id}/send`),
   receivePurchaseOrder: (id: string) =>
     client.post<Record<string, unknown>>(`/procurement/purchase-orders/${id}/receive`),
+
   listVendorContracts: () =>
-    client.get<Record<string, unknown>[]>('/procurement/vendor-contracts'),
+    client.get<Record<string, unknown>[]>('/procurement/vendor-contracts', { params: { limit: 100 } }),
   createVendorContract: (input: Record<string, unknown>) =>
     client.post<Record<string, unknown>>('/procurement/vendor-contracts', input),
   getVendorContract: (id: string) =>
@@ -321,6 +337,12 @@ export const procurementApi = {
     client.delete<{ message: string }>(`/procurement/vendor-contracts/${id}`),
   renewVendorContract: (id: string, input: Record<string, unknown>) =>
     client.post<Record<string, unknown>>(`/procurement/vendor-contracts/${id}/renew`, input),
+
+  // Auto-restock configuration — one row per active stock supplier.
+  listRestockConfigs: () =>
+    client.get<Record<string, unknown>[]>('/procurement/restock-config'),
+  updateRestockConfig: (supplierId: string, input: Record<string, unknown>) =>
+    client.patch<Record<string, unknown>>(`/procurement/restock-config/${supplierId}`, input),
 };
 
 // ── Reports ───────────────────────────────────────────────────────────────────
