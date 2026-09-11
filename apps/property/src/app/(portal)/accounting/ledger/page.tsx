@@ -110,7 +110,7 @@ export default function ChartOfAccountsPage(): React.ReactElement {
           <Link href="/accounting" data-breadcrumb><Icons.ChevronLeft data-breadcrumb-icon aria-hidden="true" /> Accounting</Link>
           <h1>Chart of accounts</h1>
         </div>
-        <button type="button" data-btn-primary onClick={() => { form.reset({ code: '', name: '', type: undefined }); setShowNew(true); }}>
+        <button type="button" data-btn-primary onClick={() => { form.reset({ code: '', name: '' }); setShowNew(true); }}>
           + Add account
         </button>
       </div>
