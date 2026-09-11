@@ -236,69 +236,193 @@ export const accessApi = {
 };
 
 // ── Roster & Timeclock — mounted at /staff (NOT /roster) ─────────────────────
+// Matches ShiftSchedule.model.js's real fields — date/startTime/endTime are
+// separate (startTime/endTime are plain "HH:mm", not a combined datetime).
+export interface Shift {
+  _id: string;
+  staffId: string | { _id: string; firstName: string; lastName: string; role: string };
+  department: 'front_desk' | 'housekeeping' | 'maintenance' | 'finance' | 'management';
+  date: string;
+  startTime: string;
+  endTime: string;
+  budgetedHours?: number | undefined;
+  status: 'scheduled' | 'swap_requested' | 'swapped' | 'cancelled';
+  swapRequestedWith?: string | { _id: string; firstName: string; lastName: string } | null;
+}
+
+// Matches TimeClockEntry.model.js's real fields.
+export interface TimeClockEntry {
+  _id: string;
+  staffId: string | { _id: string; firstName: string; lastName: string };
+  shiftId?: string | null;
+  clockInAt: string;
+  clockOutAt?: string | null;
+  method: 'pin' | 'qr' | 'biometric' | 'manual';
+  hoursWorked?: number | undefined;
+  dayType?: 'weekday' | 'saturday' | 'sunday' | 'public_holiday' | undefined;
+  overtimeHours: number;
+  flaggedForReview: boolean;
+  flagReason?: string | undefined;
+}
+
+export interface LabourCostRow {
+  department: string;
+  totalHours: number;
+  overtimeHours: number;
+  headcount: number;
+}
 
 export const rosterApi = {
   getRoster: (params?: Record<string, unknown>) =>
-    client.get<Record<string, unknown>[]>('/staff/roster', {
+    client.get<Shift[]>('/staff/roster', {
       params: params as Record<string, string | number | boolean | undefined>,
     }),
   createShift: (input: Record<string, unknown>) =>
-    client.post<Record<string, unknown>>('/staff/roster', input),
+    client.post<Shift>('/staff/roster', input),
   cancelShift: (id: string) =>
     client.delete<{ message: string }>(`/staff/roster/${id}`),
-  requestSwap: (id: string, input: Record<string, unknown>) =>
-    client.post<Record<string, unknown>>(`/staff/roster/${id}/swap`, input),
+  requestSwap: (id: string, swapWithStaffId: string) =>
+    client.post<Shift>(`/staff/roster/${id}/swap`, { swapWithStaffId }),
   approveSwap: (id: string) =>
-    client.patch<Record<string, unknown>>(`/staff/roster/${id}/swap/approve`),
-  clockIn: (input?: Record<string, unknown>) =>
-    client.post<Record<string, unknown>>('/staff/timeclock/clock-in', input),
-  clockOut: (input?: Record<string, unknown>) =>
-    client.post<Record<string, unknown>>('/staff/timeclock/clock-out', input),
+    client.patch<Shift>(`/staff/roster/${id}/swap/approve`),
+  // method is required server-side — 'manual' is the only method this web UI
+  // offers (pin/qr/biometric need hardware this interface doesn't have).
+  clockIn: (input: { method: 'manual'; shiftId?: string | undefined }) =>
+    client.post<TimeClockEntry>('/staff/timeclock/clock-in', input),
+  clockOut: () =>
+    client.post<TimeClockEntry>('/staff/timeclock/clock-out'),
   getTimeclockEntries: (params?: Record<string, unknown>) =>
-    client.get<Record<string, unknown>[]>('/staff/timeclock/entries', {
+    client.get<TimeClockEntry[]>('/staff/timeclock/entries', {
       params: params as Record<string, string | number | boolean | undefined>,
     }),
-  giveBiometricConsent: () =>
-    client.post<{ message: string }>('/staff/timeclock/biometric-consent'),
+  giveBiometricConsent: (consentText: string) =>
+    client.post<{ message: string }>('/staff/timeclock/biometric-consent', { consentText }),
   withdrawBiometricConsent: () =>
     client.delete<{ message: string }>('/staff/timeclock/biometric-consent'),
   getLabourCost: (params?: Record<string, unknown>) =>
-    client.get<Record<string, unknown>>('/staff/labour-cost', {
+    client.get<LabourCostRow[]>('/staff/labour-cost', {
       params: params as Record<string, string | number | boolean | undefined>,
     }),
 };
 
 // ── HR ────────────────────────────────────────────────────────────────────────
+// Matches StaffHRProfile.model.js's real fields.
+export interface StaffHRProfile {
+  _id: string;
+  staffId: string;
+  employmentType: 'permanent' | 'fixed_term' | 'part_time' | 'casual';
+  startDate: string;
+  endDate?: string | undefined;
+  estimatedHourlyRate?: number | undefined;
+  probation?: {
+    endDate?: string | undefined;
+    status: 'active' | 'passed' | 'extended' | 'failed';
+    reviewedAt?: string | undefined;
+    reviewedBy?: string | undefined;
+  } | undefined;
+  externalPayrollRef?: string | undefined;
+}
+
+// Matches StaffDocument.model.js's real fields.
+export interface StaffDocument {
+  _id: string;
+  staffId: string;
+  type: 'employment_contract' | 'id_document' | 'work_permit' | 'qualification' | 'training_certificate' | 'disciplinary_record' | 'other';
+  label: string;
+  cloudinaryUrl: string;
+  issueDate?: string | undefined;
+  expiryDate?: string | null;
+  uploadedBy: string;
+  createdAt: string;
+}
+
+// Matches DisciplinaryRecord.model.js's real fields.
+export interface DisciplinaryRecord {
+  _id: string;
+  staffId: string;
+  type: 'verbal_warning' | 'written_warning' | 'final_warning' | 'suspension' | 'dismissal' | 'note';
+  reason: string;
+  incidentDate: string;
+  attachmentUrl?: string | undefined;
+  issuedBy: string | { _id: string; firstName: string; lastName: string };
+  employeeAcknowledged: boolean;
+  acknowledgedAt?: string | undefined;
+  createdAt: string;
+}
+
+// Matches PerformanceReview.model.js's real fields.
+export interface PerformanceReview {
+  _id: string;
+  staffId: string;
+  period: string;
+  rating: 'exceeds_expectations' | 'meets_expectations' | 'needs_improvement' | 'unsatisfactory';
+  strengths?: string | undefined;
+  areasForImprovement?: string | undefined;
+  goals?: string | undefined;
+  reviewedBy: string | { _id: string; firstName: string; lastName: string };
+  employeeAcknowledged: boolean;
+  acknowledgedAt?: string | undefined;
+  createdAt: string;
+}
+
+export interface TimesheetPreviewRow {
+  staffId: string;
+  staff: { _id: string; firstName: string; lastName: string; role: string } | null;
+  totalHours: number;
+  overtimeHours: number;
+  hourlyRate: number;
+  estimatedCost: number;
+}
+
+export interface TimesheetExportRecord {
+  _id: string;
+  period: string;
+  format: 'csv';
+  status: 'generated' | 'failed';
+  fileUrl?: string | undefined;
+  errorMessage?: string | undefined;
+  summary?: { totalStaff: number; totalHours: number; totalOvertimeHours: number; estimatedCost: number } | undefined;
+  createdAt: string;
+}
 
 export const hrApi = {
   getProfile: (staffId: string) =>
-    client.get<Record<string, unknown>>(`/hr/profiles/${staffId}`),
+    client.get<StaffHRProfile>(`/hr/profiles/${staffId}`),
   createProfile: (staffId: string, input: Record<string, unknown>) =>
-    client.post<Record<string, unknown>>(`/hr/profiles/${staffId}`, input),
+    client.post<StaffHRProfile>(`/hr/profiles/${staffId}`, input),
   updateProfile: (staffId: string, input: Record<string, unknown>) =>
-    client.patch<Record<string, unknown>>(`/hr/profiles/${staffId}`, input),
+    client.patch<StaffHRProfile>(`/hr/profiles/${staffId}`, input),
   probationReview: (staffId: string, input: Record<string, unknown>) =>
-    client.post<Record<string, unknown>>(`/hr/profiles/${staffId}/probation/review`, input),
+    client.post<StaffHRProfile>(`/hr/profiles/${staffId}/probation/review`, input),
   listDocuments: (staffId: string) =>
-    client.get<Record<string, unknown>[]>(`/hr/documents/${staffId}`),
+    client.get<StaffDocument[]>(`/hr/documents/${staffId}`),
+  // Field name must be 'document' — matches multer's upload.single('document')
+  // on the backend route (src/modules/hr/hr.routes.js).
   uploadDocument: (staffId: string, formData: FormData) =>
-    client.post<Record<string, unknown>>(`/hr/documents/${staffId}`, formData),
+    client.post<StaffDocument>(`/hr/documents/${staffId}`, formData),
   deleteDocument: (id: string) =>
     client.delete<{ message: string }>(`/hr/documents/${id}`),
   listDisciplinary: (staffId: string) =>
-    client.get<Record<string, unknown>[]>(`/hr/disciplinary/${staffId}`),
+    client.get<DisciplinaryRecord[]>(`/hr/disciplinary/${staffId}`),
   createDisciplinary: (staffId: string, input: Record<string, unknown>) =>
-    client.post<Record<string, unknown>>(`/hr/disciplinary/${staffId}`, input),
+    client.post<DisciplinaryRecord>(`/hr/disciplinary/${staffId}`, input),
   acknowledgeDisciplinary: (id: string) =>
-    client.patch<Record<string, unknown>>(`/hr/disciplinary/${id}/acknowledge`),
-  getTimesheets: (params?: Record<string, unknown>) =>
-    client.get<Record<string, unknown>[]>('/hr/timesheets', {
-      params: params as Record<string, string | number | boolean | undefined>,
+    client.patch<DisciplinaryRecord>(`/hr/disciplinary/${id}/acknowledge`),
+  listPerformance: (staffId: string) =>
+    client.get<PerformanceReview[]>(`/hr/performance/${staffId}`),
+  createPerformance: (staffId: string, input: Record<string, unknown>) =>
+    client.post<PerformanceReview>(`/hr/performance/${staffId}`, input),
+  acknowledgePerformance: (id: string) =>
+    client.patch<PerformanceReview>(`/hr/performance/${id}/acknowledge`),
+  getTimesheets: (period: string) =>
+    client.get<TimesheetPreviewRow[]>('/hr/timesheets', {
+      params: { period } as Record<string, string | number | boolean | undefined>,
     }),
-  exportTimesheets: (input: Record<string, unknown>) =>
-    client.post<{ exportId: string }>('/hr/timesheets/export', input),
+  // period/format are QUERY params server-side — appended to URL directly.
+  exportTimesheets: (period: string) =>
+    client.post<TimesheetExportRecord>(`/hr/timesheets/export?period=${encodeURIComponent(period)}&format=csv`),
   listTimesheetExports: () =>
-    client.get<Record<string, unknown>[]>('/hr/timesheets/exports'),
+    client.get<TimesheetExportRecord[]>('/hr/timesheets/exports'),
 };
 
 // ── Expenses & Petty Cash (part of the Accounting module — see accounting.ts

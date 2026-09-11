@@ -52,6 +52,7 @@ export const PERMISSIONS = {
   HOUSEKEEPING_TASK_UPDATE: 'housekeeping:task:update',
 
   HR_PROFILE_MANAGE: 'hr:profile:manage',
+  HR_PERFORMANCE_MANAGE: 'hr:performance:manage',
   HR_DOCUMENT_MANAGE: 'hr:document:manage',
   HR_DISCIPLINARY_MANAGE: 'hr:disciplinary:manage',
   HR_PROBATION_MANAGE: 'hr:probation:manage',

@@ -116,5 +116,10 @@ export type {
 export type { FolioListEntry, FolioListFilters } from './domains/folios';
 export type { WorkOrder, Asset, MaintenanceSchedule, MaintenanceAnalytics } from './domains/maintenance';
 export type { IcalSubscription, IcalSyncResult } from './domains/property-ops';
+export type {
+  Shift, TimeClockEntry, LabourCostRow,
+  StaffHRProfile, StaffDocument, DisciplinaryRecord, PerformanceReview,
+  TimesheetPreviewRow, TimesheetExportRecord,
+} from './domains/property-ops';
 export type { LedgerAccount, JournalEntryInput, JournalLineInput, OtherIncomeEntryInput } from './domains/accounting';
 export type { SubmitExpenseInput } from './domains/property-ops';

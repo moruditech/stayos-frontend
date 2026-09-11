@@ -66,16 +66,19 @@ export const accessKeys = {
 };
 
 export const rosterKeys = {
-  roster:          () => ['roster'] as const,
+  all:              () => ['roster'] as const,
+  roster:           (filters: Record<string, unknown>) => ['roster', filters] as const,
   timeclockEntries: () => ['timeclock', 'entries'] as const,
-  labourCost:      () => ['roster', 'labour-cost'] as const,
+  labourCost:       () => ['roster', 'labour-cost'] as const,
 };
 
 export const hrKeys = {
-  profile:       (staffId: string) => ['hr', 'profile', staffId] as const,
-  documents:     (staffId: string) => ['hr', 'documents', staffId] as const,
-  disciplinary:  (staffId: string) => ['hr', 'disciplinary', staffId] as const,
-  timesheets:    () => ['hr', 'timesheets'] as const,
+  profile:          (staffId: string) => ['hr', 'profile', staffId] as const,
+  documents:        (staffId: string) => ['hr', 'documents', staffId] as const,
+  disciplinary:     (staffId: string) => ['hr', 'disciplinary', staffId] as const,
+  performance:      (staffId: string) => ['hr', 'performance', staffId] as const,
+  timesheets:       (period: string) => ['hr', 'timesheets', period] as const,
+  timesheetExports: () => ['hr', 'timesheet-exports'] as const,
 };
 
 export const expenseKeys = {
