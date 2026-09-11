@@ -12,7 +12,7 @@ import Link from 'next/link';
  */
 
 import React, { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
@@ -41,7 +41,7 @@ function fmtDate(iso: string): string {
 export default function NightAuditDetailPage(): React.ReactElement {
   const params = useParams<{ id: string }>();
   const auditId = params.id;
-  const router = useRouter();
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [confirmFinalize, setConfirmFinalize] = useState(false);
