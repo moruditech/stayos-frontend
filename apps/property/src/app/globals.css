@@ -1705,7 +1705,6 @@ a[data-link]:hover { text-decoration: underline; }
    ACCOUNTING — hub landing page cards
    Same visual language as [data-report-card] above, plus a status badge
    corner and an icon slot.
-   ───────────────────────────────────────────────────────────────────────── */
 [data-hub-grid] {
   display: grid;
   grid-template-columns: 1fr;
