@@ -94,7 +94,8 @@ export type {
   CalendarMatrixResponse,
   CalendarMatrixParams,
 } from './domains/rooms';
-export type { RatePlanSummary, Promotion, PromotionUsage, PromotionUsageBooking } from './domains/property-ops';
+export type { RatePlanSummary, RatePlan, PricingRule, SeasonalRate, Promotion, PromotionUsage, PromotionUsageBooking } from './domains/property-ops';
+export { RATE_PLAN_TYPES, RULE_CONDITIONS } from './domains/property-ops';
 export type { VisitorLogEntry, HostSearchResult, VisitorPolicy } from './domains/property-ops';
 export type {
   ChatChannel,

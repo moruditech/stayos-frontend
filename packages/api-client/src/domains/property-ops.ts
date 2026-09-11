@@ -11,12 +11,67 @@
 import { client } from '../client';
 
 // ── Pricing ────────────────────────────────────────────────────────────────────
+//
+// Field names match RatePlan.model.js / pricing.validation.js exactly. The
+// create form used to post an entirely different shape
+// (ratePerNight/description/isDefault, none of which exist on this model)
+// which crashed the backend with an unhandled TypeError on every attempt
+// (`data.code.toUpperCase()` where `code` was always undefined) — fixed on
+// both sides; this type/shape is now the single source of truth.
+
+export const RATE_PLAN_TYPES = [
+  'standard', 'non_refundable', 'advance_purchase', 'corporate',
+  'seasonal', 'last_minute', 'weekly', 'monthly', 'promotional',
+] as const;
+
+export const RULE_CONDITIONS = [
+  'occupancy_above', 'occupancy_below',
+  'lead_time_within', 'lead_time_beyond',
+  'length_of_stay_above', 'length_of_stay_below',
+  'day_of_week',
+] as const;
+
+export interface PricingRule {
+  condition: (typeof RULE_CONDITIONS)[number];
+  threshold?: number | undefined;
+  daysOfWeek?: number[] | undefined;
+  adjustment: 'percent' | 'fixed';
+  value: number;
+  direction: 'increase' | 'decrease';
+}
+
+export interface SeasonalRate {
+  name?: string | undefined;
+  from: string;
+  to: string;
+  rate: number;
+}
+
+export interface RatePlan {
+  _id: string;
+  name: string;
+  code: string;
+  type: (typeof RATE_PLAN_TYPES)[number];
+  isActive: boolean;
+  baseModifierPercent: number;
+  minNights: number;
+  maxNights?: number | undefined;
+  advanceBookingDays: number;
+  isRefundable: boolean;
+  cancellationPolicyHours: number;
+  applicableRoomTypes: string[];
+  applicableRoomIds: string[];
+  validFrom?: string | undefined;
+  validTo?: string | undefined;
+  floorPrice?: number | undefined;
+  ceilingPrice?: number | undefined;
+  seasonalRates: SeasonalRate[];
+  pricingRules: PricingRule[];
+  createdAt: string;
+  updatedAt: string;
+}
 
 // Matches RatePlan.model.js's real fields — just enough for a picker/filter.
-// NOTE: the rate-plans management page (pricing/rate-plans) posts a
-// different, non-matching shape (ratePerNight/description/isDefault) that
-// isn't on this model at all — a separate, pre-existing bug in that page's
-// create form, not touched here. This type only covers what listing needs.
 export interface RatePlanSummary {
   _id: string;
   name: string;
@@ -28,18 +83,18 @@ export interface RatePlanSummary {
 export const pricingApi = {
   listRatePlans: () => client.get<RatePlanSummary[]>('/pricing/rate-plans'),
   createRatePlan: (input: Record<string, unknown>) =>
-    client.post<Record<string, unknown>>('/pricing/rate-plans', input),
-  getRatePlan: (id: string) => client.get<Record<string, unknown>>(`/pricing/rate-plans/${id}`),
+    client.post<RatePlan>('/pricing/rate-plans', input),
+  getRatePlan: (id: string) => client.get<RatePlan>(`/pricing/rate-plans/${id}`),
   updateRatePlan: (id: string, input: Record<string, unknown>) =>
-    client.patch<Record<string, unknown>>(`/pricing/rate-plans/${id}`, input),
+    client.patch<RatePlan>(`/pricing/rate-plans/${id}`, input),
   deleteRatePlan: (id: string) => client.delete<{ message: string }>(`/pricing/rate-plans/${id}`),
   cloneRatePlan: (id: string) =>
-    client.post<Record<string, unknown>>(`/pricing/rate-plans/${id}/clone`),
+    client.post<RatePlan>(`/pricing/rate-plans/${id}/clone`),
   getDynamicRules: () => client.get<Record<string, unknown>>('/pricing/dynamic-rules'),
-  updateDynamicRules: (input: Record<string, unknown>) =>
+  updateDynamicRules: (input: { planId: string; rules: PricingRule[] }) =>
     client.patch<Record<string, unknown>>('/pricing/dynamic-rules', input),
   calculate: (params: Record<string, unknown>) =>
-    client.get<{ ratePerNight: number; nights: number; subTotal: number }>('/pricing/calculate', {
+    client.get<{ ratePerNight: number; nights: number; subTotal: number; planApplied: boolean }>('/pricing/calculate', {
       params: params as Record<string, string | number | boolean | undefined>,
     }),
 };

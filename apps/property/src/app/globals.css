@@ -1832,3 +1832,32 @@ a[data-link]:hover { text-decoration: underline; }
   margin-bottom: var(--space-3);
   font-size: 13.5px;
 }
+
+[data-rate-plan-card][data-inactive] { opacity: 0.6; }
+[data-plan-header] { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-2); }
+[data-plan-code] { font-family: var(--font-mono, monospace); font-weight: 600; color: var(--color-text-secondary); }
+
+[data-dynamic-rule-card] {
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-3);
+  background: var(--color-surface-subtle, var(--color-surface));
+}
+[data-weekday-picker] { display: flex; gap: var(--space-1); flex-wrap: wrap; }
+[data-weekday-chip] {
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+[data-weekday-chip]:hover { border-color: var(--color-primary); }
+[data-weekday-chip][data-selected] {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
