@@ -60,7 +60,7 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
     'guest:manage', 'payment:read',
     'staff:manage', 'staff:permissions:manage', 'payroll_export:read',
     'access:manage', 'procurement:manage',
-    'expense:approve', 'pettycash:manage', 'channel:manage',
+    'expense:approve', 'pettycash:manage', 'accounting:manage', 'channel:manage',
     'promotion:manage', 'rate:*', 'availability:*',
     'billing:manage',
   ],
@@ -68,13 +68,13 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
     'booking:*', 'room:*', 'staff:manage', 'staff:permissions:manage',
     'guest:manage', 'report:read', 'housekeeping:*', 'maintenance:*',
     'folio:*', 'payment:read', 'payroll_export:read', 'procurement:manage',
-    'expense:approve', 'access:manage', 'complaint:manage', 'messaging:manage',
+    'expense:approve', 'accounting:manage', 'access:manage', 'complaint:manage', 'messaging:manage',
     'channel:manage',
   ],
   property_manager: [
     'booking:*', 'room:*', 'guest:manage', 'report:read',
     'housekeeping:*', 'maintenance:*', 'folio:*', 'payment:read',
-    'payroll_export:read', 'procurement:manage', 'expense:approve',
+    'payroll_export:read', 'procurement:manage', 'expense:approve', 'accounting:manage',
     'access:manage', 'complaint:manage', 'messaging:manage',
   ],
   front_desk_manager: [
@@ -99,7 +99,7 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
   maintenance_technician: ['maintenance:task:read', 'maintenance:task:update'],
   property_accountant: [
     'payment:read', 'folio:read', 'report:finance:read', 'report:export',
-    'payroll_export:read', 'expense:manage', 'pettycash:manage',
+    'payroll_export:read', 'expense:manage', 'pettycash:manage', 'accounting:manage',
   ],
   property_owner_view: ['property:read', 'report:read', 'booking:read'],
 
