@@ -529,7 +529,7 @@ export default function DashboardPage(): React.ReactElement {
                     tone: PRIORITY_TONE[w.priority] ?? 'info',
                     icon: Icons.Wrench,
                     title: `${w.title}${typeof w.roomId === 'object' && w.roomId ? ` — Room ${w.roomId.roomNumber}` : ''}`,
-                    meta: `Reported ${timeAgo(w.createdAt)} · ${w.priority[0].toUpperCase()}${w.priority.slice(1)} priority`,
+                    meta: `Reported ${timeAgo(w.createdAt)} · ${w.priority.charAt(0).toUpperCase()}${w.priority.slice(1)} priority`,
                   })
                 )}
               />
