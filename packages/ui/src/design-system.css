@@ -1949,4 +1949,84 @@ input[type='checkbox'] {
 [data-status-badge][data-status='generated'],
 [data-status-badge][data-status='overstaying'],
 [data-status-badge][data-status='suspicious'],
-[data-status-badge][data-status='disconnected'] {
+
+/* Header row above a list/table: title or filter on the left, action button
+   on the right. Used across maintenance, promotions, and roster & HR. */
+[data-section-header] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+}
+[data-section-header] h2 { margin: 0; }
+
+
+/* Promotions — room-scope radio group, room picker, day-of-week schedule */
+[data-radio-row] {
+  display: flex;
+  gap: var(--space-4);
+  margin-bottom: var(--space-2);
+}
+[data-radio-option] {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+[data-radio-option] input[type='radio'] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-primary);
+}
+
+[data-room-picker] {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+[data-room-picker-item] { padding: 2px 0; }
+[data-room-picker-type] {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  margin-left: var(--space-2);
+}
+
+[data-day-quickpicks] {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+[data-day-toggle-row] {
+  display: flex;
+  gap: 6px;
+}
+[data-day-toggle] {
+  flex: 1;
+  padding: 6px 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+[data-day-toggle]:hover { border-color: var(--color-border-strong); }
+[data-day-toggle][data-active='true'] {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-surface);
+}
+
+
+[data-status-badge][data-status='success'],
+[data-status-badge][data-status='generated'],
