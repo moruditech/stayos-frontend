@@ -256,7 +256,7 @@ export default function GuestMessagesPage(): React.ReactElement {
               data-active={statusFilter === s || undefined}
               onClick={() => setStatusFilter(statusFilter === s ? undefined : s)}
             >
-              {s[0].toUpperCase() + s.slice(1)}
+              {s.charAt(0).toUpperCase() + s.slice(1)}
             </button>
           ))}
         </div>
