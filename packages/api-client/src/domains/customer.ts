@@ -9,17 +9,17 @@ export interface GuestThreadMessageDTO {
   _id: string;
   channel: 'in_app' | 'whatsapp' | 'sms';
   direction: 'inbound' | 'outbound';
-  body?: string;           // whatsapp/sms only — plaintext
-  encrypted?: boolean;     // true for in_app
-  ciphertext?: string;     // in_app only
-  iv?: string;             // in_app only
+  body?: string | undefined;           // whatsapp/sms only — plaintext
+  encrypted?: boolean | undefined;     // true for in_app
+  ciphertext?: string | undefined;     // in_app only
+  iv?: string | undefined;             // in_app only
   sentAt: string;
 }
 
 export interface GuestThreadDTO {
   _id: string;
-  tenantId: { _id: string; name: string; coverImage?: string } | string;
-  customerId?: { _id: string; firstName: string; lastName: string; email?: string; phone?: string } | string;
+  tenantId: { _id: string; name: string; coverImage?: string | undefined } | string;
+  customerId?: { _id: string; firstName: string; lastName: string; email?: string | undefined; phone?: string | undefined } | string;
   status: 'open' | 'assigned' | 'resolved';
   assignedTo: { _id: string; firstName: string; lastName: string } | null;
   messages: GuestThreadMessageDTO[];
@@ -32,7 +32,7 @@ export interface GuestThreadMemberDTO {
   recipientModel: 'Customer' | 'PropertyStaff';
   firstName: string;
   lastName: string;
-  role?: string;
+  role?: string | undefined;
   publicKey: JsonWebKey | null;
 }
 
@@ -108,7 +108,7 @@ export const customerApi = {
   // GET /customers/me/bookings
   listBookings: () => client.get<Record<string, unknown>[]>('/customers/me/bookings'),
   getBooking: (id: string) => client.get<Record<string, unknown>>(`/customers/me/bookings/${id}`),
-  cancelBooking: (id: string, reason?: string) =>
+  cancelBooking: (id: string, reason?: string | undefined) =>
     client.post<Record<string, unknown>>(`/customers/me/bookings/${id}/cancel`, { reason }),
 
   // GET/POST /customers/me/bookings/:id/messages — one GuestThread per
@@ -124,7 +124,7 @@ export const customerApi = {
   // booking they own; the backend resolves tenantId from the ownership
   // check, so no tenantId is passed here. Returns { paymentUrl, ... } to
   // redirect the browser to for gateway checkout.
-  initiateBookingPayment: (bookingId: string, input: { type: string; gateway: string; amount: number; currency?: string }) =>
+  initiateBookingPayment: (bookingId: string, input: { type: string; gateway: string; amount: number; currency?: string | undefined }) =>
     client.post<Record<string, unknown>>(`/payments/booking/${bookingId}`, input),
 
   // GET /customers/me/applications
@@ -217,7 +217,7 @@ export const customerApi = {
     client.get<{ members: GuestThreadMemberDTO[]; channelHasKey: boolean }>(`/customers/me/threads/${threadId}/members`),
   getMyThreadKey: (threadId: string) =>
     client.get<GuestThreadWrappedKeyDTO | null>(`/customers/me/threads/${threadId}/key`),
-  publishMyThreadKeys: (threadId: string, wraps: GuestThreadWrappedKeyDTO[], bootstrap?: boolean) =>
+  publishMyThreadKeys: (threadId: string, wraps: GuestThreadWrappedKeyDTO[], bootstrap?: boolean | undefined) =>
     client.post<{ updated: number }>(`/customers/me/threads/${threadId}/keys`, { wraps, bootstrap }),
   requestMyThreadKey: (threadId: string) =>
     client.post<{ requested: boolean }>(`/customers/me/threads/${threadId}/key-requests`),
@@ -281,7 +281,7 @@ export const supportApi = {
     client.post<Record<string, unknown>>('/support/tickets', input),
   getMessages: (id: string) =>
     client.get<Record<string, unknown>[]>(`/support/tickets/${id}/messages`),
-  addMessage: (id: string, body: string, isInternal?: boolean) =>
+  addMessage: (id: string, body: string, isInternal?: boolean | undefined) =>
     client.post<Record<string, unknown>>(`/support/tickets/${id}/message`, {
       body,
       isInternal,
@@ -304,7 +304,7 @@ export const supportApi = {
   assign: (id: string, assigneeId: string) =>
     client.patch<Record<string, unknown>>(`/support/tickets/${id}/assign`, { assigneeId }),
 
-  updateStatus: (id: string, status: string, resolution?: string) =>
+  updateStatus: (id: string, status: string, resolution?: string | undefined) =>
     client.patch<Record<string, unknown>>(`/support/tickets/${id}/status`, {
       status,
       resolution,

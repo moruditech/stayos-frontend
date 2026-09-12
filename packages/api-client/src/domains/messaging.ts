@@ -15,7 +15,7 @@ import type {
 // shared across staff chat and guest messaging alike.
 
 export const messagingApi = {
-  listThreads: (params?: { status?: 'open' | 'assigned' | 'resolved'; page?: number; limit?: number }) =>
+  listThreads: (params?: { status?: 'open' | 'assigned' | 'resolved' | undefined; page?: number | undefined; limit?: number | undefined }) =>
     client.getPaginated<GuestThreadDTO>('/messaging/threads', {
       params: params as Record<string, string | number | boolean | undefined>,
     }),
