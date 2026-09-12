@@ -63,6 +63,7 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
     'expense:approve', 'pettycash:manage', 'accounting:manage', 'channel:manage',
     'promotion:manage', 'rate:*', 'availability:*',
     'billing:manage',
+    'messaging:manage', 'messaging:assign',
   ],
   property_admin: [
     'booking:*', 'room:*', 'staff:manage', 'staff:permissions:manage',
@@ -84,7 +85,8 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
   ],
   receptionist: [
     'booking:create', 'booking:read', 'checkin:process',
-    'guest:read', 'folio:read', 'access:manage', 'messaging:read',
+    'guest:read', 'folio:read', 'access:manage',
+    'messaging:manage', 'messaging:assign',
   ],
   revenue_manager: ['rate:*', 'availability:*', 'report:revenue:read', 'promotion:manage'],
   hr_manager: [
