@@ -2060,3 +2060,38 @@
   cursor: pointer;
 }
 [data-chat-send]:disabled { opacity: 0.4; cursor: default; }
+
+[data-chat-key-banner] {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-warning-bg);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-warning);
+  font-size: 12.5px;
+  flex-shrink: 0;
+}
+[data-chat-key-banner] span { flex: 1; }
+[data-chat-key-banner][data-error] { background: var(--color-danger-bg); color: var(--color-danger); }
+[data-chat-key-retry] {
+  font-size: 12px;
+  font-weight: 600;
+  color: inherit;
+  text-decoration: underline;
+  flex-shrink: 0;
+}
+[data-chat-undecryptable] {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-style: italic;
+  opacity: 0.75;
+}
+[data-chat-send-error] {
+  padding: var(--space-2) var(--space-4);
+  font-size: 12px;
+  color: var(--color-danger);
+  background: var(--color-danger-bg);
+  flex-shrink: 0;
+}

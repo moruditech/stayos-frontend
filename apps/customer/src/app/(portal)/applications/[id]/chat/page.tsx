@@ -1,73 +1,43 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useSession } from '@stayos/auth';
+import React, { useEffect, useRef, useState } from 'react';
 import { api } from '@stayos/api-client';
-import type { ApiError } from '@stayos/api-client';
-import { SkeletonLoader, useToast, useSocketEvent, Icons } from '@stayos/ui';
-import { SOCKET_EVENTS } from '@stayos/constants';
+import { SkeletonLoader, Icons } from '@stayos/ui';
 import { applicationKeys } from '@/lib/query-keys';
+import { useGuestThreadChat } from '@/lib/use-guest-thread-chat';
 
 interface Props { params: { id: string } }
-
-interface ThreadMessage {
-  _id: string;
-  channel: string;
-  direction: 'inbound' | 'outbound';
-  body: string;
-  sentAt: string;
-}
 
 // Same GuestThread/chat UI as /bookings/[id]/chat — a property conversation
 // is keyed by (tenant, customer) on the backend, not by booking, so an
 // applicant messaging a property before they have a booking lands in the
-// same thread they'd see later once they do.
+// same thread they'd see later once they do. See use-guest-thread-chat.ts
+// for the shared encryption logic both pages use.
 export default function ApplicationChatPage({ params }: Props): React.ReactElement {
-  const session   = useSession();
-  const qc        = useQueryClient();
-  const { toast } = useToast();
   const [draft, setDraft] = useState('');
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>;
 
-  const { data: thread, isLoading } = useQuery({
+  const {
+    thread, isLoading, messages, keyState, canCompose, send, sending, sendError, retryKey,
+  } = useGuestThreadChat({
     queryKey: applicationKeys.messages(params.id),
-    queryFn:  () => api.customer.getApplicationMessages(params.id),
-    enabled:  !!session,
-    refetchInterval: 15000,
+    fetchThread: () => api.customer.getApplicationMessages(params.id),
+    sendMessage: (envelope) => api.customer.sendApplicationMessage(params.id, envelope),
   });
 
-  const onNewMessage = useCallback(() => {
-    qc.invalidateQueries({ queryKey: applicationKeys.messages(params.id) });
-  }, [qc, params.id]);
-  useSocketEvent(SOCKET_EVENTS.MESSAGING_NEW_MESSAGE, onNewMessage);
-
-  const sendMutation = useMutation({
-    mutationFn: (body: string) => api.customer.sendApplicationMessage(params.id, body),
-    onSuccess: () => {
-      setDraft('');
-      qc.invalidateQueries({ queryKey: applicationKeys.messages(params.id) });
-    },
-    onError: (err: ApiError) => toast(err.message ?? 'Message failed to send.', 'error'),
-  });
-
-  const t = thread as Record<string, unknown> | undefined;
-  const tenant = (typeof t?.['tenantId'] === 'object' && t?.['tenantId'] !== null
-    ? t['tenantId'] : {}) as Record<string, unknown>;
-  const propertyName = (tenant['name'] as string) ?? 'Property';
-  const messages = ((t?.['messages'] as ThreadMessage[]) ?? [])
-    .slice()
-    .sort((a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime());
+  const tenant = thread?.tenantId;
+  const propertyName = (typeof tenant === 'object' && tenant ? tenant.name : null) ?? 'Property';
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages.length]);
 
   const handleSend = () => {
-    const body = draft.trim();
-    if (!body || sendMutation.isPending) return;
-    sendMutation.mutate(body);
+    const text = draft.trim();
+    if (!text || sending || !canCompose) return;
+    setDraft('');
+    void send(text);
   };
 
   return (
@@ -78,9 +48,27 @@ export default function ApplicationChatPage({ params }: Props): React.ReactEleme
         </Link>
         <div>
           <div data-chat-header-name>{isLoading ? 'Loading…' : propertyName}</div>
-          <div data-chat-header-sub>Property support</div>
+          <div data-chat-header-sub>
+            <Icons.Lock size={11} style={{ verticalAlign: '-1px', marginRight: 4 }} />
+            End-to-end encrypted
+          </div>
         </div>
       </div>
+
+      {keyState === 'waiting' && (
+        <div data-chat-key-banner>
+          <Icons.KeyRound size={14} />
+          <span>Setting up secure access to this conversation…</span>
+          <button type="button" data-chat-key-retry onClick={() => void retryKey()}>Retry</button>
+        </div>
+      )}
+      {keyState === 'error' && (
+        <div data-chat-key-banner data-error>
+          <Icons.AlertCircle size={14} />
+          <span>Something went wrong setting up encryption.</span>
+          <button type="button" data-chat-key-retry onClick={() => void retryKey()}>Retry</button>
+        </div>
+      )}
 
       <div data-chat-messages ref={scrollRef}>
         {isLoading ? (
@@ -94,7 +82,13 @@ export default function ApplicationChatPage({ params }: Props): React.ReactEleme
           messages.map((m) => (
             <div key={m._id} data-chat-row data-mine={m.direction === 'inbound' ? '' : undefined}>
               <div data-chat-bubble data-mine={m.direction === 'inbound' ? '' : undefined}>
-                {m.body}
+                {m.encrypted && m.displayText === '' ? (
+                  <span data-chat-undecryptable>
+                    <Icons.Lock size={11} /> Unable to decrypt this message
+                  </span>
+                ) : (
+                  m.displayText
+                )}
               </div>
               <div data-chat-time>
                 {new Date(m.sentAt).toLocaleTimeString('en-ZA', { hour: 'numeric', minute: '2-digit' })}
@@ -104,22 +98,25 @@ export default function ApplicationChatPage({ params }: Props): React.ReactEleme
         )}
       </div>
 
+      {sendError && <div data-chat-send-error>{sendError}</div>}
+
       <div data-chat-composer>
         <textarea
           rows={1}
           value={draft}
-          placeholder="Message the property…"
+          placeholder={canCompose ? 'Message the property…' : 'Setting up encryption…'}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
           }}
+          disabled={!canCompose}
           data-chat-input
         />
         <button
           type="button"
           data-chat-send
           aria-label="Send message"
-          disabled={!draft.trim() || sendMutation.isPending}
+          disabled={!draft.trim() || sending || !canCompose}
           onClick={handleSend}
         >
           <Icons.Send size={18} />

@@ -1,5 +1,49 @@
 import { client } from '../client';
 
+// ── Guest messaging (customer <-> property) ─────────────────────────────────
+// Confirmed against src/modules/messaging/*.js. End-to-end encrypted for the
+// in_app channel — see @stayos/crypto, which does the actual encrypt/decrypt
+// in the browser. This api-client layer only ever moves opaque envelopes.
+
+export interface GuestThreadMessageDTO {
+  _id: string;
+  channel: 'in_app' | 'whatsapp' | 'sms';
+  direction: 'inbound' | 'outbound';
+  body?: string;           // whatsapp/sms only — plaintext
+  encrypted?: boolean;     // true for in_app
+  ciphertext?: string;     // in_app only
+  iv?: string;             // in_app only
+  sentAt: string;
+}
+
+export interface GuestThreadDTO {
+  _id: string;
+  tenantId: { _id: string; name: string; coverImage?: string } | string;
+  customerId?: { _id: string; firstName: string; lastName: string; email?: string; phone?: string } | string;
+  status: 'open' | 'assigned' | 'resolved';
+  assignedTo: { _id: string; firstName: string; lastName: string } | null;
+  messages: GuestThreadMessageDTO[];
+  unreadCount: number;
+  lastMessageAt: string;
+}
+
+export interface GuestThreadMemberDTO {
+  recipientId: string;
+  recipientModel: 'Customer' | 'PropertyStaff';
+  firstName: string;
+  lastName: string;
+  role?: string;
+  publicKey: JsonWebKey | null;
+}
+
+export interface GuestThreadWrappedKeyDTO {
+  recipientId: string;
+  recipientModel: 'Customer' | 'PropertyStaff';
+  wrappedKey: string;
+  iv: string;
+  ephemeralPublicKey: JsonWebKey;
+}
+
 export const discoveryApi = {
   searchProperties: (params?: Record<string, string | number | boolean | undefined>) =>
     client.get<Record<string, unknown>[]>('/discovery/properties', { params }),
@@ -68,11 +112,13 @@ export const customerApi = {
     client.post<Record<string, unknown>>(`/customers/me/bookings/${id}/cancel`, { reason }),
 
   // GET/POST /customers/me/bookings/:id/messages — one GuestThread per
-  // (tenant, customer); the same thread staff see and reply to.
+  // (tenant, customer); the same thread staff see and reply to. End-to-end
+  // encrypted: a customer's own messages are always in_app/ciphertext,
+  // never plaintext body — see @stayos/crypto for the encrypt/decrypt side.
   getBookingMessages: (bookingId: string) =>
-    client.get<Record<string, unknown>>(`/customers/me/bookings/${bookingId}/messages`),
-  sendBookingMessage: (bookingId: string, body: string) =>
-    client.post<Record<string, unknown>>(`/customers/me/bookings/${bookingId}/messages`, { body }),
+    client.get<GuestThreadDTO>(`/customers/me/bookings/${bookingId}/messages`),
+  sendBookingMessage: (bookingId: string, envelope: { ciphertext: string; iv: string }) =>
+    client.post<GuestThreadDTO>(`/customers/me/bookings/${bookingId}/messages`, envelope),
 
   // POST /payments/booking/:bookingId — customer-initiated payment against a
   // booking they own; the backend resolves tenantId from the ownership
@@ -87,9 +133,9 @@ export const customerApi = {
   getApplication: (id: string) =>
     client.get<Record<string, unknown>>(`/customers/me/applications/${id}`),
   getApplicationMessages: (applicationId: string) =>
-    client.get<Record<string, unknown>>(`/customers/me/applications/${applicationId}/messages`),
-  sendApplicationMessage: (applicationId: string, body: string) =>
-    client.post<Record<string, unknown>>(`/customers/me/applications/${applicationId}/messages`, { body }),
+    client.get<GuestThreadDTO>(`/customers/me/applications/${applicationId}/messages`),
+  sendApplicationMessage: (applicationId: string, envelope: { ciphertext: string; iv: string }) =>
+    client.post<GuestThreadDTO>(`/customers/me/applications/${applicationId}/messages`, envelope),
 
   // GET /customers/me/payments
   listPayments: () => client.get<Record<string, unknown>[]>('/customers/me/payments'),
@@ -153,6 +199,32 @@ export const customerApi = {
   // POST /auth/register (customer self-registration)
   register: (input: Record<string, unknown>) =>
     client.post<{ message: string }>('/auth/register', input),
+
+  // ── End-to-end encryption ──────────────────────────────────────────────────
+  // The server only ever stores/relays opaque blobs here — see
+  // GuestThreadKey.model.js and @stayos/crypto for what actually happens to
+  // the key material. A customer's identity key is scoped to them alone
+  // (not per-property) — the same key unlocks every property they've
+  // messaged, each with its own separately-wrapped thread content key.
+  setMyPublicKey: (publicKey: JsonWebKey) =>
+    client.put<{ publicKey: JsonWebKey; publicKeyUpdatedAt: string }>('/customers/me/e2ee/public-key', { publicKey }),
+  setMyKeyBackup: (input: { salt: string; iv: string; ciphertext: string }) =>
+    client.post<{ updatedAt: string }>('/customers/me/e2ee/backup', input),
+  getMyKeyBackup: () =>
+    client.get<{ salt: string; iv: string; ciphertext: string; updatedAt: string } | null>('/customers/me/e2ee/backup'),
+
+  getMyThreadMembers: (threadId: string) =>
+    client.get<{ members: GuestThreadMemberDTO[]; channelHasKey: boolean }>(`/customers/me/threads/${threadId}/members`),
+  getMyThreadKey: (threadId: string) =>
+    client.get<GuestThreadWrappedKeyDTO | null>(`/customers/me/threads/${threadId}/key`),
+  publishMyThreadKeys: (threadId: string, wraps: GuestThreadWrappedKeyDTO[], bootstrap?: boolean) =>
+    client.post<{ updated: number }>(`/customers/me/threads/${threadId}/keys`, { wraps, bootstrap }),
+  requestMyThreadKey: (threadId: string) =>
+    client.post<{ requested: boolean }>(`/customers/me/threads/${threadId}/key-requests`),
+  getMyPendingKeyRequests: () =>
+    client.get<{ threadId: string; requesterId: string; requesterModel: 'Customer' | 'PropertyStaff'; requesterPublicKey: JsonWebKey }[]>(
+      '/customers/me/key-requests/pending'
+    ),
 };
 
 export const notificationsApi = {

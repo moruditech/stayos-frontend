@@ -10,6 +10,7 @@ import { housekeepingApi } from './domains/housekeeping';
 import { maintenanceApi }  from './domains/maintenance';
 import { foliosApi }       from './domains/folios';
 import { accountingApi }   from './domains/accounting';
+import { messagingApi }    from './domains/messaging';
 import {
   pricingApi,
   promotionsApi,
@@ -56,6 +57,7 @@ export const api = {
   maintenance:   maintenanceApi,
   folios:        foliosApi,
   accounting:    accountingApi,
+  messaging:     messagingApi,
   pricing:       pricingApi,
   promotions:    promotionsApi,
   access:        accessApi,
@@ -123,4 +125,10 @@ export type {
 } from './domains/property-ops';
 export type { LedgerAccount, JournalEntryInput, JournalLineInput, OtherIncomeEntryInput } from './domains/accounting';
 export type { SubmitExpenseInput } from './domains/property-ops';
+export type {
+  GuestThreadDTO,
+  GuestThreadMessageDTO,
+  GuestThreadMemberDTO,
+  GuestThreadWrappedKeyDTO,
+} from './domains/customer';
 export type { OwnerMandate, OwnerMandateAcceptResponse } from './domains/owner';

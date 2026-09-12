@@ -8,6 +8,7 @@ const nextConfig = {
     '@stayos/constants',
     '@stayos/types',
     '@stayos/validators',
+    '@stayos/crypto',
   ],
 
   // ── API proxy rewrites ─────────────────────────────────────────────────────

@@ -65,6 +65,10 @@ export const PERMISSIONS = {
   MAINTENANCE_TASK_UPDATE: 'maintenance:task:update',
 
   MESSAGING_MANAGE: 'messaging:manage',
+  // Full visibility across every guest conversation at the tenant, plus the
+  // ability to assign one to a specific staff member — receptionist and
+  // property_owner only, per src/utils/constants.js#ROLE_PERMISSIONS.
+  MESSAGING_ASSIGN: 'messaging:assign',
 
   ONBOARDING_READ: 'onboarding:read',
 

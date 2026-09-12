@@ -32,6 +32,12 @@ export const SOCKET_EVENTS = {
   // target just "whoever holds this channel's key", so every other client
   // gets it and checks for itself). Server -> specific user once someone
   // services the request (see staffchat.service.js#publishChannelKeys).
+  // Confirmed against messaging.service.js#requestThreadKey/publishThreadKeys.
+  // Same durable-queue + instant-broadcast pattern as STAFFCHAT_KEY_REQUEST/
+  // GRANTED below, applied to GuestThread instead of StaffChannel.
+  MESSAGING_KEY_REQUEST: 'messaging:key_request',
+  MESSAGING_KEY_GRANTED: 'messaging:key_granted',
+
   STAFFCHAT_KEY_REQUEST: 'staffchat:key_request',
   STAFFCHAT_KEY_GRANTED: 'staffchat:key_granted',
   // Group channel membership changed (created into / added / removed) —

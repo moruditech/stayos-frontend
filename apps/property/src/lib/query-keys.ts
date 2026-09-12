@@ -139,3 +139,8 @@ export const supportKeys = {
   tickets: () => ['support', 'tickets'] as const,
   ticket:  (id: string) => ['support', 'ticket', id] as const,
 };
+
+export const guestMessagingKeys = {
+  threads: (filters?: Record<string, unknown>) => ['messaging', 'threads', filters ?? {}] as const,
+  thread:  (threadId: string) => ['messaging', 'threads', threadId] as const,
+};

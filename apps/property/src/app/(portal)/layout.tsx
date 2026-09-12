@@ -21,6 +21,7 @@ import { ACCESS_MODE } from '@stayos/constants';
 import { propertyNav } from '@/lib/nav-config';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
+import { GuestMessagingKeyResolver } from '@/components/GuestMessagingKeyResolver';
 
 const SOCKET_URL =
   process.env['NEXT_PUBLIC_SOCKET_URL'] ?? 'http://localhost:3000';
@@ -110,6 +111,7 @@ export default function PortalLayout({
 
   return (
     <SocketProvider serverUrl={SOCKET_URL}>
+      <GuestMessagingKeyResolver />
       <div data-portal-layout>
 
         {/* ── Mobile overlay — closes sidebar on tap ─────────────────── */}

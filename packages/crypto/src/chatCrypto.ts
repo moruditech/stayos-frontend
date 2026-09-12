@@ -55,7 +55,7 @@ export class ChatCrypto {
    * response), so a losing attempt never leaves a wrong key cached.
    */
   async generateAndWrapNewKey(
-    members: { staffId: string; publicKey: JsonWebKey | null }[]
+    members: { memberId: string; publicKey: JsonWebKey | null }[]
   ): Promise<{ key: CryptoKey; wraps: WrappedKeyDTO[] }> {
     const key = await generateChannelKey();
     const raw = await exportChannelKeyRaw(key);
@@ -64,7 +64,7 @@ export class ChatCrypto {
     for (const member of members) {
       if (!member.publicKey) continue; // no key on file yet — they'll get it via key-request once they do
       const wrap = await wrapChannelKeyFor(raw, member.publicKey);
-      wraps.push({ memberId: member.staffId, ...wrap });
+      wraps.push({ memberId: member.memberId, ...wrap });
     }
     return { key, wraps };
   }

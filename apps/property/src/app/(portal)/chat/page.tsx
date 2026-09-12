@@ -127,7 +127,7 @@ export default function StaffChatPage(): React.ReactElement {
 
         if (!channelHasKey) {
           const { key, wraps } = await chatCrypto.generateAndWrapNewKey(
-            members.map((m) => ({ staffId: m.staffId, publicKey: m.publicKey }))
+            members.map((m) => ({ memberId: m.staffId, publicKey: m.publicKey }))
           );
           try {
             await api.staffchat.publishChannelKeys(channelId, wraps, true);

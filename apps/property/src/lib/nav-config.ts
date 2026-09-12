@@ -133,6 +133,13 @@ export const NAV_CONFIG: NavGroup[] = [
         path: '/chat',
         icon: Icons.MessageSquare,
       },
+      {
+        id: 'guest-messages',
+        label: 'Guest Messages',
+        path: '/guest-messages',
+        icon: Icons.Inbox,
+        requiresPerm: [PERMISSIONS.MESSAGING_MANAGE],
+      },
     ],
   },
 
