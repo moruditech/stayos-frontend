@@ -1,0 +1,19 @@
+* [33m6c910ab[m[33m ([m[1;36mHEAD[m[33m)[m fix(access): add hostSearch/visitorPolicy query keys; fix(folios): real folio list, add missing checkOut client function and UI
+* [33m2ebc0cc[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Add files via upload
+[31m|[m * [33m16055d9[m[33m ([m[1;32mmain[m[33m)[m fix(access): add hostSearch/visitorPolicy query keys; fix(folios): real folio list, add missing checkOut client function and UI
+[31m|[m[31m/[m  
+* [33mad2da66[m fix(folios): real folio list, add missing checkOut client function and UI
+* [33m4c0852d[m fix: unused import + exactOptionalPropertyTypes build errors in visitor check-in
+* [33m0f150df[m Remove unused import of VisitorLogEntry type
+[32m|[m *[35m-[m[35m.[m   [33m4f2d1c1[m[33m ([m[1;35mrefs/stash[m[33m)[m On main: backup before syncing main
+[32m|[m [33m|[m[34m\[m [35m\[m  
+[32m|[m [33m|[m [34m|[m * [33m097bab6[m untracked files on main: f3133dd fix: unused import + exactOptionalPropertyTypes build errors in visitor check-in
+[32m|[m [33m|[m * [33me50b7fa[m index on main: f3133dd fix: unused import + exactOptionalPropertyTypes build errors in visitor check-in
+[32m|[m [33m|[m[33m/[m  
+[32m|[m * [33mf3133dd[m fix: unused import + exactOptionalPropertyTypes build errors in visitor check-in
+[32m|[m[32m/[m  
+* [33mcd0b88c[m fix: visitor check-in end-to-end (host search/link, check-in/out tracking, visit-type + visiting-hours/overstay config)
+* [33mfb17fcd[m feat(housekeeping): checklist templates, reviewer flow, drag-and-drop board
+* [33me3b220e[m fix: cast getLoyaltyProgramme via unknown to satisfy TS2352
+* [33md6dd611[m feat(loyalty): platform loyalty UI on customer app, config page on admin
+* [33m29e907c[m fix(ui): style DownloadButton, was completely unstyled

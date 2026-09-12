@@ -80,7 +80,13 @@ export function GuestMessagingKeyResolver(): null {
         if (!publicKey) return;
         const wrap = await chatCrypto.wrapCachedKeyFor(threadId, requesterId, publicKey);
         if (wrap) {
-          await api.messaging.publishThreadKeys(threadId, [{ ...wrap, recipientModel: requesterModel }]);
+          await api.messaging.publishThreadKeys(threadId, [{
+            recipientId:        requesterId,
+            recipientModel:     requesterModel,
+            wrappedKey:         wrap.wrappedKey,
+            iv:                 wrap.iv,
+            ephemeralPublicKey: wrap.ephemeralPublicKey,
+          }]);
           // Prefix match (no filters segment) so this invalidates the
           // threads list regardless of which status filter the inbox page
           // currently has selected — guestMessagingKeys.threads(filters)

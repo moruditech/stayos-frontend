@@ -156,7 +156,13 @@ export function useGuestThreadChat({ queryKey, fetchThread, sendMessage }: UseGu
         if (!publicKey) return;
         const wrap = await chatCrypto.wrapCachedKeyFor(threadId, requesterId, publicKey);
         if (wrap) {
-          await api.customer.publishMyThreadKeys(threadId, [{ ...wrap, recipientModel: requesterModel }]);
+          await api.customer.publishMyThreadKeys(threadId, [{
+            recipientId:        requesterId,
+            recipientModel:     requesterModel,
+            wrappedKey:         wrap.wrappedKey,
+            iv:                 wrap.iv,
+            ephemeralPublicKey: wrap.ephemeralPublicKey,
+          }]);
         }
       } catch {
         // Best-effort — the requester's own retry/catch-up cycle tries again regardless.
