@@ -540,6 +540,18 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   [data-dashboard-grid] { grid-template-columns: 1fr 1fr; align-items: start; }
 }
 
+/* Three-panel dashboard rows (room status / bookings / housekeeping, and
+   revenue / maintenance / activity) — same breakpoint pattern as
+   [data-report-grid] below. */
+[data-dashboard-grid-3] {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+  align-items: start;
+}
+@media (min-width: 640px)  { [data-dashboard-grid-3] { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 1024px) { [data-dashboard-grid-3] { grid-template-columns: 1fr 1fr 1fr; } }
+
 /* "No X yet" placeholder text inside an otherwise-empty panel */
 [data-empty-note] {
   padding: var(--space-6) 0;

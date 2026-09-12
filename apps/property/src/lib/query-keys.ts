@@ -111,6 +111,7 @@ export const accountingKeys = {
 export const reportKeys = {
   occupancy:   (params: Record<string, unknown>) => ['reports', 'occupancy', params] as const,
   revenue:     (params: Record<string, unknown>) => ['reports', 'revenue', params] as const,
+  revpar:      (params: Record<string, unknown>) => ['reports', 'revpar', params] as const,
   finance:     (params: Record<string, unknown>) => ['reports', 'finance', params] as const,
   bookings:    (params: Record<string, unknown>) => ['reports', 'bookings', params] as const,
   housekeeping:(params: Record<string, unknown>) => ['reports', 'housekeeping', params] as const,

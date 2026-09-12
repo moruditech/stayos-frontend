@@ -127,6 +127,8 @@ export const bookingFiltersSchema = z.object({
   roomId: z.string().optional(),
   checkInFrom: z.string().optional(),
   checkInTo: z.string().optional(),
+  checkOutFrom: z.string().optional(),
+  checkOutTo: z.string().optional(),
   search: z.string().optional(),
   page: z.number().int().min(1).default(1),
   limit: z.number().int().min(1).max(100).default(20),

@@ -560,6 +560,12 @@ export const reportsApi = {
     client.get<Record<string, unknown>>('/reports/occupancy', {
       params: params as Record<string, string | number | boolean | undefined>,
     }),
+  // Room revenue, ADR and RevPAR for a period — excludes subscription/
+  // student payment types that getRevenue()'s total legitimately includes.
+  getRevPar: (params?: Record<string, unknown>) =>
+    client.get<Record<string, unknown>>('/reports/revpar', {
+      params: params as Record<string, string | number | boolean | undefined>,
+    }),
   getBookings: (params?: Record<string, unknown>) =>
     client.get<Record<string, unknown>>('/reports/bookings', {
       params: params as Record<string, string | number | boolean | undefined>,
