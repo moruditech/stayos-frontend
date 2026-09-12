@@ -6,5 +6,6 @@ import { NextRequest, NextResponse } from 'next/server';
 // to redirect; the portal itself handles the handoff to my.stayos.co.za
 // on the "Book now" CTA (Document 09 §4).
 export function middleware(_request: NextRequest): NextResponse {
+  void _request;
   return NextResponse.next();
 }

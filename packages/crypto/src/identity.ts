@@ -188,6 +188,8 @@ export async function restoreKeyBackup(
 
   // Derive the public JWK from the private one (same x/y/crv/kty, no `d`).
   const { d: _d, key_ops: _ops, ...publicJwk } = privateJwk;
+  void _d;
+  void _ops;
   const publicKey = await crypto.subtle.importKey(
     'jwk', { ...publicJwk, key_ops: [] }, { name: 'ECDH', namedCurve: CURVE }, true, []
   );

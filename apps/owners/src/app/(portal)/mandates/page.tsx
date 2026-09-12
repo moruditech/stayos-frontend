@@ -216,12 +216,12 @@ function MandateCard({
       <div data-mandate-meta>
         <div>
           <span data-meta-label>Created</span>
-          <span>{new Date(mandate.createdAt).toLocaleDateString('en-ZA')}</span>
+          <span>{formatDate(mandate.createdAt)}</span>
         </div>
         {mandate.terminationDate && (
           <div>
             <span data-meta-label>Termination date</span>
-            <span>{new Date(mandate.terminationDate).toLocaleDateString('en-ZA')}</span>
+            <span>{formatDate(mandate.terminationDate)}</span>
           </div>
         )}
         <p data-mandate-detail-note>

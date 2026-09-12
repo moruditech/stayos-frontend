@@ -21,7 +21,7 @@ import {
   type AlertEntry,
 } from '@stayos/ui';
 import { agencyKeys } from '../lib/query-keys';
-import { formatZAR, formatNumber } from '../lib/format';
+import { formatNumber } from '../lib/format';
 import { useEnterAgencyProperty } from '../hooks/useEnterAgencyProperty';
 
 const PROPERTY_TYPES: { value: string; label: string }[] = [

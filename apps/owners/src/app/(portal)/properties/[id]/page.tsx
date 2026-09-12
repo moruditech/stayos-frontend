@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
 import { api } from '@stayos/api-client';
@@ -9,7 +9,6 @@ import {
   StatusBadge,
   ReadOnlyField,
   useToast,
-  ConfirmDialog,
   MandateBanner,
 } from '@stayos/ui';
 import { useEnterProperty } from '@/hooks/useEnterProperty';
@@ -27,12 +26,16 @@ export default function PropertyDetailPage(): React.ReactElement {
   const params = useParams<{ id: string }>();
   const id = params.id;
   const { toast } = useToast();
-  const { enterProperty, loading: enterLoading } = useEnterProperty();
+  const { enterProperty, loading: enterLoading, error: enterError } = useEnterProperty();
 
   const { data: property, isLoading } = useQuery({
     queryKey: ownerPropertyKeys.detail(id),
     queryFn: () => api.owner.getProperty(id),
   });
+
+  useEffect(() => {
+    if (enterError) toast(enterError, 'error');
+  }, [enterError, toast]);
 
   if (isLoading) return <SkeletonLoader rows={5} />;
   if (!property) return <p>Property not found.</p>;

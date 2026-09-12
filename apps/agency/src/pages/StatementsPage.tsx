@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
 import { PageHeader, StatCard, Panel, LoadingBlock, EmptyBlock, DownloadButton, Icons } from '@stayos/ui';
 import { statementKeys } from '../lib/query-keys';
-import { formatZAR, formatDate, formatNumber } from '../lib/format';
+import { formatZAR, formatNumber } from '../lib/format';
 
 export default function StatementsPage(): React.ReactElement {
   const [page, setPage] = React.useState(1);

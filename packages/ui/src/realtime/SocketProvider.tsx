@@ -94,7 +94,6 @@ export function SocketProvider({
       socketRef.current = null;
     };
   // Re-connect when the active token changes (owner entering/exiting a property)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.activeToken, session?.scope, serverUrl]);
 
   return (

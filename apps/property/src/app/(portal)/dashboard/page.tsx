@@ -297,7 +297,10 @@ export default function DashboardPage(): React.ReactElement {
     return entries
       .sort((a, b) => b.sortTime - a.sortTime)
       .slice(0, 6)
-      .map(({ sortTime, ...entry }) => entry);
+      .map(({ sortTime, ...entry }) => {
+        void sortTime;
+        return entry;
+      });
   }, [hkTasks, workOrders, arrivals, departures]);
 
   // ── Bottom quick-actions bar — built per-permission so each tile only

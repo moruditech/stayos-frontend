@@ -10,7 +10,7 @@ import { createPlatformUserSchema, updatePlatformUserSchema } from '@stayos/vali
 import type { CreatePlatformUserInput, UpdatePlatformUserInput } from '@stayos/validators';
 import { PageHeader, Panel, LoadingBlock, EmptyBlock, InlineError, applyServerErrors, useToast, ConfirmDialog, Icons } from '@stayos/ui';
 import { platformKeys } from '../lib/query-keys';
-import { formatDate, initialsOf, titleCase } from '../lib/format';
+import { formatDate, initialsOf } from '../lib/format';
 
 const ROLE_LABELS: Record<string, string> = {
   super_admin: 'Super Admin',
