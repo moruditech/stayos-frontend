@@ -146,7 +146,7 @@ export default function StaffSettingsPage(): React.ReactElement {
                 <td>{s.firstName} {s.lastName}</td>
                 <td>{s.email}</td>
                 <td><span data-role-badge>{s.role.replace(/_/g, ' ')}</span></td>
-                <td><StatusBadge status={s.status} /></td>
+                <td><StatusBadge status={s.isActive ? 'active' : 'inactive'} /></td>
                 <td>
                   <div data-action-cluster>
                     <Link href={`/settings/staff/${s._id}`} data-btn-ghost data-btn-sm>

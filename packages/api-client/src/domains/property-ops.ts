@@ -261,6 +261,9 @@ export interface TimeClockEntry {
   hoursWorked?: number | undefined;
   dayType?: 'weekday' | 'saturday' | 'sunday' | 'public_holiday' | undefined;
   overtimeHours: number;
+  // Set only when a manager clocked this entry in/out on the staff member's
+  // behalf — null for ordinary self-service clock in/out.
+  recordedBy?: { _id: string; firstName: string; lastName: string } | string | null;
   flaggedForReview: boolean;
   flagReason?: string | undefined;
 }
@@ -291,6 +294,12 @@ export const rosterApi = {
     client.post<TimeClockEntry>('/staff/timeclock/clock-in', input),
   clockOut: () =>
     client.post<TimeClockEntry>('/staff/timeclock/clock-out'),
+  // Manager-driven — for a staff member who isn't clocking themselves in
+  // (e.g. no app access on shift). Requires staff:roster:manage.
+  clockInStaff: (staffId: string) =>
+    client.post<TimeClockEntry>(`/staff/timeclock/${staffId}/clock-in`, { method: 'manual' }),
+  clockOutStaff: (staffId: string) =>
+    client.post<TimeClockEntry>(`/staff/timeclock/${staffId}/clock-out`),
   getTimeclockEntries: (params?: Record<string, unknown>) =>
     client.get<TimeClockEntry[]>('/staff/timeclock/entries', {
       params: params as Record<string, string | number | boolean | undefined>,
@@ -560,12 +569,6 @@ export const reportsApi = {
     client.get<Record<string, unknown>>('/reports/occupancy', {
       params: params as Record<string, string | number | boolean | undefined>,
     }),
-  // Room revenue, ADR and RevPAR for a period — excludes subscription/
-  // student payment types that getRevenue()'s total legitimately includes.
-  getRevPar: (params?: Record<string, unknown>) =>
-    client.get<Record<string, unknown>>('/reports/revpar', {
-      params: params as Record<string, string | number | boolean | undefined>,
-    }),
   getBookings: (params?: Record<string, unknown>) =>
     client.get<Record<string, unknown>>('/reports/bookings', {
       params: params as Record<string, string | number | boolean | undefined>,
@@ -816,7 +819,10 @@ export interface StaffMember {
   lastName: string;
   email: string;
   role: string;
-  status: string;
+  // PropertyStaff.model.js has isActive: Boolean — there is no status string
+  // field. (Previously typed as `status: string`, which meant every
+  // <StatusBadge status={s.status}/> crashed on undefined.)
+  isActive: boolean;
   phone?: string;
   grantedPermissions: string[];
   deniedPermissions: string[];
@@ -824,8 +830,12 @@ export interface StaffMember {
 }
 
 export const staffApi = {
-  list: () => client.get<StaffMember[]>('/properties/me/staff'),
-  create: (input: Partial<StaffMember> & { password: string }) =>
+  // limit=100 — the backend defaults to 20, which silently truncated staff
+  // pickers/directories on any property with more than 20 staff.
+  list: () => client.get<StaffMember[]>('/properties/me/staff', {
+    params: { limit: 100 } as Record<string, string | number | boolean | undefined>,
+  }),
+  create: (input: Partial<Omit<StaffMember, 'isActive'>> & { password: string; isActive?: boolean }) =>
     client.post<StaffMember>('/properties/me/staff', input),
   get: (id: string) => client.get<StaffMember>(`/properties/me/staff/${id}`),
   update: (id: string, input: Partial<StaffMember>) =>

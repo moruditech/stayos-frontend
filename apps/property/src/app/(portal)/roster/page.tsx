@@ -269,6 +269,7 @@ function RosterTab(): React.ReactElement {
 function TimeClockTab(): React.ReactElement {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [selectedStaffId, setSelectedStaffId] = useState('');
 
   const { data: entries, isLoading: entriesLoading } = useQuery({
     queryKey: rosterKeys.timeclockEntries(),
@@ -278,6 +279,12 @@ function TimeClockTab(): React.ReactElement {
   const { data: labourCost } = useQuery({
     queryKey: rosterKeys.labourCost(),
     queryFn: () => api.roster.getLabourCost(),
+  });
+
+  const { data: staff } = useQuery({
+    queryKey: staffKeys.list(),
+    queryFn: () => api.staff.list(),
+    staleTime: 120_000,
   });
 
   const clockInMutation = useMutation({
@@ -291,6 +298,28 @@ function TimeClockTab(): React.ReactElement {
 
   const clockOutMutation = useMutation({
     mutationFn: () => api.roster.clockOut(),
+    onSuccess: (entry) => {
+      void queryClient.invalidateQueries({ queryKey: rosterKeys.timeclockEntries() });
+      toast(`Clocked out — ${entry.hoursWorked ?? 0}h worked.`, 'success');
+    },
+    onError: (err: ApiError) => toast(err.message ?? 'Failed to clock out.', 'error'),
+  });
+
+  // Manager-driven — for a staff member who isn't clocking themselves in
+  // (e.g. no app access on shift). A separate action from the self-service
+  // buttons above: this always targets whoever is selected in the picker,
+  // never "yourself" implicitly.
+  const clockInStaffMutation = useMutation({
+    mutationFn: (staffId: string) => api.roster.clockInStaff(staffId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: rosterKeys.timeclockEntries() });
+      toast('Staff member clocked in.', 'success');
+    },
+    onError: (err: ApiError) => toast(err.message ?? 'Failed to clock in.', 'error'),
+  });
+
+  const clockOutStaffMutation = useMutation({
+    mutationFn: (staffId: string) => api.roster.clockOutStaff(staffId),
     onSuccess: (entry) => {
       void queryClient.invalidateQueries({ queryKey: rosterKeys.timeclockEntries() });
       toast(`Clocked out — ${entry.hoursWorked ?? 0}h worked.`, 'success');
@@ -312,6 +341,30 @@ function TimeClockTab(): React.ReactElement {
           {clockOutMutation.isPending ? 'Clocking out…' : 'Clock out'}
         </button>
       </div>
+
+      <RoleGate perm={PERMISSIONS.STAFF_ROSTER_MANAGE}>
+        <div data-section-header>
+          <h2>Clock in/out a staff member</h2>
+        </div>
+        <div data-form-row>
+          <select value={selectedStaffId} onChange={(e) => setSelectedStaffId(e.target.value)}>
+            <option value="">Select a staff member…</option>
+            {(staff ?? []).map((s) => (
+              <option key={s._id} value={s._id}>{s.firstName} {s.lastName} ({s.role.replace(/_/g, ' ')})</option>
+            ))}
+          </select>
+          <button type="button" data-btn-ghost data-btn-sm
+            disabled={!selectedStaffId || clockInStaffMutation.isPending}
+            onClick={() => clockInStaffMutation.mutate(selectedStaffId)}>
+            Clock in
+          </button>
+          <button type="button" data-btn-ghost data-btn-sm
+            disabled={!selectedStaffId || clockOutStaffMutation.isPending}
+            onClick={() => clockOutStaffMutation.mutate(selectedStaffId)}>
+            Clock out
+          </button>
+        </div>
+      </RoleGate>
 
       <RoleGate perm={PERMISSIONS.STAFF_MANAGE}>
         {labourCost && labourCost.length > 0 && (
@@ -377,7 +430,7 @@ function StaffTab(): React.ReactElement {
               <td>{s.firstName} {s.lastName}</td>
               <td>{s.role.replace(/_/g, ' ')}</td>
               <td>{s.email}</td>
-              <td><StatusBadge status={s.status} /></td>
+              <td><StatusBadge status={s.isActive ? 'active' : 'inactive'} /></td>
               <td>
                 <Link href={`/hr/profiles/${s._id}`} data-btn-ghost data-btn-sm>
                   HR record

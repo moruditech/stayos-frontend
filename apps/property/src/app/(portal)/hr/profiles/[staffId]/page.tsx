@@ -259,7 +259,7 @@ export default function HrProfilePage(): React.ReactElement {
           <h1>{name}</h1>
           {staffMember && <p data-page-subtitle>{staffMember.role.replace(/_/g, ' ')}</p>}
         </div>
-        {staffMember && <StatusBadge status={staffMember.status} />}
+        {staffMember && <StatusBadge status={staffMember.isActive ? 'active' : 'inactive'} />}
       </div>
 
       <div data-tab-bar role="tablist">

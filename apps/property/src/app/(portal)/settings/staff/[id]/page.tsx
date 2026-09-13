@@ -36,7 +36,7 @@ const editSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName:  z.string().min(1, 'Last name is required'),
   role:      z.string().min(1, 'Role is required'),
-  status:    z.enum(['active', 'suspended']),
+  isActive:  z.boolean(),
 });
 type EditInput = z.infer<typeof editSchema>;
 
@@ -67,7 +67,7 @@ function StaffDetailPageInner(): React.ReactElement {
       firstName: s.firstName,
       lastName:  s.lastName,
       role:      s.role,
-      status:    s.status as 'active' | 'suspended',
+      isActive:  s.isActive,
     });
     setEditing(true);
   }
@@ -131,7 +131,7 @@ function StaffDetailPageInner(): React.ReactElement {
           <Link href="/settings/staff" data-breadcrumb><Icons.ChevronLeft data-breadcrumb-icon aria-hidden="true" /> Staff accounts</Link>
           <h1>{staff.firstName} {staff.lastName}</h1>
         </div>
-        <StatusBadge status={staff.status} />
+        <StatusBadge status={staff.isActive ? 'active' : 'inactive'} />
       </div>
 
       <div data-tab-bar role="tablist">
@@ -181,12 +181,11 @@ function StaffDetailPageInner(): React.ReactElement {
                 </select>
                 <InlineError message={form.formState.errors.role?.message} />
               </div>
-              <div data-form-group>
-                <label htmlFor="sf-status">Status</label>
-                <select id="sf-status" {...form.register('status')}>
-                  <option value="active">Active</option>
-                  <option value="suspended">Suspended</option>
-                </select>
+              <div data-form-group data-form-checkbox>
+                <label htmlFor="sf-active">
+                  <input id="sf-active" type="checkbox" {...form.register('isActive')} />
+                  {' '}Active — can log in and access the portal
+                </label>
               </div>
               <div data-form-actions>
                 <button type="button" data-btn-ghost onClick={() => setEditing(false)}
@@ -201,7 +200,7 @@ function StaffDetailPageInner(): React.ReactElement {
               <ReadOnlyField label="Name" value={`${staff.firstName} ${staff.lastName}`} />
               <ReadOnlyField label="Email" value={staff.email} />
               <ReadOnlyField label="Role" value={staff.role.replace(/_/g, ' ')} />
-              <ReadOnlyField label="Status" value={<StatusBadge status={staff.status} />} />
+              <ReadOnlyField label="Status" value={<StatusBadge status={staff.isActive ? 'active' : 'inactive'} />} />
             </div>
           )}
         </section>

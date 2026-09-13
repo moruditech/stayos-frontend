@@ -115,17 +115,13 @@ export const NAV_CONFIG: NavGroup[] = [
     children: [
       {
         id: 'roster',
-        label: 'Roster & Time Clock',
+        label: 'Roster & HR',
         path: '/roster',
         icon: Icons.CalendarClock,
-        requiresPerm: [PERMISSIONS.STAFF_ROSTER_MANAGE, PERMISSIONS.STAFF_MANAGE],
-      },
-      {
-        id: 'hr',
-        label: 'HR',
-        path: '/hr',
-        icon: Icons.Users,
-        requiresPerm: [PERMISSIONS.STAFF_MANAGE, PERMISSIONS.HR_PROFILE_MANAGE],
+        // No requiresPerm — every staff member needs to reach this page to
+        // clock themselves in/out and see their own shifts. The manager-only
+        // actions inside (create shift, HR records, timesheet export) are
+        // gated individually via RoleGate, not at the nav level.
       },
       {
         id: 'chat',
