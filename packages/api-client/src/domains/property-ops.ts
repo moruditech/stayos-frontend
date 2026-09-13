@@ -592,6 +592,12 @@ export const reportsApi = {
     }),
   getNightAudit: (date: string) =>
     client.get<Record<string, unknown>>(`/reports/night-audit/${date}`),
+  // Room revenue, ADR and RevPAR for a period — excludes subscription/
+  // student payment types that getRevenue()'s total legitimately includes.
+  getRevPar: (params?: Record<string, unknown>) =>
+    client.get<Record<string, unknown>>('/reports/revpar', {
+      params: params as Record<string, string | number | boolean | undefined>,
+    }),
   export: (type: string, params?: Record<string, unknown>) =>
     client.get<{ url: string }>(`/reports/export/${type}`, {
       params: params as Record<string, string | number | boolean | undefined>,
