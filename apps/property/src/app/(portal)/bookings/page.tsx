@@ -143,8 +143,9 @@ function BookingsPageInner(): React.ReactElement {
           columns={columns}
           rows={bookings ?? []}
           rowKey={(b) => b._id}
-          pagination={bookingsResult?.meta}
-          onPageChange={(page) => setFilters((f) => ({ ...f, page }))}
+          {...(bookingsResult?.meta
+            ? { pagination: bookingsResult.meta, onPageChange: (page: number) => setFilters((f) => ({ ...f, page })) }
+            : {})}
         />
       )}
     </div>
