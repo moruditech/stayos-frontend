@@ -22,6 +22,15 @@ export const messagingApi = {
   getThread: (threadId: string) =>
     client.get<GuestThreadDTO>(`/messaging/threads/${threadId}`),
 
+  // POST /messaging/threads/start — get-or-create the conversation for a
+  // booking's guest. The entry point for "Chat with guest" buttons outside
+  // this module (e.g. the booking detail page) — only a bookingId is sent,
+  // never a customerId, since the guest is resolved server-side from the
+  // booking. Returns the same GuestThreadDTO shape as getThread(), so the
+  // caller can drop the result straight into the thread list/detail cache.
+  startThreadForBooking: (bookingId: string) =>
+    client.post<GuestThreadDTO>('/messaging/threads/start', { bookingId }),
+
   replyInApp: (threadId: string, input: { ciphertext: string; iv: string }) =>
     client.post<GuestThreadDTO>(`/messaging/threads/${threadId}/reply`, { channel: 'in_app', ...input }),
   replyWhatsapp: (threadId: string, body: string) =>

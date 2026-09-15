@@ -17,6 +17,13 @@ export interface Booking {
   folioId?: string | null;
   externalUid: string | null; // iCal import identifier
   externalFeedId: string | null;
+  // True only once the linked Customer has firstName, lastName, email, and
+  // phone all populated — see Booking.model.js#isEnriched and
+  // bookings.service.js#enrichGuest (PATCH /bookings/:id/guest). Defaults to
+  // false for every booking regardless of source, but only ever matters
+  // (gates self check-in — see kiosk.service.js) when externalFeedId is
+  // also set, i.e. a channel-imported (OTA/iCal) skeleton record.
+  isEnriched: boolean;
   // Present on the model but NOT enforced by PATCH /bookings/:id today —
   // verified directly against bookings.controller.js#updateBooking, which
   // is a raw findOneAndUpdate(filter, req.body) with no version check, no

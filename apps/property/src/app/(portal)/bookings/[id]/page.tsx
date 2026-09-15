@@ -169,6 +169,84 @@ function GuestRegisterCaptureForm({
   );
 }
 
+// "Enrich" form for a channel-imported (OTA/iCal) booking — see
+// bookings.service.js#enrichGuest. Left blank by default rather than
+// pre-filled from the current customer record: for an unenriched booking
+// that record is the tenant's shared iCal placeholder ("External Guest
+// (iCal)", a synthetic ical-import+... email), and resubmitting that back
+// unchanged would defeat the point of this form. Only pre-filled when the
+// booking already has its own dedicated, previously-enriched record.
+function EnrichGuestForm({
+  bookingId,
+  initial,
+  onSaved,
+}: {
+  bookingId: string;
+  initial: { firstName: string; lastName: string; email: string; phone: string };
+  onSaved: () => void;
+}): React.ReactElement {
+  const [firstName, setFirstName] = useState(initial.firstName);
+  const [lastName, setLastName] = useState(initial.lastName);
+  const [email, setEmail] = useState(initial.email);
+  const [phone, setPhone] = useState(initial.phone);
+  const [nationality, setNationality] = useState('');
+  const [error, setError] = useState<string | undefined>();
+
+  const enrichMutation = useMutation({
+    mutationFn: () =>
+      api.bookings.enrichGuest(bookingId, {
+        firstName, lastName, email, phone,
+        ...(nationality.trim() ? { nationality: nationality.trim() } : {}),
+      }),
+    onSuccess: () => onSaved(),
+    onError: (err: ApiError) => setError(err.message ?? 'Failed to save guest details.'),
+  });
+
+  return (
+    <form
+      data-form
+      onSubmit={(e) => {
+        e.preventDefault();
+        setError(undefined);
+        enrichMutation.mutate();
+      }}
+    >
+      <div data-form-row>
+        <div data-form-group>
+          <label htmlFor="eg-firstName">First name</label>
+          <input id="eg-firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+        </div>
+        <div data-form-group>
+          <label htmlFor="eg-lastName">Last name</label>
+          <input id="eg-lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+        </div>
+      </div>
+      <div data-form-group>
+        <label htmlFor="eg-email">Email</label>
+        <input id="eg-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+      </div>
+      <div data-form-row>
+        <div data-form-group>
+          <label htmlFor="eg-phone">Phone</label>
+          <input id="eg-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required />
+        </div>
+        <div data-form-group>
+          <label htmlFor="eg-nationality">Nationality (optional)</label>
+          <input id="eg-nationality" value={nationality} onChange={(e) => setNationality(e.target.value)} />
+        </div>
+      </div>
+
+      <InlineError message={error} />
+
+      <div data-form-actions>
+        <button type="submit" data-btn-primary disabled={enrichMutation.isPending}>
+          {enrichMutation.isPending ? 'Saving…' : 'Save guest details'}
+        </button>
+      </div>
+    </form>
+  );
+}
+
 export default function BookingDetailPage(): React.ReactElement {
   const params = useParams<{ id: string }>();
   const id = params.id;
@@ -179,6 +257,7 @@ export default function BookingDetailPage(): React.ReactElement {
   const [cancelReasonError, setCancelReasonError] = useState<string | undefined>();
   const [confirmNoShow, setConfirmNoShow] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [showEnrichModal, setShowEnrichModal] = useState(false);
 
   const { data: booking, isLoading } = useQuery({
     queryKey: bookingKeys.detail(id),
@@ -261,6 +340,11 @@ export default function BookingDetailPage(): React.ReactElement {
   const isCheckOutEligible = booking.status === 'checked_in';
   const hasRegisterEntry = Boolean(registerEntry);
   const f = folio as unknown as Record<string, unknown> | undefined;
+  // See bookings.service.js#enrichGuest — only channel-imported (OTA/iCal)
+  // bookings arrive as skeleton records with no real guest contact info, so
+  // "Add/Edit guest details" only makes sense for those.
+  const isOtaImported = Boolean(booking.externalFeedId);
+  const guestName = `${booking.customerId?.firstName ?? ''} ${booking.customerId?.lastName ?? ''}`.trim() || '—';
 
   return (
     <div data-page="booking-detail">
@@ -285,16 +369,24 @@ export default function BookingDetailPage(): React.ReactElement {
         <section data-detail-section>
           <h2>Stay details</h2>
           <div data-field-list>
-            <ReadOnlyField label="Guest" value={`${booking.customerId?.firstName ?? ''} ${booking.customerId?.lastName ?? ''}`.trim() || '—'} />
+            <ReadOnlyField label="Guest" value={guestName} />
             <ReadOnlyField label="Room" value={booking.roomId?.roomNumber ?? '—'} />
             <ReadOnlyField label="Check-in" value={fmt(booking.checkIn)} />
             <ReadOnlyField label="Check-out" value={fmt(booking.checkOut)} />
             <ReadOnlyField label="Guests" value={`${String(b['adults'] ?? 1)} adults${b['children'] ? `, ${String(b['children'])} children` : ''}`} />
             <ReadOnlyField label="Source" value={String(booking.source)} />
+            <ReadOnlyField label="Email" value={booking.customerId?.email || '—'} />
+            <ReadOnlyField label="Phone" value={booking.customerId?.phone || '—'} />
             {booking.externalUid && (
               <ReadOnlyField label="OTA source" value={String(b['otaSource'] ?? '—')} />
             )}
           </div>
+          {isOtaImported && !booking.isEnriched && (
+            <p data-notice data-notice-warning>
+              This booking was imported from a channel with no guest contact details.
+              Add the guest&apos;s real name, email, and phone before they arrive.
+            </p>
+          )}
         </section>
 
         <section data-detail-section>
@@ -375,25 +467,42 @@ export default function BookingDetailPage(): React.ReactElement {
       )}
 
       {/* Actions */}
-      <RoleGate perm={PERMISSIONS.BOOKING_MANAGE}>
-        <div data-action-bar>
-          {isCancellable && (
-            <button type="button" data-btn-ghost onClick={() => setConfirmCancel(true)}>
-              Cancel booking
-            </button>
-          )}
-          {booking.status === 'confirmed' && (
-            <button type="button" data-btn-ghost onClick={() => setConfirmNoShow(true)}>
-              Mark no-show
-            </button>
-          )}
-          {['confirmed', 'pending_confirmation'].includes(booking.status) && (
-            <Link href={`/bookings/${id}/edit`} data-btn-ghost>
-              Edit booking
-            </Link>
-          )}
-        </div>
-      </RoleGate>
+      <div data-action-bar>
+        <RoleGate perm={PERMISSIONS.BOOKING_MANAGE}>
+          <>
+            {isCancellable && (
+              <button type="button" data-btn-danger onClick={() => setConfirmCancel(true)}>
+                <Icons.XCircle size={15} aria-hidden="true" />
+                Cancel booking
+              </button>
+            )}
+            {booking.status === 'confirmed' && (
+              <button type="button" data-btn-danger onClick={() => setConfirmNoShow(true)}>
+                <Icons.UserMinus size={15} aria-hidden="true" />
+                Mark no-show
+              </button>
+            )}
+            {['confirmed', 'pending_confirmation'].includes(booking.status) && (
+              <Link href={`/bookings/${id}/edit`} data-btn-secondary>
+                <Icons.Pencil size={15} aria-hidden="true" />
+                Edit booking
+              </Link>
+            )}
+            {isOtaImported && (
+              <button type="button" data-btn-secondary onClick={() => setShowEnrichModal(true)}>
+                <Icons.UserPlus size={15} aria-hidden="true" />
+                {booking.isEnriched ? 'Edit guest details' : 'Add guest details'}
+              </button>
+            )}
+          </>
+        </RoleGate>
+        <RoleGate perm={PERMISSIONS.MESSAGING_MANAGE}>
+          <Link href={`/guest-messages?bookingId=${id}`} data-btn-secondary>
+            <Icons.MessageCircle size={15} aria-hidden="true" />
+            Chat with guest
+          </Link>
+        </RoleGate>
+      </div>
 
       <Modal
         open={confirmCancel}
@@ -470,6 +579,34 @@ export default function BookingDetailPage(): React.ReactElement {
           onCaptured={() => {
             setShowRegisterModal(false);
             void queryClient.invalidateQueries({ queryKey: ['guestregister', 'booking', id] });
+          }}
+        />
+      </Modal>
+
+      <Modal
+        open={showEnrichModal}
+        onClose={() => setShowEnrichModal(false)}
+        title={booking.isEnriched ? 'Edit guest details' : 'Add guest details'}
+      >
+        <EnrichGuestForm
+          bookingId={id}
+          initial={
+            booking.isEnriched
+              ? {
+                  firstName: booking.customerId?.firstName ?? '',
+                  lastName:  booking.customerId?.lastName ?? '',
+                  email:     booking.customerId?.email ?? '',
+                  phone:     booking.customerId?.phone ?? '',
+                }
+              : { firstName: '', lastName: '', email: '', phone: '' }
+          }
+          onSaved={() => {
+            setShowEnrichModal(false);
+            // .all invalidates every ['bookings', ...] query — the list page
+            // and dashboard arrival/departure cards should show the real
+            // guest name next time they're viewed too, not just this page.
+            void queryClient.invalidateQueries({ queryKey: bookingKeys.all });
+            toast('Guest details saved.', 'success');
           }}
         />
       </Modal>

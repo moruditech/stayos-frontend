@@ -25,6 +25,7 @@ export {
   publicBookingSchema,
   updateBookingSchema,
   rescheduleBookingSchema,
+  enrichGuestSchema,
   bookingFiltersSchema,
 } from './booking';
 export type {
@@ -32,6 +33,7 @@ export type {
   PublicBookingInput,
   UpdateBookingInput,
   RescheduleBookingInput,
+  EnrichGuestInput,
   BookingFilters,
 } from './booking';
 

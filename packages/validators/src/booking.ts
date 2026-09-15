@@ -121,6 +121,20 @@ export const rescheduleBookingSchema = z
   });
 export type RescheduleBookingInput = z.infer<typeof rescheduleBookingSchema>;
 
+// ── PATCH /bookings/:id/guest ──────────────────────────────────────────────────
+// "Enrich" a channel-imported (OTA/iCal) skeleton booking with real guest
+// identity — mirrors backend enrichGuestSchema exactly. All four required
+// fields together: this is the only endpoint that flips isEnriched, and
+// that flag's contract is "all four populated", not "at least one".
+export const enrichGuestSchema = z.object({
+  firstName: z.string().trim().min(1, 'First name is required').max(120),
+  lastName: z.string().trim().min(1, 'Last name is required').max(120),
+  email: z.string().trim().toLowerCase().email('Enter a valid email address'),
+  phone: z.string().trim().min(3, 'Enter a valid phone number').max(30),
+  nationality: z.string().trim().max(100).optional(),
+});
+export type EnrichGuestInput = z.infer<typeof enrichGuestSchema>;
+
 // ── Booking list filters ──────────────────────────────────────────────────────
 export const bookingFiltersSchema = z.object({
   status: z.string().optional(),

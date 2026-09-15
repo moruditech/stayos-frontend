@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useSearchParams } from 'next/navigation';
 import { api, ApiError } from '@stayos/api-client';
 import type { GuestThreadDTO, GuestThreadWrappedKeyDTO } from '@stayos/api-client';
 import { SkeletonLoader, EmptyState, useToast, useSocketEvent, Icons } from '@stayos/ui';
@@ -24,10 +25,11 @@ function customerLabel(thread: GuestThreadDTO): string {
   return 'Guest';
 }
 
-export default function GuestMessagesPage(): React.ReactElement {
+function GuestMessagesPageInner(): React.ReactElement {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const session = useSession();
+  const searchParams = useSearchParams();
 
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<'open' | 'assigned' | 'resolved' | undefined>(undefined);
@@ -36,6 +38,10 @@ export default function GuestMessagesPage(): React.ReactElement {
   const [identityReady, setIdentityReady] = useState(false);
   const [keyState, setKeyState] = useState<Record<string, KeyState>>({});
   const [decrypted, setDecrypted] = useState<Record<string, MessagePayload | null>>({});
+  // Guards the deep-link effect below so it only ever acts once per page
+  // load, off whatever the URL had on arrival — not on every re-render a
+  // later, unrelated searchParams change might cause.
+  const [resolvedLinkParam, setResolvedLinkParam] = useState(false);
 
   const chatCrypto = useMemo(
     () => (session ? getChatCrypto(session.tenantId ?? '', session.userId) : null),
@@ -66,6 +72,35 @@ export default function GuestMessagesPage(): React.ReactElement {
     queryFn: () => api.messaging.listThreads({ status: statusFilter }),
   });
   const threads = threadsResult?.data ?? [];
+
+  // ── Deep-link entry point ─────────────────────────────────────────────────
+  // Other pages (currently just the booking detail page's "Chat with guest"
+  // button) link here as /guest-messages?bookingId=... rather than looking
+  // up a thread id themselves — the get-or-create call happens here, once,
+  // right before the conversation opens. resolvedLinkParam keeps it to a
+  // single call per page load rather than re-firing on every render.
+  const startThreadMutation = useMutation({
+    mutationFn: (bookingId: string) => api.messaging.startThreadForBooking(bookingId),
+    onSuccess: (thread) => {
+      // Seed the cache so the thread pane renders immediately instead of
+      // showing a loading state while getThread's own query below re-fetches.
+      queryClient.setQueryData(guestMessagingKeys.thread(thread._id), thread);
+      setActiveThreadId(thread._id);
+      void queryClient.invalidateQueries({ queryKey: ['messaging', 'threads'] });
+    },
+    onError: (err: unknown) =>
+      toast(err instanceof ApiError ? err.message : 'Could not open this conversation.', 'error'),
+  });
+
+  useEffect(() => {
+    if (resolvedLinkParam) return;
+    const bookingIdParam = searchParams.get('bookingId');
+    if (bookingIdParam) {
+      setResolvedLinkParam(true);
+      startThreadMutation.mutate(bookingIdParam);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, resolvedLinkParam]);
 
   const { data: activeThread, isLoading: threadLoading } = useQuery({
     queryKey: guestMessagingKeys.thread(activeThreadId ?? ''),
@@ -288,7 +323,7 @@ export default function GuestMessagesPage(): React.ReactElement {
       <section data-chat-main>
         {!activeThreadId || !activeThread ? (
           <div data-chat-empty>
-            {threadLoading ? <SkeletonLoader rows={4} /> : <EmptyState title="Select a conversation." />}
+            {threadLoading || startThreadMutation.isPending ? <SkeletonLoader rows={4} /> : <EmptyState title="Select a conversation." />}
           </div>
         ) : (
           <>
@@ -395,5 +430,13 @@ export default function GuestMessagesPage(): React.ReactElement {
         )}
       </section>
     </div>
+  );
+}
+
+export default function GuestMessagesPage(): React.ReactElement {
+  return (
+    <React.Suspense fallback={<></>}>
+      <GuestMessagesPageInner />
+    </React.Suspense>
   );
 }

@@ -29,10 +29,11 @@ function BookingsPageInner(): React.ReactElement {
     Object.entries(filters).filter(([, v]) => v !== '')
   ) as Record<string, unknown>;
 
-  const { data: bookings, isLoading } = useQuery({
+  const { data: bookingsResult, isLoading } = useQuery({
     queryKey: bookingKeys.list(cleanFilters),
     queryFn: () => api.bookings.list(cleanFilters as Parameters<typeof api.bookings.list>[0]),
   });
+  const bookings = bookingsResult?.data;
 
   // Real-time: invalidate list on any booking change
   useSocketEvent(SOCKET_EVENTS.BOOKING_CREATED, () => {
@@ -138,7 +139,13 @@ function BookingsPageInner(): React.ReactElement {
           action={<Link href="/bookings/new" data-btn-primary>New booking</Link>}
         />
       ) : (
-        <DataTable columns={columns} rows={bookings ?? []} rowKey={(b) => b._id} />
+        <DataTable
+          columns={columns}
+          rows={bookings ?? []}
+          rowKey={(b) => b._id}
+          pagination={bookingsResult?.meta}
+          onPageChange={(page) => setFilters((f) => ({ ...f, page }))}
+        />
       )}
     </div>
   );

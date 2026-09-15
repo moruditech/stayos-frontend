@@ -5,6 +5,7 @@ import type {
   PublicBookingInput,
   UpdateBookingInput,
   RescheduleBookingInput,
+  EnrichGuestInput,
   BookingFilters,
 } from '@stayos/validators';
 
@@ -22,8 +23,13 @@ export interface GuestSearchResult {
 export const bookingsApi = {
   // GET /bookings — staff list (Property Operations Portal). customerId and
   // roomId come back populated — see bookings.service.js#listBookings.
+  // Returns { data, meta } (not a bare array) so the list page can drive
+  // @stayos/ui's DataTable/Pagination off the real server-side page count
+  // instead of silently only ever showing page 1. If you need the plain
+  // array elsewhere (e.g. a dashboard "today" stat), read `.data` off the
+  // result — see apps/property dashboard page for the pattern.
   list: (filters?: BookingFilters) =>
-    client.get<PopulatedBooking[]>('/bookings', { params: filters as Record<string, string | number | boolean | undefined> }),
+    client.getPaginated<PopulatedBooking>('/bookings', { params: filters as Record<string, string | number | boolean | undefined> }),
 
   // GET /bookings/guests — existing-guest lookup for the "existing guest"
   // path of staff booking creation. Searches Customer by name/email; this is
@@ -46,6 +52,15 @@ export const bookingsApi = {
   // checkIn/checkOut/roomId changes go through reschedule() below.
   update: (id: string, input: UpdateBookingInput) =>
     client.patch<Booking>(`/bookings/${id}`, input),
+
+  // PATCH /bookings/:id/guest — "enrich" a channel-imported (OTA/iCal)
+  // booking with real guest identity. Only valid while booking.externalFeedId
+  // is set (a skeleton record from a channel sync) — see
+  // bookings.service.js#enrichGuest. Returns the full populated booking, same
+  // shape as get(), so the detail page can drop the result straight into its
+  // query cache.
+  enrichGuest: (id: string, input: EnrichGuestInput) =>
+    client.patch<PopulatedBooking>(`/bookings/${id}/guest`, input),
 
   // PATCH /bookings/:id/reschedule — date/room changes with conflict re-check
   reschedule: (id: string, input: RescheduleBookingInput) =>
