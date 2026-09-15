@@ -54,16 +54,20 @@ export function AreaLineChart({
           <circle key={i} cx={p.x} cy={p.y} r="2.5" fill="var(--color-primary)" />
         ))}
       </svg>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
+      <div data-chart-axis-row>
         {data.map((d, i) => (
           // Skip labels in the middle on dense series so they don't collide
-          <span key={i} style={{ fontSize: 11, color: 'var(--color-text-muted)', visibility: data.length > 10 && i % Math.ceil(data.length / 8) !== 0 ? 'hidden' : 'visible' }}>
+          <span
+            key={i}
+            data-chart-axis-label
+            data-hidden={data.length > 10 && i % Math.ceil(data.length / 8) !== 0 ? 'true' : undefined}
+          >
             {d.label}
           </span>
         ))}
       </div>
       {formatValue ? (
-        <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 4 }}>
+        <div data-chart-footnote>
           Range: {formatValue(min)} – {formatValue(max)}
         </div>
       ) : null}
@@ -127,8 +131,8 @@ export function DonutChart({
   let offsetAcc = 0;
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
-      <div style={{ position: 'relative', width: 150, height: 150, flex: 'none' }}>
+    <div data-donut-wrap>
+      <div data-donut-frame>
         <svg width="150" height="150" viewBox="0 0 150 150">
           <g transform="translate(75,75) rotate(-90)">
             <circle r={radius} fill="none" stroke="var(--color-bg-sunk)" strokeWidth={stroke} />
@@ -153,20 +157,23 @@ export function DonutChart({
             })}
           </g>
         </svg>
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div data-donut-overlay>
           <div data-donut-center>
             <span data-donut-center-value>{centerValue}</span>
             <span data-donut-center-label>{centerLabel}</span>
           </div>
         </div>
       </div>
-      <div data-chart-legend style={{ marginTop: 0, flexDirection: 'column', gap: 10 }}>
+      <div data-chart-legend>
         {data.map((d, i) => (
           <div key={i} data-chart-legend-item>
-            <span data-chart-legend-dot style={{ background: d.color }} />
-            {d.label}
-            <span data-chart-legend-value>
-              {d.value} ({total ? Math.round((d.value / total) * 1000) / 10 : 0}%)
+            <svg data-chart-legend-dot width="9" height="9" viewBox="0 0 9 9" aria-hidden="true">
+              <circle cx="4.5" cy="4.5" r="4.5" fill={d.color} />
+            </svg>
+            <span data-chart-legend-label>{d.label}</span>
+            <span data-chart-legend-figures>
+              <span data-chart-legend-count>{d.value}</span>
+              <span data-chart-legend-percent>{total ? Math.round((d.value / total) * 1000) / 10 : 0}%</span>
             </span>
           </div>
         ))}

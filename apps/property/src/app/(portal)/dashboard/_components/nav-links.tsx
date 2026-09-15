@@ -26,6 +26,7 @@ export function LinkArrowTo({ href, children }: { href: string; children: React.
 
 export interface QuickActionLinkItem {
   icon: LucideIcon;
+  tone?: 'green' | 'amber' | 'purple' | 'teal' | 'blue' | 'rose' | undefined;
   title: string;
   description: string;
   href: string;
@@ -36,7 +37,7 @@ export function QuickActionsBarLinks({ actions }: { actions: QuickActionLinkItem
     <div data-quick-actions>
       {actions.map((action) => (
         <Link key={action.href} href={action.href} data-quick-action>
-          <div data-quick-action-icon>
+          <div data-quick-action-icon data-tone={action.tone}>
             <action.icon size={18} />
           </div>
           <div>

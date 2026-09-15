@@ -111,7 +111,7 @@ const PRIORITY_TONE: Record<string, AlertEntry['tone']> = {
 
 export default function DashboardPage(): React.ReactElement {
   const queryClient = useQueryClient();
-  const { todayIso, monthStart, monthEnd } = useDateRanges();
+  const { now, todayIso, monthStart, monthEnd } = useDateRanges();
 
   // ── Occupancy — report:read ───────────────────────────────────────────────
   const canReadReports = useHasPerm(PERMISSIONS.REPORT_READ);
@@ -266,6 +266,7 @@ export default function DashboardPage(): React.ReactElement {
         const when = t.completedAt ?? t.updatedAt;
         entries.push({
           icon: Icons.Sparkles,
+          tone: 'green',
           title: `Room ${roomLabel ?? '—'} housekeeping ${t.status === 'inspected' ? 'inspected' : 'marked done'}`,
           meta: t.type.replace(/_/g, ' '),
           time: timeAgo(when),
@@ -276,6 +277,7 @@ export default function DashboardPage(): React.ReactElement {
     (workOrders ?? []).forEach((w) => {
       entries.push({
         icon: Icons.Wrench,
+        tone: 'rose',
         title: w.title,
         meta: `Work order ${w.status.replace(/_/g, ' ')}`,
         time: timeAgo(w.updatedAt),
@@ -287,6 +289,7 @@ export default function DashboardPage(): React.ReactElement {
       const guest = `${b.customerId?.firstName ?? ''} ${b.customerId?.lastName ?? ''}`.trim() || 'Guest';
       entries.push({
         icon: Icons.CalendarClock,
+        tone: 'blue',
         title: `Booking — ${guest}`,
         meta: `Room ${b.roomId.roomNumber}`,
         time: timeAgo(b.createdAt),
@@ -308,12 +311,14 @@ export default function DashboardPage(): React.ReactElement {
   const quickActions: QuickActionLinkItem[] = [
     {
       icon: Icons.ArrowLeftRight,
+      tone: 'blue',
       title: 'Shift handover',
       description: 'Post or read your department handover note',
       href: '/chat',
     },
     {
       icon: Icons.MessageSquare,
+      tone: 'purple',
       title: 'Unread messages',
       description: unreadCount > 0 ? `You have ${formatNumber(unreadCount)} unread messages` : 'No unread messages',
       href: '/chat',
@@ -322,6 +327,7 @@ export default function DashboardPage(): React.ReactElement {
       ? [
           {
             icon: Icons.AlertTriangle,
+            tone: 'amber' as const,
             title: 'Low stock alert',
             description: `${formatNumber((lowStock ?? []).length)} items are running low`,
             href: '/procurement/stock-items',
@@ -332,6 +338,7 @@ export default function DashboardPage(): React.ReactElement {
       ? [
           {
             icon: Icons.FileCheck2,
+            tone: 'teal' as const,
             title: 'Night audit',
             description: nightAudit ? 'Completed for today' : 'Not yet completed',
             href: '/accounting/night-audit',
@@ -344,9 +351,21 @@ export default function DashboardPage(): React.ReactElement {
     occupancyLoading && statusBoardLoading && arrivalsLoading && departuresLoading && revenueLoading;
   if (isInitialLoading) return <LoadingBlock rows={6} />;
 
+  const todayLabel = now.toLocaleDateString('en-ZA', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+
   return (
     <div data-page="dashboard">
-      <PageHeader title="Home" subtitle="Today's overview" />
+      <PageHeader
+        title="Home"
+        subtitle="Today's overview"
+        actions={
+          <div data-date-pill>
+            <Icons.Calendar />
+            {todayLabel}
+            <Icons.ChevronDown />
+          </div>
+        }
+      />
 
       {/* ── Key metrics ────────────────────────────────────────────────── */}
       <div data-stat-grid>
@@ -411,7 +430,7 @@ export default function DashboardPage(): React.ReactElement {
       {/* ── Row 2: room status / upcoming bookings / housekeeping ────────── */}
       <div data-dashboard-grid-3>
         <RoleGate perm={PERMISSIONS.ROOM_READ}>
-          <Panel title="Room status overview" headerActions={<LinkArrowTo href="/rooms">View room status board</LinkArrowTo>}>
+          <Panel icon={Icons.Bed} title="Room status overview" headerActions={<LinkArrowTo href="/rooms">View room status board</LinkArrowTo>}>
             {statusBoardLoading ? (
               <LoadingBlock rows={3} />
             ) : (
@@ -431,7 +450,7 @@ export default function DashboardPage(): React.ReactElement {
         </RoleGate>
 
         <RoleGate perm={PERMISSIONS.BOOKING_READ}>
-          <Panel title="Upcoming bookings" headerActions={<LinkArrowTo href="/bookings">View all</LinkArrowTo>}>
+          <Panel icon={Icons.Calendar} title="Upcoming bookings" headerActions={<LinkArrowTo href="/bookings">View all</LinkArrowTo>}>
             {!upcomingBookings.length ? (
               <p data-empty-note>No arrivals today.</p>
             ) : (
@@ -456,19 +475,19 @@ export default function DashboardPage(): React.ReactElement {
         </RoleGate>
 
         <RoleGate perm={PERMISSIONS.HOUSEKEEPING_TASK_READ}>
-          <Panel title="Housekeeping tasks" headerActions={<LinkArrowTo href="/housekeeping">View all</LinkArrowTo>}>
+          <Panel icon={Icons.Users} title="Housekeeping tasks" headerActions={<LinkArrowTo href="/housekeeping">View all</LinkArrowTo>}>
             {hkLoading ? (
               <LoadingBlock rows={4} />
             ) : (
               <div data-insight-list>
                 {[
-                  { icon: Icons.Clock, label: 'Pending', value: hkBuckets.pending },
-                  { icon: Icons.Sparkles, label: 'In Progress', value: hkBuckets.inProgress },
-                  { icon: Icons.Eye, label: 'Ready for Inspection', value: hkBuckets.readyForInspection },
-                  { icon: Icons.CheckCircle2, label: 'Completed', value: hkBuckets.completed },
+                  { icon: Icons.Clock, tone: 'amber' as const, label: 'Pending', value: hkBuckets.pending },
+                  { icon: Icons.Sparkles, tone: 'blue' as const, label: 'In Progress', value: hkBuckets.inProgress },
+                  { icon: Icons.Eye, tone: 'teal' as const, label: 'Ready for Inspection', value: hkBuckets.readyForInspection },
+                  { icon: Icons.CheckCircle2, tone: 'green' as const, label: 'Completed', value: hkBuckets.completed },
                 ].map((row) => (
                   <div key={row.label} data-insight-row>
-                    <div data-insight-icon>
+                    <div data-insight-icon data-tone={row.tone}>
                       <row.icon size={15} />
                     </div>
                     <span data-insight-label>{row.label}</span>
@@ -486,7 +505,7 @@ export default function DashboardPage(): React.ReactElement {
       {/* ── Row 3: revenue overview / maintenance / recent activity ──────── */}
       <div data-dashboard-grid-3>
         <RoleGate perm={PERMISSIONS.REPORT_REVENUE_READ}>
-          <Panel title="Revenue overview (MTD)" headerActions={<LinkArrowTo href="/reports/revenue">View report</LinkArrowTo>}>
+          <Panel icon={Icons.TrendingUp} title="Revenue overview (MTD)" headerActions={<LinkArrowTo href="/reports/revenue">View report</LinkArrowTo>}>
             {revenueLoading || revparLoading ? (
               <LoadingBlock rows={4} />
             ) : (
@@ -518,7 +537,7 @@ export default function DashboardPage(): React.ReactElement {
         </RoleGate>
 
         <RoleGate perm={PERMISSIONS.MAINTENANCE_TASK_READ}>
-          <Panel title="Maintenance overview" headerActions={<LinkArrowTo href="/maintenance/work-orders">View all</LinkArrowTo>}>
+          <Panel icon={Icons.Wrench} title="Maintenance overview" headerActions={<LinkArrowTo href="/maintenance/work-orders">View all</LinkArrowTo>}>
             {woLoading ? (
               <LoadingBlock rows={3} />
             ) : (
@@ -537,7 +556,7 @@ export default function DashboardPage(): React.ReactElement {
           </Panel>
         </RoleGate>
 
-        <Panel title="Recent activity">
+        <Panel icon={Icons.Clock} title="Recent activity">
           <ActivityFeed items={recentActivity} />
         </Panel>
       </div>

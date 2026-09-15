@@ -67,6 +67,7 @@ export function StatCard({
 // ── Panel ───────────────────────────────────────────────────────────────────
 
 export function Panel({
+  icon: IconCmp,
   title,
   description,
   headerActions,
@@ -74,6 +75,7 @@ export function Panel({
   padded = true,
   tightBody = false,
 }: {
+  icon?: LucideIcon | undefined;
   title?: string | undefined;
   description?: string | undefined;
   headerActions?: React.ReactNode;
@@ -85,9 +87,16 @@ export function Panel({
     <section data-panel>
       {title ? (
         <div data-panel-header>
-          <div data-panel-title-group>
-            <h2 data-section-title>{title}</h2>
-            {description ? <span data-panel-desc>{description}</span> : null}
+          <div data-panel-title-row>
+            {IconCmp ? (
+              <span data-panel-icon>
+                <IconCmp size={16} />
+              </span>
+            ) : null}
+            <div data-panel-title-group>
+              <h2 data-section-title>{title}</h2>
+              {description ? <span data-panel-desc>{description}</span> : null}
+            </div>
           </div>
           {headerActions}
         </div>
@@ -135,6 +144,7 @@ export function InsightList({
 
 export interface ActivityEntry {
   icon: LucideIcon;
+  tone?: StatTone | undefined;
   title: string;
   meta?: string | undefined;
   time: string;
@@ -152,7 +162,7 @@ export function ActivityFeed({ items, emptyLabel = 'No recent activity' }: { ite
     <div data-activity-list>
       {items.map((item, i) => (
         <div key={i} data-activity-item>
-          <div data-activity-icon>
+          <div data-activity-icon data-tone={item.tone}>
             <item.icon size={15} />
           </div>
           <div data-activity-body>
@@ -180,7 +190,7 @@ export function AlertList({ items, emptyLabel = 'Nothing needs your attention ri
   if (items.length === 0) {
     return (
       <div data-empty-state>
-        <Icons.CheckCircle2 size={22} style={{ color: 'var(--color-success)' }} />
+        <Icons.CheckCircle2 size={22} data-empty-state-icon-success />
         <div data-empty-state-description>{emptyLabel}</div>
       </div>
     );
