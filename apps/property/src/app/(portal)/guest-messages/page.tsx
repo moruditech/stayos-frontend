@@ -99,7 +99,6 @@ function GuestMessagesPageInner(): React.ReactElement {
       setResolvedLinkParam(true);
       startThreadMutation.mutate(bookingIdParam);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, resolvedLinkParam]);
 
   const { data: activeThread, isLoading: threadLoading } = useQuery({
