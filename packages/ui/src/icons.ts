@@ -144,6 +144,9 @@ export {
   Megaphone,
   Inbox,
   Archive,
+  CalendarDays,
+  BedDouble,
+  Key,
 } from 'lucide-react';
 
 export type { LucideIcon, LucideProps } from 'lucide-react';
