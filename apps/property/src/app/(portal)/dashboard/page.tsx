@@ -1,16 +1,23 @@
 'use client';
 
 import React from 'react';
-import './dashboard.css';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { api } from '@stayos/api-client';
+import { api, ApiError } from '@stayos/api-client';
 import {
+  PageHeader,
+  StatCard,
   Panel,
+  StatusBadge,
   Icons,
+  ActivityFeed,
+  AlertList,
   DonutChart,
+  AreaLineChart,
   RoleGate,
   LoadingBlock,
   useSocketEvent,
+  type ActivityEntry,
+  type AlertEntry,
 } from '@stayos/ui';
 import { PERMISSIONS, SOCKET_EVENTS } from '@stayos/constants';
 import { useSession, hasAnyPermission } from '@stayos/auth';
@@ -20,11 +27,15 @@ import {
   housekeepingKeys,
   maintenanceKeys,
   reportKeys,
+  chatKeys,
+  procurementKeys,
 } from '@/lib/query-keys';
-import { formatZAR, formatNumber } from '@/lib/format';
-import Link from 'next/link';
+import { formatZAR, formatNumber, formatTime, timeAgo } from '@/lib/format';
+import { LinkArrowTo, QuickActionsBarLinks, type QuickActionLinkItem } from './_components/nav-links';
 
-// ── Helpers ────────────────────────────────────────────────────────────────
+// ── Date helpers ───────────────────────────────────────────────────────────
+// Local (not UTC) date parts — toISOString() would roll back to the previous
+// day for the first two hours after midnight in SAST (UTC+2).
 function localDateStr(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -32,541 +43,520 @@ function localDateStr(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-function formatDashboardDate(d: Date): string {
-  return d.toLocaleDateString('en-ZA', {
-    weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
-  });
-}
-
-function formatActivityTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString('en-ZA', {
-    hour: '2-digit', minute: '2-digit', hour12: false,
-  });
-}
-
 function useDateRanges() {
   return React.useMemo(() => {
     const now = new Date();
     const todayIso = localDateStr(now);
-    const sevenDaysLater = new Date(now);
-    sevenDaysLater.setDate(now.getDate() + 7);
-    const sevenDaysIso = localDateStr(sevenDaysLater);
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const monthEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
-    return { now, todayIso, sevenDaysIso, monthStart, monthEnd };
+    return { now, todayIso, monthStart, monthEnd };
   }, []);
 }
 
-function useHasPerm(perm?: string | string[] | undefined): boolean {
+// ── Permission helper ───────────────────────────────────────────────────────
+// Same session.permissions RoleGate reads — used to keep queries from firing
+// (and failing with 403s) for panels the current user can never see.
+function useHasPerm(perm?: string | string[]): boolean {
   const session = useSession();
   if (!session) return false;
   if (!perm) return true;
   return hasAnyPermission(session.permissions, Array.isArray(perm) ? perm : [perm]);
 }
 
+// ── Room status bucketing ───────────────────────────────────────────────────
+// Room.model.js has 8 raw statuses; this dashboard shows the 5 buckets staff
+// actually think in day-to-day. maintenance joins out_of_order (both mean
+// "can't be sold right now due to a physical issue"); dirty/cleaning/
+// inspection join into "Vacant (Dirty)" (not yet ready to sell).
 function bucketRoomStatus(grouped: Record<string, unknown[]> | undefined) {
   const count = (key: string) => grouped?.[key]?.length ?? 0;
   return {
-    occupied:      count('occupied'),
-    vacantClean:   count('available'),
-    vacantDirty:   count('dirty') + count('cleaning') + count('inspection'),
-    outOfOrder:    count('out_of_order') + count('maintenance'),
+    occupied: count('occupied'),
+    vacantClean: count('available'),
+    vacantDirty: count('dirty') + count('cleaning') + count('inspection'),
+    outOfOrder: count('out_of_order') + count('maintenance'),
+    blocked: count('blocked'),
   };
 }
 
+// ── Housekeeping task bucketing ─────────────────────────────────────────────
+// HousekeepingTask.model.js's real statuses are pending/assigned/in_progress/
+// completed/inspected/re_clean — 'completed' means the cleaner is done and
+// it's awaiting supervisor sign-off ("Ready for Inspection" here); 'inspected'
+// is the fully-closed-out state ("Completed" here).
 interface HkTaskLike {
   status: string;
+  type: string;
   roomId: { roomNumber: string } | string;
-  completedAt?: string | undefined;
+  completedAt?: string;
   updatedAt: string;
 }
-
 function bucketHousekeeping(tasks: HkTaskLike[] | undefined) {
   const list = tasks ?? [];
   return {
-    pending:            list.filter((t) => t.status === 'pending' || t.status === 'assigned').length,
-    inProgress:         list.filter((t) => t.status === 'in_progress' || t.status === 're_clean').length,
+    pending: list.filter((t) => t.status === 'pending' || t.status === 'assigned').length,
+    inProgress: list.filter((t) => t.status === 'in_progress' || t.status === 're_clean').length,
     readyForInspection: list.filter((t) => t.status === 'completed').length,
-    completed:          list.filter((t) => t.status === 'inspected').length,
+    completed: list.filter((t) => t.status === 'inspected').length,
   };
 }
 
-// ── Sub-components ─────────────────────────────────────────────────────────
-function ViewAllLink({ href, label = 'View all' }: { href: string; label?: string | undefined }) {
-  return (
-    <Link href={href} data-view-all-link>
-      {label} <Icons.ArrowRight size={14} />
-    </Link>
-  );
-}
+const PRIORITY_RANK: Record<string, number> = { critical: 0, high: 1, normal: 2, low: 3 };
+const PRIORITY_TONE: Record<string, AlertEntry['tone']> = {
+  critical: 'danger',
+  high: 'danger',
+  normal: 'warning',
+  low: 'info',
+};
 
-function SectionRow({ icon, iconBg, iconColor, title, subtitle, value, href }: {
-  icon: React.ReactNode;
-  iconBg: string;
-  iconColor: string;
-  title: string;
-  subtitle: string;
-  value: string | number;
-  href: string;
-}) {
-  return (
-    <Link href={href} data-section-row>
-      <div data-section-row-icon style={{ background: iconBg, color: iconColor }}>
-        {icon}
-      </div>
-      <div data-section-row-body>
-        <div data-section-row-title>{title}</div>
-        <div data-section-row-subtitle>{subtitle}</div>
-      </div>
-      <div data-section-row-end>
-        <span data-section-row-count>{value}</span>
-        <Icons.ChevronRight size={16} />
-      </div>
-    </Link>
-  );
-}
-
-function HkRow({ icon, iconBg, iconColor, label, value, href }: {
-  icon: React.ReactNode;
-  iconBg: string;
-  iconColor: string;
-  label: string;
-  value: number;
-  href: string;
-}) {
-  return (
-    <Link href={href} data-section-row>
-      <div data-section-row-icon style={{ background: iconBg, color: iconColor }}>
-        {icon}
-      </div>
-      <div data-section-row-body>
-        <div data-section-row-title>{label}</div>
-      </div>
-      <div data-section-row-end>
-        <span data-section-row-count>{value}</span>
-        <Icons.ChevronRight size={16} />
-      </div>
-    </Link>
-  );
-}
-
-// ── Page ───────────────────────────────────────────────────────────────────
 export default function DashboardPage(): React.ReactElement {
   const queryClient = useQueryClient();
-  const { todayIso, sevenDaysIso, monthStart, monthEnd, now } = useDateRanges();
+  const { now, todayIso, monthStart, monthEnd } = useDateRanges();
 
-  const canReadReports      = useHasPerm(PERMISSIONS.REPORT_READ);
-  const canReadRooms        = useHasPerm(PERMISSIONS.ROOM_READ);
-  const canReadBookings     = useHasPerm(PERMISSIONS.BOOKING_READ);
-  const canReadRevenue      = useHasPerm(PERMISSIONS.REPORT_REVENUE_READ);
-  const canReadHousekeeping = useHasPerm(PERMISSIONS.HOUSEKEEPING_TASK_READ);
-  const canReadMaintenance  = useHasPerm(PERMISSIONS.MAINTENANCE_TASK_READ);
-
-  // Occupancy
+  // ── Occupancy — report:read ───────────────────────────────────────────────
+  const canReadReports = useHasPerm(PERMISSIONS.REPORT_READ);
   const { data: occupancy, isLoading: occupancyLoading } = useQuery({
     queryKey: reportKeys.occupancy({ scope: 'today' }),
-    queryFn:  () => api.reports.getOccupancy(),
-    enabled:  canReadReports,
+    queryFn: () => api.reports.getOccupancy(),
+    enabled: canReadReports,
     staleTime: 60_000,
   });
 
-  // Room status board
+  // ── Room status board — room:read ─────────────────────────────────────────
+  const canReadRooms = useHasPerm(PERMISSIONS.ROOM_READ);
   const { data: statusBoard, isLoading: statusBoardLoading } = useQuery({
     queryKey: roomKeys.statusBoard(),
-    queryFn:  () => api.rooms.getStatusBoard(),
-    enabled:  canReadRooms,
+    queryFn: () => api.rooms.getStatusBoard(),
+    enabled: canReadRooms,
     staleTime: 30_000,
   });
   useSocketEvent(SOCKET_EVENTS.ROOM_STATUS_CHANGED, () => {
     void queryClient.invalidateQueries({ queryKey: roomKeys.statusBoard() });
   });
-  const roomBuckets  = bucketRoomStatus(statusBoard?.grouped as Record<string, unknown[]> | undefined);
-  const totalRooms   = statusBoard?.rooms?.length ?? 0;
-  const occupancyPct = totalRooms > 0
-    ? ((roomBuckets.occupied / totalRooms) * 100).toFixed(2)
-    : '0.00';
+  const roomBuckets = bucketRoomStatus(statusBoard?.grouped as Record<string, unknown[]> | undefined);
+  const totalRooms = statusBoard?.rooms?.length ?? 0;
 
-  // Bookings
+  // ── Arrivals / departures / upcoming bookings — booking:read ──────────────
+  const canReadBookings = useHasPerm(PERMISSIONS.BOOKING_READ);
   const { data: arrivals, isLoading: arrivalsLoading } = useQuery({
     queryKey: bookingKeys.list({ type: 'arrivals-today' }),
-    queryFn:  () => api.bookings.list({ checkInFrom: todayIso, checkInTo: todayIso, limit: 50 } as Parameters<typeof api.bookings.list>[0]),
-    enabled:  canReadBookings,
+    queryFn: () =>
+      api.bookings.list({
+        checkInFrom: todayIso,
+        checkInTo: todayIso,
+        limit: 50,
+      } as Parameters<typeof api.bookings.list>[0]),
+    enabled: canReadBookings,
     staleTime: 60_000,
   });
   const { data: departures, isLoading: departuresLoading } = useQuery({
     queryKey: bookingKeys.list({ type: 'departures-today' }),
-    queryFn:  () => api.bookings.list({ checkOutFrom: todayIso, checkOutTo: todayIso, limit: 50 } as Parameters<typeof api.bookings.list>[0]),
-    enabled:  canReadBookings,
+    queryFn: () =>
+      api.bookings.list({
+        checkOutFrom: todayIso,
+        checkOutTo: todayIso,
+        limit: 50,
+      } as Parameters<typeof api.bookings.list>[0]),
+    enabled: canReadBookings,
     staleTime: 60_000,
   });
-  const { data: upcoming7 } = useQuery({
-    queryKey: bookingKeys.list({ type: 'upcoming-7' }),
-    queryFn:  () => api.bookings.list({ checkInFrom: todayIso, checkInTo: sevenDaysIso, limit: 200 } as Parameters<typeof api.bookings.list>[0]),
-    enabled:  canReadBookings,
-    staleTime: 60_000,
-  });
+  const upcomingBookings = React.useMemo(
+    () => [...(arrivals ?? [])].sort((a, b) => new Date(a.checkIn).getTime() - new Date(b.checkIn).getTime()),
+    [arrivals]
+  );
 
-  // Revenue MTD
+  // ── Revenue (MTD + today) — report:revenue:read ───────────────────────────
+  const canReadRevenue = useHasPerm(PERMISSIONS.REPORT_REVENUE_READ);
   const { data: revenueMTD, isLoading: revenueLoading } = useQuery({
     queryKey: reportKeys.revenue({ scope: 'mtd' }),
-    queryFn:  () => api.reports.getRevenue({ from: monthStart.toISOString(), to: monthEnd.toISOString(), groupBy: 'day' }),
-    enabled:  canReadRevenue,
+    queryFn: () =>
+      api.reports.getRevenue({ from: monthStart.toISOString(), to: monthEnd.toISOString(), groupBy: 'day' }),
+    enabled: canReadRevenue,
     staleTime: 60_000,
   });
-  const { data: _revpar } = useQuery({
+  const { data: revpar, isLoading: revparLoading } = useQuery({
     queryKey: reportKeys.revpar({ scope: 'mtd' }),
-    queryFn:  () => api.reports.getRevPar({ from: monthStart.toISOString(), to: monthEnd.toISOString() }),
-    enabled:  canReadRevenue,
+    queryFn: () => api.reports.getRevPar({ from: monthStart.toISOString(), to: monthEnd.toISOString() }),
+    enabled: canReadRevenue,
     staleTime: 60_000,
   });
 
-  const totalRevenue = (revenueMTD?.total as number | undefined) ?? 0;
-  const roomRevenue  = (revenueMTD?.roomRevenue as number | undefined) ?? 0;
-  const fbRevenue    = (revenueMTD?.fbRevenue as number | undefined) ?? 0;
-  const otherRevenue = Math.max(0, totalRevenue - roomRevenue - fbRevenue);
+  const byPeriod =
+    (revenueMTD?.byPeriod as { _id: { year: number; month: number; day: number }; total: number }[] | undefined) ?? [];
+  const todayEntry = byPeriod.find(
+    (p) => p._id.year === monthEnd.getFullYear() && p._id.month === monthEnd.getMonth() + 1 && p._id.day === monthEnd.getDate()
+  );
+  const todayRevenue = todayEntry?.total ?? 0;
+  const revenueChartData = byPeriod.map((p) => ({ label: String(p._id.day), value: p.total }));
 
-  // Housekeeping
+  // ── Housekeeping tasks (today) — housekeeping:task:read ───────────────────
+  const canReadHousekeeping = useHasPerm(PERMISSIONS.HOUSEKEEPING_TASK_READ);
   const { data: hkTasks, isLoading: hkLoading } = useQuery({
     queryKey: housekeepingKeys.tasks({ date: todayIso }),
-    queryFn:  () => api.housekeeping.listTasks({ date: todayIso, limit: 200 } as unknown as Parameters<typeof api.housekeeping.listTasks>[0]) as unknown as Promise<HkTaskLike[]>,
-    enabled:  canReadHousekeeping,
+    queryFn: () =>
+      api.housekeeping.listTasks({ date: todayIso, limit: 200 } as unknown as Parameters<
+        typeof api.housekeeping.listTasks
+      >[0]) as unknown as Promise<HkTaskLike[]>,
+    enabled: canReadHousekeeping,
     staleTime: 30_000,
   });
   const hkBuckets = bucketHousekeeping(hkTasks);
 
-  // Maintenance
+  // ── Maintenance — maintenance:task:read ───────────────────────────────────
+  const canReadMaintenance = useHasPerm(PERMISSIONS.MAINTENANCE_TASK_READ);
   const { data: workOrders, isLoading: woLoading } = useQuery({
     queryKey: maintenanceKeys.workOrders({ open: true }),
-    queryFn:  () => api.maintenance.listWorkOrders({ status: ['submitted', 'assigned', 'in_progress', 'on_hold'], limit: 50 }),
-    enabled:  canReadMaintenance,
+    queryFn: () =>
+      api.maintenance.listWorkOrders({ status: ['submitted', 'assigned', 'in_progress', 'on_hold'], limit: 50 }),
+    enabled: canReadMaintenance,
     staleTime: 60_000,
   });
-  const openWorkOrders = workOrders ?? [];
+  const openWorkOrders = React.useMemo(
+    () =>
+      [...(workOrders ?? [])].sort((a, b) => {
+        const rank = (PRIORITY_RANK[a.priority] ?? 9) - (PRIORITY_RANK[b.priority] ?? 9);
+        return rank !== 0 ? rank : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }),
+    [workOrders]
+  );
 
-  // Recent activity
-  interface ActivityItem {
-    icon: React.ReactNode;
-    iconBg: string;
-    iconColor: string;
-    title: string;
-    subtitle: string;
-    time: string;
-    sortMs: number;
-    href: string;
-  }
-  const recentActivity: ActivityItem[] = React.useMemo(() => {
-    const entries: ActivityItem[] = [];
+  // ── Unread messages / shift handover — any authenticated staff ───────────
+  const { data: channels } = useQuery({
+    queryKey: chatKeys.channels(),
+    queryFn: () => api.staffchat.getMyChannels(),
+    staleTime: 30_000,
+  });
+  const unreadCount = (channels ?? []).reduce((sum, c) => sum + (c.unreadCount || 0), 0);
 
-    // Bookings
+  // ── Low stock — procurement:manage ────────────────────────────────────────
+  const canReadProcurement = useHasPerm(PERMISSIONS.PROCUREMENT_MANAGE);
+  const { data: lowStock } = useQuery({
+    queryKey: procurementKeys.stockItems(),
+    queryFn: () => api.procurement.getLowStock(),
+    enabled: canReadProcurement,
+    staleTime: 60_000,
+  });
+
+  // ── Night audit (today) — report:finance:read ─────────────────────────────
+  const canReadFinance = useHasPerm(PERMISSIONS.REPORT_FINANCE_READ);
+  const { data: nightAudit } = useQuery({
+    queryKey: reportKeys.nightAudit(todayIso),
+    queryFn: async () => {
+      try {
+        return await api.reports.getNightAudit(todayIso);
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 404) return null;
+        throw err;
+      }
+    },
+    enabled: canReadFinance,
+    staleTime: 60_000,
+  });
+
+  // ── Recent activity — composed client-side from what's already fetched;
+  // no dedicated activity-log endpoint exists for this portal (same approach
+  // as apps/agency's DashboardPage).
+  const recentActivity: ActivityEntry[] = React.useMemo(() => {
+    const entries: (ActivityEntry & { sortTime: number })[] = [];
+
+    (hkTasks ?? [])
+      .filter((t) => t.status === 'completed' || t.status === 'inspected')
+      .forEach((t) => {
+        const roomLabel = typeof t.roomId === 'object' ? t.roomId?.roomNumber : undefined;
+        const when = t.completedAt ?? t.updatedAt;
+        entries.push({
+          icon: Icons.Sparkles,
+          tone: 'green',
+          title: `Room ${roomLabel ?? '—'} housekeeping ${t.status === 'inspected' ? 'inspected' : 'marked done'}`,
+          meta: t.type.replace(/_/g, ' '),
+          time: timeAgo(when),
+          sortTime: new Date(when).getTime(),
+        });
+      });
+
+    (workOrders ?? []).forEach((w) => {
+      entries.push({
+        icon: Icons.Wrench,
+        tone: 'rose',
+        title: w.title,
+        meta: `Work order ${w.status.replace(/_/g, ' ')}`,
+        time: timeAgo(w.updatedAt),
+        sortTime: new Date(w.updatedAt).getTime(),
+      });
+    });
+
     [...(arrivals ?? []), ...(departures ?? [])].forEach((b) => {
-      const guest  = `${b.customerId?.firstName ?? ''} ${b.customerId?.lastName ?? ''}`.trim();
-      const guests = b.adults + (b.children ?? 0);
+      const guest = `${b.customerId?.firstName ?? ''} ${b.customerId?.lastName ?? ''}`.trim() || 'Guest';
       entries.push({
-        icon: <Icons.Calendar size={16} />,
-        iconBg: 'var(--tone-green-bg)', iconColor: 'var(--tone-green-fg)',
-        title: 'New booking received',
-        subtitle: `${guest || 'Guest'} booked a room${guests > 0 ? ` · ${guests} guest${guests > 1 ? 's' : ''}` : ''}`,
-        time: `Today, ${formatActivityTime(b.createdAt)}`,
-        sortMs: new Date(b.createdAt).getTime(),
-        href: '/bookings',
+        icon: Icons.CalendarClock,
+        tone: 'blue',
+        title: `Booking — ${guest}`,
+        meta: `Room ${b.roomId.roomNumber}`,
+        time: timeAgo(b.createdAt),
+        sortTime: new Date(b.createdAt).getTime(),
       });
     });
 
-    // Housekeeping completions
-    (hkTasks ?? []).filter((t) => t.status === 'completed' || t.status === 'inspected').forEach((t) => {
-      const room = typeof t.roomId === 'object' ? `Room ${t.roomId.roomNumber}` : 'Room';
-      const when = t.completedAt ?? t.updatedAt;
-      entries.push({
-        icon: <Icons.Sparkles size={16} />,
-        iconBg: 'var(--tone-blue-bg)', iconColor: 'var(--tone-blue-fg)',
-        title: 'Room cleaned',
-        subtitle: `${room} · Housekeeping`,
-        time: `Today, ${formatActivityTime(when)}`,
-        sortMs: new Date(when).getTime(),
-        href: '/housekeeping',
+    return entries
+      .sort((a, b) => b.sortTime - a.sortTime)
+      .slice(0, 6)
+      .map(({ sortTime, ...entry }) => {
+        void sortTime;
+        return entry;
       });
-    });
+  }, [hkTasks, workOrders, arrivals, departures]);
 
-    // Maintenance
-    openWorkOrders.slice(0, 3).forEach((w) => {
-      const room = typeof w.roomId === 'object' && w.roomId
-        ? ` · Room ${(w.roomId as { roomNumber: string }).roomNumber}`
-        : '';
-      entries.push({
-        icon: <Icons.Wrench size={16} />,
-        iconBg: 'var(--tone-amber-bg)', iconColor: 'var(--tone-amber-fg)',
-        title: 'Maintenance request',
-        subtitle: `${w.title}${room}`,
-        time: `Today, ${formatActivityTime(w.createdAt)}`,
-        sortMs: new Date(w.createdAt).getTime(),
-        href: '/maintenance/work-orders',
-      });
-    });
-
-    return entries.sort((a, b) => b.sortMs - a.sortMs).slice(0, 6);
-  }, [arrivals, departures, hkTasks, openWorkOrders]);
-
-  const donutData = [
-    { label: 'Occupied',        value: roomBuckets.occupied,    color: 'var(--color-primary)' },
-    { label: 'Vacant (Clean)',  value: roomBuckets.vacantClean, color: 'var(--color-success)' },
-    { label: 'Vacant (Dirty)',  value: roomBuckets.vacantDirty, color: 'var(--color-warning)' },
-    { label: 'Out of Order',    value: roomBuckets.outOfOrder,  color: 'var(--color-danger)'  },
+  // ── Bottom quick-actions bar — built per-permission so each tile only
+  // appears (and only its query fires) for staff who can actually use it.
+  const quickActions: QuickActionLinkItem[] = [
+    {
+      icon: Icons.ArrowLeftRight,
+      tone: 'blue',
+      title: 'Shift handover',
+      description: 'Post or read your department handover note',
+      href: '/chat',
+    },
+    {
+      icon: Icons.MessageSquare,
+      tone: 'purple',
+      title: 'Unread messages',
+      description: unreadCount > 0 ? `You have ${formatNumber(unreadCount)} unread messages` : 'No unread messages',
+      href: '/chat',
+    },
+    ...(canReadProcurement
+      ? [
+          {
+            icon: Icons.AlertTriangle,
+            tone: 'amber' as const,
+            title: 'Low stock alert',
+            description: `${formatNumber((lowStock ?? []).length)} items are running low`,
+            href: '/procurement/stock-items',
+          },
+        ]
+      : []),
+    ...(canReadFinance
+      ? [
+          {
+            icon: Icons.FileCheck2,
+            tone: 'teal' as const,
+            title: 'Night audit',
+            description: nightAudit ? 'Completed for today' : 'Not yet completed',
+            href: '/accounting/night-audit',
+          },
+        ]
+      : []),
   ];
 
   const isInitialLoading =
-    occupancyLoading && statusBoardLoading && arrivalsLoading &&
-    departuresLoading && revenueLoading;
+    occupancyLoading && statusBoardLoading && arrivalsLoading && departuresLoading && revenueLoading;
   if (isInitialLoading) return <LoadingBlock rows={6} />;
+
+  const todayLabel = now.toLocaleDateString('en-ZA', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 
   return (
     <div data-page="dashboard">
+      <PageHeader
+        title="Home"
+        subtitle="Today's overview"
+        actions={
+          <div data-date-pill>
+            <Icons.Calendar />
+            {todayLabel}
+            <Icons.ChevronDown />
+          </div>
+        }
+      />
 
-      {/* ── Page header ─────────────────────────────────────────────────── */}
-      <div data-dash-header>
-        <div>
-          <h1>Home</h1>
-          <p data-dash-header-subtitle>{"Today's overview"}</p>
-        </div>
-        <div data-dash-date-pill>
-          <Icons.Calendar size={14} />
-          <span>{formatDashboardDate(now)}</span>
-          <Icons.ChevronDown size={14} />
-        </div>
-      </div>
-
-      {/* ── 4 stat cards ────────────────────────────────────────────────── */}
+      {/* ── Key metrics ────────────────────────────────────────────────── */}
       <div data-stat-grid>
         <RoleGate perm={PERMISSIONS.REPORT_READ}>
-          <div data-stat-card>
-            <div data-stat-icon data-tone="green"><Icons.Percent size={18} /></div>
-            <div data-stat-label>Occupancy</div>
-            <div data-stat-value>
-              {occupancy ? `${occupancy.occupancyRate}%` : `${occupancyPct}%`}
-            </div>
-            <div data-stat-sublabel>{roomBuckets.occupied} of {totalRooms} rooms</div>
-          </div>
+          <StatCard
+            icon={Icons.Percent}
+            tone="green"
+            label="Today's Occupancy"
+            value={occupancy ? `${occupancy.occupancyRate}%` : '—'}
+            sublabel={occupancy ? `${occupancy.bookedRoomNights} / ${occupancy.totalRoomNights} rooms` : undefined}
+            footer={<LinkArrowTo href="/reports/occupancy">View report</LinkArrowTo>}
+          />
         </RoleGate>
-
         <RoleGate perm={PERMISSIONS.BOOKING_READ}>
-          <div data-stat-card>
-            <div data-stat-icon data-tone="blue"><Icons.CalendarCheck2 size={18} /></div>
-            <div data-stat-label>{"Today's Arrivals"}</div>
-            <div data-stat-value>{arrivalsLoading ? '—' : formatNumber(arrivals?.length ?? 0)}</div>
-            <div data-stat-sublabel>{arrivals?.length ?? 0} expected</div>
-          </div>
-
-          <div data-stat-card>
-            <div data-stat-icon data-tone="amber"><Icons.DoorClosed size={18} /></div>
-            <div data-stat-label>{"Today's Departures"}</div>
-            <div data-stat-value>{departuresLoading ? '—' : formatNumber(departures?.length ?? 0)}</div>
-            <div data-stat-sublabel>{departures?.length ?? 0} expected</div>
-          </div>
+          <StatCard
+            icon={Icons.CalendarCheck2}
+            tone="blue"
+            label="Today's Arrivals"
+            value={arrivals ? formatNumber(arrivals.length) : '—'}
+            sublabel="Expected arrivals"
+            footer={<LinkArrowTo href="/bookings?checkIn=today">View arrivals</LinkArrowTo>}
+          />
+          <StatCard
+            icon={Icons.DoorClosed}
+            tone="amber"
+            label="Today's Departures"
+            value={departures ? formatNumber(departures.length) : '—'}
+            sublabel="Expected departures"
+            footer={<LinkArrowTo href="/bookings?checkOut=today">View departures</LinkArrowTo>}
+          />
         </RoleGate>
-
-        <RoleGate perm={PERMISSIONS.MAINTENANCE_TASK_READ}>
-          <div data-stat-card>
-            <div data-stat-icon data-tone="rose"><Icons.Key size={18} /></div>
-            <div data-stat-label>Active Orders</div>
-            <div data-stat-value>{woLoading ? '—' : formatNumber(openWorkOrders.length)}</div>
-            <div data-stat-sublabel>
-              {openWorkOrders.filter((w) => w.status === 'in_progress').length} in progress
-            </div>
-          </div>
+        <RoleGate perm={PERMISSIONS.ROOM_READ}>
+          <StatCard
+            icon={Icons.Wrench}
+            tone="rose"
+            label="Out of Order"
+            value={formatNumber(roomBuckets.outOfOrder)}
+            sublabel="Rooms"
+            footer={<LinkArrowTo href="/rooms">View rooms</LinkArrowTo>}
+          />
+        </RoleGate>
+        <RoleGate perm={PERMISSIONS.REPORT_REVENUE_READ}>
+          <StatCard
+            icon={Icons.Banknote}
+            tone="teal"
+            label="Today's Revenue"
+            value={revenueMTD ? formatZAR(todayRevenue) : '—'}
+            sublabel="Total revenue"
+            footer={<LinkArrowTo href="/reports/revenue">View report</LinkArrowTo>}
+          />
+          <StatCard
+            icon={Icons.TrendingUp}
+            tone="purple"
+            label="RevPAR (MTD)"
+            value={revpar ? formatZAR(revpar.revpar as number) : '—'}
+            sublabel="Month to date"
+            footer={<LinkArrowTo href="/reports/revenue">View report</LinkArrowTo>}
+          />
         </RoleGate>
       </div>
 
-      {/* ── Room status & occupancy ──────────────────────────────────────── */}
-      <RoleGate perm={PERMISSIONS.ROOM_READ}>
-        <div data-room-overview-card>
-          <div data-room-overview-left>
-            <div data-room-overview-title>
-              <h3><Icons.BedDouble size={20} /> Room status &amp; occupancy</h3>
-              <ViewAllLink href="/rooms" label="View all rooms" />
-            </div>
-            {statusBoardLoading ? <LoadingBlock rows={3} /> : (
-              <div data-room-overview-body>
-                <div data-room-donut-wrap>
-                  <DonutChart
-                    centerLabel={`${occupancyPct}%`}
-                    centerValue="Occupied"
-                    data={donutData}
-                  />
-                  <p data-room-donut-sublabel>{roomBuckets.occupied} of {totalRooms} rooms</p>
-                </div>
-                <div data-room-legend>
-                  {donutData.map((item) => {
-                    const pct = totalRooms > 0
-                      ? ((item.value / totalRooms) * 100).toFixed(2)
-                      : '0.00';
-                    return (
-                      <div key={item.label} data-room-legend-row>
-                        <span data-room-legend-dot style={{ background: item.color }} />
-                        <span data-room-legend-label>{item.label}</span>
-                        <span data-room-legend-count>{item.value}</span>
-                        <span data-room-legend-pct>{pct}%</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+      {/* ── Row 2: room status / upcoming bookings / housekeeping ────────── */}
+      <div data-grid-1-1-1>
+        <RoleGate perm={PERMISSIONS.ROOM_READ}>
+          <Panel icon={Icons.Bed} title="Room status overview" headerActions={<LinkArrowTo href="/rooms">View room status board</LinkArrowTo>}>
+            {statusBoardLoading ? (
+              <LoadingBlock rows={3} />
+            ) : (
+              <DonutChart
+                centerLabel="Total Rooms"
+                centerValue={String(totalRooms)}
+                data={[
+                  { label: 'Occupied', value: roomBuckets.occupied, color: 'var(--color-primary)' },
+                  { label: 'Vacant (Clean)', value: roomBuckets.vacantClean, color: 'var(--color-success)' },
+                  { label: 'Vacant (Dirty)', value: roomBuckets.vacantDirty, color: 'var(--color-warning)' },
+                  { label: 'Out of Order', value: roomBuckets.outOfOrder, color: 'var(--color-danger)' },
+                  { label: 'Blocked', value: roomBuckets.blocked, color: 'var(--color-neutral)' },
+                ]}
+              />
             )}
-          </div>
+          </Panel>
+        </RoleGate>
 
-          <div data-room-overview-image>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=520&q=80"
-              alt="Hotel room"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-            />
-            <div data-room-systems-badge>
-              <div data-room-systems-badge-icon>
-                <Icons.CheckCircle2 size={16} />
-              </div>
-              <div data-room-systems-badge-text>
-                <h4>All systems running</h4>
-                <p>Your hotel is operating normally.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </RoleGate>
-
-      {/* ── Arrivals & departures | Housekeeping ────────────────────────── */}
-      <div data-dashboard-grid>
         <RoleGate perm={PERMISSIONS.BOOKING_READ}>
-          <Panel title="Arrivals &amp; departures" headerActions={<ViewAllLink href="/bookings" />}>
-            {arrivalsLoading || departuresLoading ? <LoadingBlock rows={3} /> : (
-              <>
-                <SectionRow
-                  icon={<Icons.CalendarCheck2 size={16} />}
-                  iconBg="var(--tone-green-bg)" iconColor="var(--tone-green-fg)"
-                  title="Arrivals (today)"
-                  subtitle={arrivals?.length ? `${arrivals.length} arrival${arrivals.length > 1 ? 's' : ''} today` : 'No arrivals scheduled'}
-                  value={arrivals?.length ?? 0}
-                  href="/bookings?checkIn=today"
-                />
-                <SectionRow
-                  icon={<Icons.DoorClosed size={16} />}
-                  iconBg="var(--tone-blue-bg)" iconColor="var(--tone-blue-fg)"
-                  title="Departures (today)"
-                  subtitle={departures?.length ? `${departures.length} departure${departures.length > 1 ? 's' : ''} today` : 'No departures scheduled'}
-                  value={departures?.length ?? 0}
-                  href="/bookings?checkOut=today"
-                />
-                <SectionRow
-                  icon={<Icons.CalendarDays size={16} />}
-                  iconBg="var(--tone-purple-bg)" iconColor="var(--tone-purple-fg)"
-                  title="Upcoming bookings"
-                  subtitle="Next 7 days"
-                  value={upcoming7?.length ?? 0}
-                  href="/bookings"
-                />
-              </>
+          <Panel icon={Icons.Calendar} title="Upcoming bookings" headerActions={<LinkArrowTo href="/bookings">View all</LinkArrowTo>}>
+            {!upcomingBookings.length ? (
+              <p data-empty-note>No arrivals today.</p>
+            ) : (
+              <div data-arrival-list>
+                {upcomingBookings.slice(0, 6).map((booking) => (
+                  <div key={booking._id} data-arrival-row>
+                    <div data-arrival-guest>
+                      <span data-guest-name>
+                        {`${booking.customerId?.firstName ?? ''} ${booking.customerId?.lastName ?? ''}`.trim() || '—'}
+                      </span>
+                      <span data-guest-room>
+                        {booking.roomId.type} · Check-in{' '}
+                        {formatTime(booking.checkIn)}
+                      </span>
+                    </div>
+                    <StatusBadge status={booking.status} />
+                  </div>
+                ))}
+              </div>
             )}
           </Panel>
         </RoleGate>
 
         <RoleGate perm={PERMISSIONS.HOUSEKEEPING_TASK_READ}>
-          <Panel title="Housekeeping" headerActions={<ViewAllLink href="/housekeeping" />}>
-            {hkLoading ? <LoadingBlock rows={4} /> : (
-              <>
-                <HkRow icon={<Icons.Clock size={15} />}        iconBg="var(--tone-amber-bg)" iconColor="var(--tone-amber-fg)" label="To do"                value={hkBuckets.pending}            href="/housekeeping?status=pending"    />
-                <HkRow icon={<Icons.RefreshCw size={15} />}    iconBg="var(--tone-blue-bg)"  iconColor="var(--tone-blue-fg)"  label="In progress"           value={hkBuckets.inProgress}         href="/housekeeping?status=in_progress" />
-                <HkRow icon={<Icons.Eye size={15} />}          iconBg="var(--tone-green-bg)" iconColor="var(--tone-green-fg)" label="Ready for inspection"  value={hkBuckets.readyForInspection} href="/housekeeping?status=completed"   />
-                <HkRow icon={<Icons.CheckCircle2 size={15} />} iconBg="var(--tone-teal-bg)"  iconColor="var(--tone-teal-fg)"  label="Completed"             value={hkBuckets.completed}          href="/housekeeping?status=inspected"   />
-              </>
+          <Panel icon={Icons.Users} title="Housekeeping tasks" headerActions={<LinkArrowTo href="/housekeeping">View all</LinkArrowTo>}>
+            {hkLoading ? (
+              <LoadingBlock rows={4} />
+            ) : (
+              <div data-insight-list>
+                {[
+                  { icon: Icons.Clock, tone: 'amber' as const, label: 'Pending', value: hkBuckets.pending },
+                  { icon: Icons.Sparkles, tone: 'blue' as const, label: 'In Progress', value: hkBuckets.inProgress },
+                  { icon: Icons.Eye, tone: 'teal' as const, label: 'Ready for Inspection', value: hkBuckets.readyForInspection },
+                  { icon: Icons.CheckCircle2, tone: 'green' as const, label: 'Completed', value: hkBuckets.completed },
+                ].map((row) => (
+                  <div key={row.label} data-insight-row>
+                    <div data-insight-icon data-tone={row.tone}>
+                      <row.icon size={15} />
+                    </div>
+                    <span data-insight-label>{row.label}</span>
+                    <span data-insight-value data-tabular-nums>
+                      {formatNumber(row.value)}
+                    </span>
+                  </div>
+                ))}
+              </div>
             )}
           </Panel>
         </RoleGate>
       </div>
 
-      {/* ── Revenue overview | Maintenance overview ──────────────────────── */}
-      <div data-dashboard-grid>
+      {/* ── Row 3: revenue overview / maintenance / recent activity ──────── */}
+      <div data-grid-1-1-1>
         <RoleGate perm={PERMISSIONS.REPORT_REVENUE_READ}>
-          <Panel title="Revenue overview (MTD)" headerActions={<ViewAllLink href="/reports/revenue" label="View report" />}>
-            {revenueLoading ? <LoadingBlock rows={3} /> : (
+          <Panel icon={Icons.TrendingUp} title="Revenue overview (MTD)" headerActions={<LinkArrowTo href="/reports/revenue">View report</LinkArrowTo>}>
+            {revenueLoading || revparLoading ? (
+              <LoadingBlock rows={4} />
+            ) : (
               <>
-                <div data-revenue-total>
-                  <div data-revenue-total-amount>{formatZAR(totalRevenue)}</div>
-                  <div data-revenue-total-label>Total revenue</div>
+                <div data-revenue-hero>
+                  <span data-revenue-hero-value data-tabular-nums>{formatZAR((revenueMTD?.total as number) ?? 0)}</span>
+                  <span data-revenue-hero-label>Total revenue</span>
                 </div>
                 <div data-revenue-breakdown>
-                  <div>
-                    <div data-revenue-breakdown-amount>{formatZAR(roomRevenue)}</div>
-                    <div data-revenue-breakdown-label>Room revenue</div>
+                  <div data-revenue-stat>
+                    <span data-revenue-stat-value data-tabular-nums>{formatZAR((revpar?.adr as number) ?? 0)}</span>
+                    <span data-revenue-stat-label>ADR</span>
                   </div>
-                  <div>
-                    <div data-revenue-breakdown-amount>{formatZAR(fbRevenue)}</div>
-                    <div data-revenue-breakdown-label>F&amp;B revenue</div>
-                  </div>
-                  <div>
-                    <div data-revenue-breakdown-amount>{formatZAR(otherRevenue)}</div>
-                    <div data-revenue-breakdown-label>Other revenue</div>
+                  <div data-revenue-stat>
+                    <span data-revenue-stat-value data-tabular-nums>{formatZAR((revpar?.revpar as number) ?? 0)}</span>
+                    <span data-revenue-stat-label>RevPAR</span>
                   </div>
                 </div>
+                <AreaLineChart data={revenueChartData} formatValue={(v) => formatZAR(v)} />
               </>
             )}
           </Panel>
         </RoleGate>
 
         <RoleGate perm={PERMISSIONS.MAINTENANCE_TASK_READ}>
-          <Panel title="Maintenance overview" headerActions={<ViewAllLink href="/maintenance/work-orders" />}>
-            {woLoading ? <LoadingBlock rows={3} /> : openWorkOrders.length === 0 ? (
-              <div data-maintenance-empty>
-                <div data-maintenance-empty-icon>
-                  <Icons.Clock size={22} />
-                </div>
-                <p data-maintenance-empty-text>No open maintenance requests</p>
-              </div>
+          <Panel icon={Icons.Wrench} title="Maintenance overview" headerActions={<LinkArrowTo href="/maintenance/work-orders">View all</LinkArrowTo>}>
+            {woLoading ? (
+              <LoadingBlock rows={3} />
             ) : (
-              <>
-                {openWorkOrders.slice(0, 4).map((w) => {
-                  const room = typeof w.roomId === 'object' && w.roomId
-                    ? ` · Room ${(w.roomId as { roomNumber: string }).roomNumber}`
-                    : '';
-                  return (
-                    <Link key={w._id} href={`/maintenance/work-orders/${w._id}`} data-wo-row>
-                      <span data-wo-dot data-priority={w.priority} />
-                      <div data-wo-body>
-                        <div data-wo-title>{w.title}{room}</div>
-                        <div data-wo-status>{w.status.replace(/_/g, ' ')}</div>
-                      </div>
-                      <Icons.ChevronRight size={14} />
-                    </Link>
-                  );
-                })}
-              </>
+              <AlertList
+                emptyLabel="No open work orders"
+                items={openWorkOrders.slice(0, 4).map(
+                  (w): AlertEntry => ({
+                    tone: PRIORITY_TONE[w.priority] ?? 'info',
+                    icon: Icons.Wrench,
+                    title: `${w.title}${typeof w.roomId === 'object' && w.roomId ? ` — Room ${w.roomId.roomNumber}` : ''}`,
+                    meta: `Reported ${timeAgo(w.createdAt)} · ${w.priority.charAt(0).toUpperCase()}${w.priority.slice(1)} priority`,
+                  })
+                )}
+              />
             )}
           </Panel>
         </RoleGate>
+
+        <Panel icon={Icons.Clock} title="Recent activity">
+          <ActivityFeed items={recentActivity} />
+        </Panel>
       </div>
 
-      {/* ── Recent activity ──────────────────────────────────────────────── */}
-      <Panel title="Recent activity" headerActions={<ViewAllLink href="/bookings" />}>
-        {recentActivity.length === 0 ? (
-          <p data-empty-state>No recent activity to show.</p>
-        ) : (
-          <>
-            {recentActivity.map((item, i) => (
-              <Link key={i} href={item.href} data-activity-row>
-                <div data-activity-icon style={{ background: item.iconBg, color: item.iconColor }}>
-                  {item.icon}
-                </div>
-                <div data-activity-body>
-                  <div data-activity-title>{item.title}</div>
-                  <div data-activity-subtitle>{item.subtitle}</div>
-                </div>
-                <div data-activity-meta>
-                  <span data-activity-time>{item.time}</span>
-                  <Icons.ChevronRight size={15} />
-                </div>
-              </Link>
-            ))}
-          </>
-        )}
-      </Panel>
-
+      {/* ── Bottom quick actions ──────────────────────────────────────────── */}
+      <QuickActionsBarLinks actions={quickActions} />
     </div>
   );
 }
