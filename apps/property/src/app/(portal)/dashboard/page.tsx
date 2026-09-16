@@ -161,7 +161,7 @@ export default function DashboardPage(): React.ReactElement {
     staleTime: 60_000,
   });
   const upcomingBookings = React.useMemo(
-    () => [...(arrivals ?? [])].sort((a, b) => new Date(a.checkIn).getTime() - new Date(b.checkIn).getTime()),
+    () => [...(arrivals?.data ?? [])].sort((a, b) => new Date(a.checkIn).getTime() - new Date(b.checkIn).getTime()),
     [arrivals]
   );
 
@@ -285,7 +285,7 @@ export default function DashboardPage(): React.ReactElement {
       });
     });
 
-    [...(arrivals ?? []), ...(departures ?? [])].forEach((b) => {
+    [...(arrivals?.data ?? []), ...(departures?.data ?? [])].forEach((b) => {
       const guest = `${b.customerId?.firstName ?? ''} ${b.customerId?.lastName ?? ''}`.trim() || 'Guest';
       entries.push({
         icon: Icons.CalendarClock,
@@ -384,7 +384,7 @@ export default function DashboardPage(): React.ReactElement {
             icon={Icons.CalendarCheck2}
             tone="blue"
             label="Today's Arrivals"
-            value={arrivals ? formatNumber(arrivals.length) : '—'}
+            value={arrivals ? formatNumber(arrivals.meta.total) : '—'}
             sublabel="Expected arrivals"
             footer={<LinkArrowTo href="/bookings?checkIn=today">View arrivals</LinkArrowTo>}
           />
@@ -392,7 +392,7 @@ export default function DashboardPage(): React.ReactElement {
             icon={Icons.DoorClosed}
             tone="amber"
             label="Today's Departures"
-            value={departures ? formatNumber(departures.length) : '—'}
+            value={departures ? formatNumber(departures.meta.total) : '—'}
             sublabel="Expected departures"
             footer={<LinkArrowTo href="/bookings?checkOut=today">View departures</LinkArrowTo>}
           />
