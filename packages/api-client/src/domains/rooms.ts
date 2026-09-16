@@ -22,7 +22,7 @@ export interface Room {
   baseRate: number;
   rateUnit: string;
   weekendRate?: number;
-  images: { url: string; caption?: string; order: number }[];
+  images: { _id: string; url: string; caption?: string; order: number }[];
   createdAt: string;
   updatedAt: string;
 }
@@ -165,21 +165,23 @@ export const roomsApi = {
   updateStatus: (id: string, status: string, housekeepingStatus?: string) =>
     client.patch<Room>(`/rooms/${id}/status`, { status, housekeepingStatus }),
 
-  // POST /rooms/:id/block
-  block: (id: string, input: { reason: string; startDate: string; endDate: string }) =>
+  // POST /rooms/:id/block — body is { from, to, reason } (ISO datetimes),
+  // not { startDate, endDate } — see rooms.validation.js#blockRoomSchema.
+  block: (id: string, input: { reason: string; from: string; to: string }) =>
     client.post<Room>(`/rooms/${id}/block`, input),
 
   // DELETE /rooms/:id/block/:blockId
   unblock: (id: string, blockId: string) =>
     client.delete<Room>(`/rooms/${id}/block/${blockId}`),
 
-  // POST /rooms/:id/ical-export/enable
+  // POST /rooms/:id/ical-export/enable — see rooms.service.js#enableIcalExport,
+  // which returns { roomId, exportUrl } (not { feedUrl }).
   enableIcalExport: (id: string) =>
-    client.post<{ feedUrl: string }>(`/rooms/${id}/ical-export/enable`),
+    client.post<{ roomId: string; exportUrl: string }>(`/rooms/${id}/ical-export/enable`),
 
-  // POST /rooms/:id/ical-export/regenerate
+  // POST /rooms/:id/ical-export/regenerate — see rooms.service.js#regenerateIcalExport.
   regenerateIcalFeed: (id: string) =>
-    client.post<{ feedUrl: string }>(`/rooms/${id}/ical-export/regenerate`),
+    client.post<{ roomId: string; exportUrl: string }>(`/rooms/${id}/ical-export/regenerate`),
 
   // POST /rooms/:id/images
   uploadImage: (id: string, formData: FormData) =>
@@ -189,7 +191,11 @@ export const roomsApi = {
   deleteImage: (id: string, imageId: string) =>
     client.delete<Room>(`/rooms/${id}/images/${imageId}`),
 
-  // PATCH /rooms/:id/images/reorder
-  reorderImages: (id: string, order: { imageId: string; order: number }[]) =>
-    client.patch<Room>(`/rooms/${id}/images/reorder`, { order }),
+  // PATCH /rooms/:id/images/reorder — body is { orderedIds }, a flat array
+  // of image _ids in the desired display order (see
+  // rooms.service.js#reorderImages, which does room.images.id(id) for each
+  // and sets .order to its position in this array). Not a { imageId, order }
+  // pair list — send the whole new order every time, not just what moved.
+  reorderImages: (id: string, orderedIds: string[]) =>
+    client.patch<Room>(`/rooms/${id}/images/reorder`, { orderedIds }),
 };

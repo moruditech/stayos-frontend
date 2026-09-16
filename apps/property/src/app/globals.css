@@ -1048,6 +1048,36 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
 [data-action-bar],
 [data-action-row] { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
 
+/* Room photos — apps/property rooms/[id]/page.tsx. Actions sit in a footer
+   strip below the image (rather than overlaid on top of it) so they use
+   [data-btn-ghost]/[data-btn-danger]/[data-btn-sm]'s own colors as-is,
+   with no contrast/specificity issues from sitting on top of a photo. */
+[data-room-image-grid] {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+[data-room-image-card] {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-bg-sunk);
+}
+[data-room-image-card] img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  display: block;
+}
+[data-room-image-actions] {
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
 /* Tabs */
 [data-tab-bar] {
   display: flex;

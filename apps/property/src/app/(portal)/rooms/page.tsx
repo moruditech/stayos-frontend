@@ -182,11 +182,21 @@ export default function RoomsPage(): React.ReactElement {
               onChange={(e) => setNewStatus(e.target.value)}
             >
               <option value="available">Available</option>
-              <option value="occupied">Occupied</option>
               <option value="dirty">Dirty</option>
+              <option value="cleaning">Cleaning</option>
+              <option value="inspection">Inspection</option>
+              <option value="maintenance">Maintenance</option>
               <option value="out_of_order">Out of order</option>
               <option value="blocked">Blocked</option>
             </select>
+            {/* No "Occupied" option here on purpose — a room only becomes
+                occupied through an actual guest check-in (Bookings), which
+                is also what attaches the current-guest/check-out info this
+                board shows. Setting it here would create a room marked
+                occupied with nothing behind it. */}
+            <p data-field-hint>
+              To mark a room occupied, check the guest in from their booking.
+            </p>
           </div>
           <div data-modal-actions>
             <button

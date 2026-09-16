@@ -10,13 +10,12 @@ import Link from 'next/link';
  * capacity, adultCapacity, childCapacity, bedCount, amenities,
  * description, baseRate, rateUnit, weekendRate.
  *
- * Note: the backend field for nightly price is `baseRate`, not
- * `ratePerNight` — the status board reads a `ratePerNight` field that
- * the backend does not actually produce (pre-existing inconsistency,
- * out of scope here). This form submits the fields the API accepts.
+ * On success, redirects to the new room's /rooms/[id] page (images,
+ * amenities, and every other field can be filled in or adjusted there).
  */
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -59,6 +58,7 @@ type FormInput = z.infer<typeof schema>;
 
 export default function NewRoomPage(): React.ReactElement {
   const { toast } = useToast();
+  const router = useRouter();
   const queryClient = useQueryClient();
 
   const form = useForm<FormInput>({
@@ -77,15 +77,10 @@ export default function NewRoomPage(): React.ReactElement {
         ...(amenitiesList ? { amenities: amenitiesList } : {}),
       } as unknown as Parameters<typeof api.rooms.create>[0]);
     },
-    onSuccess: () => {
+    onSuccess: (room) => {
       void queryClient.invalidateQueries({ queryKey: roomKeys.all });
       toast('Room created.', 'success');
-      // No /rooms/[id] detail page exists yet to redirect to (that's a
-      // separate, bigger piece of work) — clear the form back to its
-      // defaults instead, so adding several rooms in a row doesn't
-      // require re-navigating here each time.
-      form.reset({ bedCount: 1, rateUnit: 'per_night' });
-      form.setFocus('roomNumber');
+      router.push(`/rooms/${room._id}`);
     },
     onError: (err: ApiError) => {
       if (err.code === 'VALIDATION_ERROR') applyServerErrors(form, err);
