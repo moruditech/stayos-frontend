@@ -25,6 +25,11 @@ export interface FolioPayment {
   type: string; // payment gateway/method, e.g. 'cash', 'manual_eft', 'payfast'
   reference?: string;
   amount: number;
+  // Set once the receipt PDF job (queued on payment completion — see
+  // payments.service.js#_queueReceiptPdf) finishes; undefined until then or
+  // if it hasn't been queued at all (a payment that predates that pipeline).
+  receiptUrl?: string;
+  receiptNumber?: string;
 }
 
 export interface Folio {
@@ -137,6 +142,14 @@ export const foliosApi = {
 
   // GET /folios/:id/pdf — see folios.service.js#getPdfUrl, returns { pdfUrl }
   getPdfUrl: (id: string) => client.get<{ pdfUrl: string }>(`/folios/${id}/pdf`),
+
+  // POST /payments/:id/resend-receipt — "Print receipt" → email, on the
+  // folio detail page. Lives here (not a dedicated payments client — see
+  // payments.service.js#resendReceipt's comment) because this page is its
+  // only consumer; paymentId comes from a FolioPayment's _id above, not a
+  // folio id, despite this being a method on foliosApi.
+  resendReceipt: (paymentId: string) =>
+    client.post<{ sent: boolean }>(`/payments/${paymentId}/resend-receipt`),
 
   // GET /checkout/bookings/:bookingId/invoices
   getBookingInvoices: (bookingId: string) =>

@@ -24,7 +24,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { api } from '@stayos/api-client';
-import type { ApiError } from '@stayos/api-client';
+import type { ApiError, FolioPayment } from '@stayos/api-client';
 import {
   SkeletonLoader,
   StatusBadge,
@@ -41,6 +41,221 @@ import { folioKeys } from '@/lib/query-keys';
 function fmtCurrency(n: number): string {
   return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(n);
 }
+
+function formatGateway(gateway: string): string {
+  const labels: Record<string, string> = {
+    cash: 'Cash', card: 'Card', manual_eft: 'EFT',
+    payfast: 'Payfast', ozow: 'Ozow', stripe: 'Card (online)',
+    snapscan: 'SnapScan', zapper: 'Zapper',
+  };
+  return labels[gateway] ?? gateway;
+}
+
+// =============================================================================
+// PRINT RECEIPT — item 2: email (see payments.service.js#resendReceipt,
+// triggered from the modal below) + printing.
+//
+// Two printing paths, both built from the same ReceiptData, because there's
+// no single option that works everywhere:
+//  - printReceiptViaBrowser: opens a formatted page and calls window.print().
+//    Works in every browser, on any printer the OS already knows about
+//    (including a Bluetooth receipt printer paired at the OS level, which
+//    is how most small properties actually have theirs set up) — this is
+//    the one to reach for first.
+//  - printReceiptViaBluetooth: talks directly to a printer over Web
+//    Bluetooth with raw ESC/POS commands, no OS pairing/driver needed.
+//    Real constraints, not implementation gaps: Web Bluetooth only exists
+//    in Chrome/Edge (not Safari or Firefox, on any OS), and it can only
+//    reach Bluetooth LE (GATT) devices — a great many inexpensive thermal
+//    receipt printers are actually Classic Bluetooth (SPP, the kind that
+//    pairs like a headset and shows up as a serial port), which no browser
+//    can talk to at all. There's also no single standard GATT service
+//    every BLE printer uses, so this probes the device for the first
+//    writable characteristic it can find rather than assuming one UUID.
+// =============================================================================
+
+interface ReceiptData {
+  propertyName: string;
+  receiptNumber: string | undefined;
+  date: string;
+  confirmationNumber: string;
+  guestName: string;
+  method: string;
+  reference: string | undefined;
+  amount: number;
+  balance: number;
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function printReceiptViaBrowser(data: ReceiptData): void {
+  const win = window.open('', '_blank', 'width=380,height=600');
+  if (!win) {
+    window.alert('Please allow pop-ups for this site to print the receipt.');
+    return;
+  }
+  const rows: [string, string][] = [
+    ['Date', new Date(data.date).toLocaleString('en-ZA')],
+    ['Booking', data.confirmationNumber],
+    ['Guest', data.guestName],
+    ['Method', data.method],
+    ...(data.reference ? ([['Reference', data.reference]] as [string, string][]) : []),
+  ];
+  win.document.write(`<!DOCTYPE html>
+<html>
+<head>
+<title>Receipt${data.receiptNumber ? ' ' + escapeHtml(data.receiptNumber) : ''}</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Courier New', Courier, monospace;
+    width: 280px;
+    margin: 16px auto;
+    color: #000;
+    background: #fff;
+    font-size: 13px;
+  }
+  h1 { font-size: 15px; text-align: center; margin: 0 0 2px; }
+  .sub { text-align: center; font-size: 11px; margin-bottom: 10px; }
+  .rule { border-top: 1px dashed #000; margin: 8px 0; }
+  .row { display: flex; justify-content: space-between; gap: 8px; }
+  .total { font-weight: bold; font-size: 14px; }
+  .center { text-align: center; }
+</style>
+</head>
+<body>
+  <h1>${escapeHtml(data.propertyName)}</h1>
+  <div class="sub">Payment Receipt${data.receiptNumber ? ' — ' + escapeHtml(data.receiptNumber) : ''}</div>
+  <div class="rule"></div>
+  ${rows.map(([label, value]) => `<div class="row"><span>${escapeHtml(label)}</span><span>${escapeHtml(value)}</span></div>`).join('\n  ')}
+  <div class="rule"></div>
+  <div class="row total"><span>Amount paid</span><span>${escapeHtml(fmtCurrency(data.amount))}</span></div>
+  <div class="row"><span>Balance due</span><span>${escapeHtml(fmtCurrency(data.balance))}</span></div>
+  <div class="rule"></div>
+  <div class="center">Thank you!</div>
+</body>
+</html>`);
+  win.document.close();
+  win.onload = () => win.print();
+}
+
+function buildEscPosReceipt(data: ReceiptData): Uint8Array {
+  const ESC = 0x1b;
+  const GS  = 0x1d;
+  const encoder = new TextEncoder();
+  const bytes: number[] = [];
+  const push = (...b: number[]): void => { bytes.push(...b); };
+  const text = (s: string): void => { bytes.push(...encoder.encode(s)); };
+  const WIDTH = 32; // typical character width for a 58mm thermal printer
+  const line = (label: string, value: string): void => {
+    const gap = Math.max(1, WIDTH - label.length - value.length);
+    text(`${label}${' '.repeat(gap)}${value}\n`);
+  };
+
+  push(ESC, 0x40);       // initialize
+  push(ESC, 0x61, 0x01); // center align
+  push(ESC, 0x45, 0x01); // bold on
+  text(`${data.propertyName}\n`);
+  push(ESC, 0x45, 0x00); // bold off
+  text(`Payment Receipt${data.receiptNumber ? ' - ' + data.receiptNumber : ''}\n`);
+  push(ESC, 0x61, 0x00); // left align
+  text('-'.repeat(WIDTH) + '\n');
+  line('Date', new Date(data.date).toLocaleDateString('en-ZA'));
+  line('Booking', data.confirmationNumber);
+  line('Guest', data.guestName);
+  line('Method', data.method);
+  if (data.reference) line('Reference', data.reference);
+  text('-'.repeat(WIDTH) + '\n');
+  push(ESC, 0x45, 0x01);
+  line('Amount paid', fmtCurrency(data.amount));
+  push(ESC, 0x45, 0x00);
+  line('Balance due', fmtCurrency(data.balance));
+  text('-'.repeat(WIDTH) + '\n');
+  push(ESC, 0x61, 0x01);
+  text('Thank you!\n\n\n');
+  push(GS, 0x56, 0x00);  // full cut — harmless no-op on printers without a cutter
+
+  return new Uint8Array(bytes);
+}
+
+// Common service UUIDs seen across many inexpensive 58mm/80mm BLE thermal
+// printers — there is no single industry standard, so this is a best-effort
+// allow-list (Web Bluetooth requires declaring candidate services up front)
+// rather than a guarantee any specific printer is covered.
+const KNOWN_PRINTER_SERVICES = [
+  '000018f0-0000-1000-8000-00805f9b34fb',
+  '0000ff00-0000-1000-8000-00805f9b34fb',
+  '49535343-fe7d-4ae5-8fa9-9fafd205e455',
+];
+
+// Web Bluetooth has no TypeScript DOM lib types (it isn't a full W3C
+// standard and this repo doesn't depend on @types/web-bluetooth) — these
+// are the minimal shapes this file actually calls, typed locally rather
+// than pulling in a whole ambient declaration package for one feature.
+interface BleCharacteristic {
+  properties: { write: boolean; writeWithoutResponse: boolean };
+  writeValue: (data: BufferSource) => Promise<void>;
+  writeValueWithoutResponse?: (data: BufferSource) => Promise<void>;
+}
+interface BleService {
+  getCharacteristics: () => Promise<BleCharacteristic[]>;
+}
+interface BleServer {
+  connect: () => Promise<BleServer>;
+  getPrimaryServices: () => Promise<BleService[]>;
+}
+interface BleDevice {
+  gatt?: BleServer;
+}
+interface BluetoothNavigator {
+  bluetooth: {
+    requestDevice: (options: { acceptAllDevices?: boolean; optionalServices?: string[] }) => Promise<BleDevice>;
+  };
+}
+
+async function findWritableCharacteristic(server: BleServer): Promise<BleCharacteristic> {
+  const services = await server.getPrimaryServices();
+  for (const svc of services) {
+    const chars = await svc.getCharacteristics();
+    const writable = chars.find((c) => c.properties.write || c.properties.writeWithoutResponse);
+    if (writable) return writable;
+  }
+  throw new Error(
+    "No printable service found on that device. It may be a classic Bluetooth (SPP) printer, which browsers can't print to directly — try \"Print (browser)\" instead."
+  );
+}
+
+async function writeInChunks(characteristic: BleCharacteristic, bytes: Uint8Array): Promise<void> {
+  const CHUNK = 100; // conservative for default BLE MTU
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    const chunk = bytes.slice(i, i + CHUNK);
+    if (characteristic.properties.writeWithoutResponse && characteristic.writeValueWithoutResponse) {
+      await characteristic.writeValueWithoutResponse(chunk);
+    } else {
+      await characteristic.writeValue(chunk);
+    }
+  }
+}
+
+async function printReceiptViaBluetooth(data: ReceiptData): Promise<void> {
+  const nav = navigator as unknown as Partial<BluetoothNavigator>;
+  if (!nav.bluetooth) {
+    throw new Error("Bluetooth printing needs Chrome or Edge — this browser doesn't support it.");
+  }
+  const device = await nav.bluetooth.requestDevice({
+    acceptAllDevices: true,
+    optionalServices: KNOWN_PRINTER_SERVICES,
+  });
+  if (!device.gatt) {
+    throw new Error("That device doesn't support the Bluetooth connection this needs.");
+  }
+  const server = await device.gatt.connect();
+  const characteristic = await findWritableCharacteristic(server);
+  await writeInChunks(characteristic, buildEscPosReceipt(data));
+}
+
 
 // Must match backend FOLIO_LINE_ITEM_TYPE (src/utils/constants.js) exactly —
 // the backend reads `type`, not `department`, from the charge request body.
@@ -79,10 +294,26 @@ export default function FolioDetailPage(): React.ReactElement {
   const [showChargeModal, setShowChargeModal] = useState(false);
   const [showSettleModal, setShowSettleModal] = useState(false);
   const [voidingId, setVoidingId] = useState<string | null>(null);
+  const [receiptPayment, setReceiptPayment] = useState<FolioPayment | null>(null);
+  const [printing, setPrinting] = useState<'bluetooth' | null>(null);
 
   const { data: folio, isLoading } = useQuery({
     queryKey: folioKeys.detail(id),
     queryFn: () => api.folios.get(id),
+  });
+
+  // Property name for the receipt header — same query the portal layout
+  // already runs (queryKey ['tenants','me']), so this reads from cache
+  // rather than firing a second request in practice.
+  const { data: property } = useQuery({
+    queryKey: ['tenants', 'me'],
+    queryFn: () => api.tenants.getMe() as unknown as Promise<{ name: string }>,
+  });
+
+  const resendReceiptMutation = useMutation({
+    mutationFn: (paymentId: string) => api.folios.resendReceipt(paymentId),
+    onSuccess: () => toast('Receipt emailed to the guest.', 'success'),
+    onError: (err: ApiError) => toast(err.message ?? 'Could not send the receipt.', 'error'),
   });
 
   const chargeForm = useForm<ChargeInput>({ resolver: zodResolver(chargeSchema), defaultValues: { quantity: 1 } });
@@ -273,13 +504,15 @@ export default function FolioDetailPage(): React.ReactElement {
             <div data-section-header>
               <h2>Payments</h2>
               <RoleGate perm={PERMISSIONS.FOLIO_MANAGE}>
-                <button
-                  type="button"
-                  data-btn-ghost data-btn-sm
-                  onClick={openSettleModal}
-                >
-                  + Add payment
-                </button>
+                {hasBalance && (
+                  <button
+                    type="button"
+                    data-btn-ghost data-btn-sm
+                    onClick={openSettleModal}
+                  >
+                    + Add payment
+                  </button>
+                )}
               </RoleGate>
             </div>
             {!f.payments.length ? (
@@ -292,6 +525,7 @@ export default function FolioDetailPage(): React.ReactElement {
                     <th>Type</th>
                     <th>Reference</th>
                     <th>Amount</th>
+                    <th>Receipt</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -301,6 +535,16 @@ export default function FolioDetailPage(): React.ReactElement {
                       <td>{pmt.type}</td>
                       <td>{pmt.reference ?? '—'}</td>
                       <td data-amount>{fmtCurrency(pmt.amount)}</td>
+                      <td>
+                        <button
+                          type="button"
+                          data-btn-ghost data-btn-sm
+                          onClick={() => setReceiptPayment(pmt)}
+                        >
+                          <Icons.Receipt size={14} aria-hidden="true" />
+                          Print
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -453,6 +697,89 @@ export default function FolioDetailPage(): React.ReactElement {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* Print receipt modal */}
+      <Modal
+        open={!!receiptPayment}
+        onClose={() => { setReceiptPayment(null); setPrinting(null); }}
+        title="Print receipt"
+      >
+        {receiptPayment && (() => {
+          const data: ReceiptData = {
+            propertyName:       property?.name ?? 'Receipt',
+            receiptNumber:      receiptPayment.receiptNumber,
+            date:               receiptPayment.date,
+            confirmationNumber: f.bookingId.confirmationNumber,
+            guestName:          `${f.customerId.firstName} ${f.customerId.lastName}`.trim(),
+            method:             formatGateway(receiptPayment.type),
+            reference:          receiptPayment.reference,
+            amount:             receiptPayment.amount,
+            balance:            f.balance,
+          };
+          const payment = receiptPayment;
+
+          return (
+            <div>
+              <div data-field-list>
+                <ReadOnlyField label="Guest" value={data.guestName} />
+                <ReadOnlyField label="Amount" value={fmtCurrency(data.amount)} />
+                <ReadOnlyField label="Method" value={data.method} />
+                <ReadOnlyField label="Date" value={new Date(data.date).toLocaleDateString('en-ZA')} />
+              </div>
+
+              <div data-action-bar style={{ marginTop: 'var(--space-4)' }}>
+                <button
+                  type="button" data-btn-secondary
+                  disabled={resendReceiptMutation.isPending}
+                  onClick={() => resendReceiptMutation.mutate(payment._id)}
+                >
+                  <Icons.Mail size={15} aria-hidden="true" />
+                  {resendReceiptMutation.isPending ? 'Sending…' : 'Email receipt'}
+                </button>
+
+                {payment.receiptUrl && (
+                  <a href={payment.receiptUrl} target="_blank" rel="noreferrer" data-btn-secondary>
+                    <Icons.Download size={15} aria-hidden="true" />
+                    Download PDF
+                  </a>
+                )}
+
+                <button
+                  type="button" data-btn-secondary
+                  onClick={() => printReceiptViaBrowser(data)}
+                >
+                  <Icons.Receipt size={15} aria-hidden="true" />
+                  Print (browser)
+                </button>
+
+                <button
+                  type="button" data-btn-secondary
+                  disabled={printing === 'bluetooth'}
+                  onClick={() => {
+                    setPrinting('bluetooth');
+                    printReceiptViaBluetooth(data)
+                      .then(() => toast('Sent to printer.', 'success'))
+                      .catch((err: unknown) =>
+                        toast(err instanceof Error ? err.message : 'Could not print via Bluetooth.', 'error'))
+                      .finally(() => setPrinting(null));
+                  }}
+                >
+                  <Icons.Zap size={15} aria-hidden="true" />
+                  {printing === 'bluetooth' ? 'Connecting…' : 'Print via Bluetooth'}
+                </button>
+              </div>
+
+              <p data-field-hint style={{ marginTop: 'var(--space-4)' }}>
+                Bluetooth printing needs Chrome or Edge and a Bluetooth-LE receipt
+                printer — many inexpensive printers use classic Bluetooth instead,
+                which browsers can&apos;t reach directly. If it doesn&apos;t find your
+                printer, use &quot;Print (browser)&quot; with a printer already set up
+                on this device.
+              </p>
+            </div>
+          );
+        })()}
       </Modal>
     </div>
   );

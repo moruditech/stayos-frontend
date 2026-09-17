@@ -343,6 +343,18 @@ export function DownloadButton({
       a.href = url;
       a.download = filename;
       a.click();
+    } catch (err) {
+      // Previously had no catch at all: any failure here (the folio PDF's
+      // "settle the folio first" 404, a permissions error, a network
+      // failure, ...) unwound out of this function uncaught, so the button
+      // just reverted from "Preparing…" back to its resting label with no
+      // feedback at all — a completely silent failure. Fixed centrally
+      // here rather than at each of this component's several call sites
+      // across the property/customer/agency apps. A plain alert() rather
+      // than a toast because this component has no dependency on any
+      // particular app's toast/notification provider being mounted above
+      // it, and shouldn't have to.
+      window.alert(err instanceof Error ? err.message : 'Could not download this file. Please try again.');
     } finally {
       setLoading(false);
     }
