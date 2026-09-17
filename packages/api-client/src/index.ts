@@ -125,6 +125,7 @@ export type {
 } from './domains/property-ops';
 export type { LedgerAccount, JournalEntryInput, JournalLineInput, OtherIncomeEntryInput } from './domains/accounting';
 export type { SubmitExpenseInput } from './domains/property-ops';
+export type { GuestRegisterEntry, GuestRegisterListEntry, GuestRegisterCaptureInput } from './domains/property-ops';
 export type {
   GuestThreadDTO,
   GuestThreadMessageDTO,

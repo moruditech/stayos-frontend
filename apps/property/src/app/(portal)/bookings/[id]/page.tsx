@@ -18,7 +18,8 @@ import {
   Icons,
 } from '@stayos/ui';
 import { PERMISSIONS } from '@stayos/constants';
-import { bookingKeys } from '@/lib/query-keys';
+import { bookingKeys, guestRegisterKeys } from '@/lib/query-keys';
+import { GuestRegisterCaptureForm } from '@/components/GuestRegisterCaptureForm';
 
 function fmt(iso: string): string {
   return new Date(iso).toLocaleString('en-ZA', {
@@ -27,146 +28,6 @@ function fmt(iso: string): string {
 }
 function fmtCurrency(n: number): string {
   return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(n);
-}
-
-const RESIDENCE_STATUSES = [
-  { value: 'citizen', label: 'SA citizen' },
-  { value: 'permanent_resident', label: 'Permanent resident' },
-  { value: 'visitor_visa', label: 'Visitor visa' },
-  { value: 'work_visa', label: 'Work visa' },
-  { value: 'study_visa', label: 'Study visa' },
-  { value: 'asylum', label: 'Asylum seeker' },
-  { value: 'other', label: 'Other' },
-];
-
-// Guest register capture form — required before check-in (see
-// stayos-audit-report.md G-02). Kept in this file rather than split out
-// since it's tightly coupled to the one flow that needs it.
-function GuestRegisterCaptureForm({
-  bookingId,
-  onCaptured,
-}: {
-  bookingId: string;
-  onCaptured: () => void;
-}): React.ReactElement {
-  const { toast } = useToast();
-  const [fullName, setFullName] = useState('');
-  const [idOrPassportNumber, setIdNumber] = useState('');
-  const [documentType, setDocumentType] = useState<'sa_id' | 'passport' | 'other'>('sa_id');
-  const [residenceStatus, setResidenceStatus] = useState('citizen');
-  const [nationality, setNationality] = useState('');
-  const [residentialAddress, setResidentialAddress] = useState('');
-  const [idDocument, setIdDocument] = useState<File | null>(null);
-  const [signatureAcknowledged, setSignatureAcknowledged] = useState(false);
-  const [error, setError] = useState<string | undefined>();
-
-  const captureMutation = useMutation({
-    mutationFn: () => {
-      if (!idDocument) throw new Error('ID document image is required.');
-      // A typed signature stands in for a captured signature pad image —
-      // the backend stores whatever base64 payload is sent as signatureData.
-      const signatureData = btoa(`${fullName}|${new Date().toISOString()}`);
-      return api.guestregister.capture(bookingId, {
-        fullName,
-        idOrPassportNumber,
-        documentType,
-        residenceStatus,
-        nationality,
-        residentialAddress,
-        signatureData,
-        idDocument,
-      });
-    },
-    onSuccess: () => {
-      toast('Guest register entry captured.', 'success');
-      onCaptured();
-    },
-    onError: (err: ApiError | Error) => {
-      const message = 'message' in err ? err.message : 'Failed to capture guest register entry.';
-      setError(message);
-    },
-  });
-
-  return (
-    <form
-      data-form
-      onSubmit={(e) => {
-        e.preventDefault();
-        setError(undefined);
-        if (!signatureAcknowledged) {
-          setError('Guest must acknowledge and sign before continuing.');
-          return;
-        }
-        captureMutation.mutate();
-      }}
-    >
-      <div data-form-group>
-        <label htmlFor="gr-fullName">Full name</label>
-        <input id="gr-fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
-      </div>
-      <div data-form-row>
-        <div data-form-group>
-          <label htmlFor="gr-docType">Document type</label>
-          <select id="gr-docType" value={documentType} onChange={(e) => setDocumentType(e.target.value as typeof documentType)}>
-            <option value="sa_id">SA ID</option>
-            <option value="passport">Passport</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
-        <div data-form-group>
-          <label htmlFor="gr-idNumber">ID / passport number</label>
-          <input id="gr-idNumber" value={idOrPassportNumber} onChange={(e) => setIdNumber(e.target.value)} required />
-        </div>
-      </div>
-      <div data-form-row>
-        <div data-form-group>
-          <label htmlFor="gr-residence">Residence status</label>
-          <select id="gr-residence" value={residenceStatus} onChange={(e) => setResidenceStatus(e.target.value)}>
-            {RESIDENCE_STATUSES.map((s) => (
-              <option key={s.value} value={s.value}>{s.label}</option>
-            ))}
-          </select>
-        </div>
-        <div data-form-group>
-          <label htmlFor="gr-nationality">Nationality</label>
-          <input id="gr-nationality" value={nationality} onChange={(e) => setNationality(e.target.value)} required />
-        </div>
-      </div>
-      <div data-form-group>
-        <label htmlFor="gr-address">Residential address</label>
-        <input id="gr-address" value={residentialAddress} onChange={(e) => setResidentialAddress(e.target.value)} required />
-      </div>
-      <div data-form-group>
-        <label htmlFor="gr-idDoc">ID document photo</label>
-        <input
-          id="gr-idDoc"
-          type="file"
-          accept="image/*"
-          onChange={(e) => setIdDocument(e.target.files?.[0] ?? null)}
-          required
-        />
-      </div>
-      <div data-form-group data-checkbox-group>
-        <label htmlFor="gr-sign">
-          <input
-            id="gr-sign"
-            type="checkbox"
-            checked={signatureAcknowledged}
-            onChange={(e) => setSignatureAcknowledged(e.target.checked)}
-          />
-          {' '}Guest confirms the details above are correct and consents to this record.
-        </label>
-      </div>
-
-      <InlineError message={error} />
-
-      <div data-form-actions>
-        <button type="submit" data-btn-primary disabled={captureMutation.isPending}>
-          {captureMutation.isPending ? 'Saving…' : 'Save and continue'}
-        </button>
-      </div>
-    </form>
-  );
 }
 
 // "Enrich" form for a channel-imported (OTA/iCal) booking — see
@@ -273,7 +134,7 @@ export default function BookingDetailPage(): React.ReactElement {
   // Only relevant once the booking is confirmed and check-in becomes
   // possible — avoids an extra request on every booking detail view.
   const { data: registerEntry, isLoading: isLoadingRegister } = useQuery({
-    queryKey: ['guestregister', 'booking', id],
+    queryKey: guestRegisterKeys.byBooking(id),
     queryFn: () => api.guestregister.getByBooking(id),
     enabled: !!booking && booking.status === 'confirmed',
   });
@@ -576,9 +437,10 @@ export default function BookingDetailPage(): React.ReactElement {
       >
         <GuestRegisterCaptureForm
           bookingId={id}
+          defaultFullName={`${booking.customerId?.firstName ?? ''} ${booking.customerId?.lastName ?? ''}`.trim() || undefined}
           onCaptured={() => {
             setShowRegisterModal(false);
-            void queryClient.invalidateQueries({ queryKey: ['guestregister', 'booking', id] });
+            void queryClient.invalidateQueries({ queryKey: guestRegisterKeys.byBooking(id) });
           }}
         />
       </Modal>

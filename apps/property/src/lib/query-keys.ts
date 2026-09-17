@@ -9,10 +9,18 @@ export const dashboardKeys = {
 };
 
 export const bookingKeys = {
-  all:    ['bookings'] as const,
-  list:   (filters: Record<string, unknown>) => ['bookings', 'list', filters] as const,
-  detail: (id: string) => ['bookings', 'detail', id] as const,
-  folio:  (id: string) => ['bookings', id, 'folio'] as const,
+  all:        ['bookings'] as const,
+  list:       (filters: Record<string, unknown>) => ['bookings', 'list', filters] as const,
+  detail:     (id: string) => ['bookings', 'detail', id] as const,
+  folio:      (id: string) => ['bookings', id, 'folio'] as const,
+  arrivals:   () => ['bookings', 'arrivals'] as const,
+  departures: () => ['bookings', 'departures'] as const,
+};
+
+export const guestRegisterKeys = {
+  all:    ['guestregister'] as const,
+  byBooking: (bookingId: string) => ['guestregister', 'booking', bookingId] as const,
+  list:   (filters?: Record<string, unknown>) => ['guestregister', 'list', filters ?? {}] as const,
 };
 
 export const roomKeys = {

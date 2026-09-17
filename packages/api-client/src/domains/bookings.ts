@@ -75,7 +75,7 @@ export const bookingsApi = {
 
   // POST /bookings/:id/check-in — blocked with a 422 GUEST_REGISTER_REQUIRED
   // error until a guest register entry exists for this booking; see
-  // guestregisterApi below and stayos-audit-report.md G-02.
+  // guestregisterApi in property-ops.ts and stayos-audit-report.md G-02.
   checkIn: (id: string) => client.post<Booking>(`/bookings/${id}/check-in`),
 
   // POST /bookings/:id/check-out
@@ -89,4 +89,16 @@ export const bookingsApi = {
 
   // GET /bookings/:id/folio
   getFolio: (id: string) => client.get<unknown>(`/bookings/${id}/folio`),
+
+  // GET /bookings/arrivals — today's confirmed bookings due to check in.
+  // See bookings.service.js#getTodayBookings('arrivals'): filters checkIn
+  // within today AND status === 'confirmed', so (unlike filtering list() by
+  // checkInFrom/checkInTo alone) already-checked-in, cancelled, and no-show
+  // bookings due in today's date range are correctly excluded. Unpaginated —
+  // the backend returns the plain array for "today" (bounded, not a
+  // browsable history) rather than a { data, meta } envelope.
+  arrivals: () => client.get<PopulatedBooking[]>('/bookings/arrivals'),
+
+  // GET /bookings/departures — today's checked-in bookings due to check out.
+  departures: () => client.get<PopulatedBooking[]>('/bookings/departures'),
 };

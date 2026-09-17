@@ -772,6 +772,17 @@ export interface GuestRegisterEntry {
   capturedVia: string;
 }
 
+// GET /guestregister and GET /guestregister/export populate bookingId (see
+// guestregister.service.js#listEntries) and include idOrPassportNumber —
+// decrypted, and masked to e.g. '8801015*****' unless fetched via export()
+// (list() always masks; export() is the only unmasked path, since its whole
+// purpose is producing a register an inspector can actually read — Reg 36).
+// getByBooking()/capture() above never return this field at all.
+export interface GuestRegisterListEntry extends Omit<GuestRegisterEntry, 'bookingId'> {
+  bookingId: { _id: string; confirmationNumber?: string };
+  idOrPassportNumber: string;
+}
+
 export interface GuestRegisterCaptureInput {
   fullName: string;
   idOrPassportNumber: string;
@@ -802,16 +813,26 @@ export const guestregisterApi = {
     return client.post<GuestRegisterEntry>(`/guestregister/${bookingId}`, form);
   },
 
+  // GET /guestregister — paginated (50/page server-side default). Returns
+  // { data, meta } via getPaginated so the ledger page can page through the
+  // full history instead of silently only ever seeing the newest 50 entries.
   list: (params?: { from?: string; to?: string; page?: number; limit?: number }) =>
-    client.get<GuestRegisterEntry[]>('/guestregister', {
+    client.getPaginated<GuestRegisterListEntry>('/guestregister', {
       params: params as Record<string, string | number | boolean | undefined>,
     }),
 
+  // GET /guestregister/export — every matching entry in one response
+  // (backend caps at 1000, not client-paginated), unmasked. Intentionally a
+  // plain array, not getPaginated: export always fetches the whole matching
+  // range in one call rather than a browsable page at a time.
   export: (params?: { from?: string; to?: string }) =>
-    client.get<GuestRegisterEntry[]>('/guestregister/export', {
+    client.get<GuestRegisterListEntry[]>('/guestregister/export', {
       params: params as Record<string, string | number | boolean | undefined>,
     }),
 
+  // GET /guestregister/:id/document — mints a fresh signed Cloudinary URL
+  // (short-lived) rather than a permanently public one; fetch just before
+  // opening it, don't cache the URL itself.
   getDocumentUrl: (entryId: string) =>
     client.get<{ url: string }>(`/guestregister/${entryId}/document`),
 };

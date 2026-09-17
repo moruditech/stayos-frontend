@@ -40,6 +40,13 @@ export const NAV_CONFIG: NavGroup[] = [
         requiresPerm: [PERMISSIONS.BOOKING_READ],
       },
       {
+        id: 'check-in',
+        label: 'Check-in',
+        path: '/check-in',
+        icon: Icons.KeyRound,
+        requiresPerm: [PERMISSIONS.CHECKIN_PROCESS, PERMISSIONS.CHECKIN_ALL],
+      },
+      {
         id: 'rooms',
         label: 'Rooms & Availability',
         path: '/rooms',
@@ -151,6 +158,13 @@ export const NAV_CONFIG: NavGroup[] = [
         path: '/reports',
         icon: Icons.BarChart3,
         requiresPerm: [PERMISSIONS.REPORT_READ, PERMISSIONS.REPORT_REVENUE_READ, PERMISSIONS.REPORT_FINANCE_READ],
+      },
+      {
+        id: 'guest-register',
+        label: 'Guest Register',
+        path: '/guest-register',
+        icon: Icons.ScrollText,
+        requiresPerm: [PERMISSIONS.REPORT_EXPORT],
       },
       {
         id: 'accounting',

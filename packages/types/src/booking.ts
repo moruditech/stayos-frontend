@@ -36,6 +36,30 @@ export interface Booking {
   version: number;
   createdAt: string;
   updatedAt: string;
+
+  // The fields below exist on Booking.model.js but were missing here —
+  // several call sites were already reading them off an
+  // `as unknown as Record<string, unknown>` cast (see bookings/[id]/page.tsx)
+  // rather than a real type. Optional because they're absent on some booking
+  // states (e.g. a skeleton OTA-imported record) rather than genuinely
+  // unknown-shaped.
+  confirmationNumber?: string;
+  adults?: number;
+  children?: number;
+  nights?: number;
+  actualCheckIn?: string | null;
+  actualCheckOut?: string | null;
+  // Lives separately from `status` — a booking can be status: 'confirmed'
+  // while still awaiting the guest's own confirmation. See
+  // bookings.service.js#confirmGuestAttendance.
+  guestConfirmationStatus?: 'pending' | 'confirmed' | 'expired' | null;
+  guestConfirmationDeadline?: string | null;
+  notes?: string;
+  isVip?: boolean;
+  specialRequests?: string;
+  depositAmount?: number;
+  depositPaid?: boolean;
+  balanceDue?: number;
 }
 
 // GET /bookings and GET /bookings/:id populate customerId and roomId (see

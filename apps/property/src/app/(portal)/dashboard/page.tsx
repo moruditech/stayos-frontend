@@ -138,30 +138,26 @@ export default function DashboardPage(): React.ReactElement {
 
   // ── Arrivals / departures / upcoming bookings — booking:read ──────────────
   const canReadBookings = useHasPerm(PERMISSIONS.BOOKING_READ);
+  // api.bookings.arrivals()/.departures() (GET /bookings/arrivals,
+  // /bookings/departures) — previously approximated here via
+  // list({ checkInFrom, checkInTo }), which (unlike the dedicated endpoints)
+  // doesn't filter by status, so an already-checked-in, cancelled, or
+  // no-show booking with a check-in date of today would still count as an
+  // "expected arrival". Both now return a plain array, not { data, meta }.
   const { data: arrivals, isLoading: arrivalsLoading } = useQuery({
-    queryKey: bookingKeys.list({ type: 'arrivals-today' }),
-    queryFn: () =>
-      api.bookings.list({
-        checkInFrom: todayIso,
-        checkInTo: todayIso,
-        limit: 50,
-      } as Parameters<typeof api.bookings.list>[0]),
+    queryKey: bookingKeys.arrivals(),
+    queryFn: () => api.bookings.arrivals(),
     enabled: canReadBookings,
     staleTime: 60_000,
   });
   const { data: departures, isLoading: departuresLoading } = useQuery({
-    queryKey: bookingKeys.list({ type: 'departures-today' }),
-    queryFn: () =>
-      api.bookings.list({
-        checkOutFrom: todayIso,
-        checkOutTo: todayIso,
-        limit: 50,
-      } as Parameters<typeof api.bookings.list>[0]),
+    queryKey: bookingKeys.departures(),
+    queryFn: () => api.bookings.departures(),
     enabled: canReadBookings,
     staleTime: 60_000,
   });
   const upcomingBookings = React.useMemo(
-    () => [...(arrivals?.data ?? [])].sort((a, b) => new Date(a.checkIn).getTime() - new Date(b.checkIn).getTime()),
+    () => [...(arrivals ?? [])].sort((a, b) => new Date(a.checkIn).getTime() - new Date(b.checkIn).getTime()),
     [arrivals]
   );
 
@@ -285,7 +281,7 @@ export default function DashboardPage(): React.ReactElement {
       });
     });
 
-    [...(arrivals?.data ?? []), ...(departures?.data ?? [])].forEach((b) => {
+    [...(arrivals ?? []), ...(departures ?? [])].forEach((b) => {
       const guest = `${b.customerId?.firstName ?? ''} ${b.customerId?.lastName ?? ''}`.trim() || 'Guest';
       entries.push({
         icon: Icons.CalendarClock,
@@ -384,17 +380,20 @@ export default function DashboardPage(): React.ReactElement {
             icon={Icons.CalendarCheck2}
             tone="blue"
             label="Today's Arrivals"
-            value={arrivals ? formatNumber(arrivals.meta.total) : '—'}
+            value={arrivals ? formatNumber(arrivals.length) : '—'}
             sublabel="Expected arrivals"
-            footer={<LinkArrowTo href="/bookings?checkIn=today">View arrivals</LinkArrowTo>}
+            footer={<LinkArrowTo href="/check-in">View arrivals</LinkArrowTo>}
           />
           <StatCard
             icon={Icons.DoorClosed}
             tone="amber"
             label="Today's Departures"
-            value={departures ? formatNumber(departures.meta.total) : '—'}
+            value={departures ? formatNumber(departures.length) : '—'}
             sublabel="Expected departures"
-            footer={<LinkArrowTo href="/bookings?checkOut=today">View departures</LinkArrowTo>}
+            // /folios defaults to its "currently checked in" filter, which
+            // is exactly this list — no query params needed (and bookings
+            // list doesn't read checkOut= anyway; see check-in page notes).
+            footer={<LinkArrowTo href="/folios">View departures</LinkArrowTo>}
           />
         </RoleGate>
         <RoleGate perm={PERMISSIONS.ROOM_READ}>
@@ -450,7 +449,7 @@ export default function DashboardPage(): React.ReactElement {
         </RoleGate>
 
         <RoleGate perm={PERMISSIONS.BOOKING_READ}>
-          <Panel icon={Icons.Calendar} title="Upcoming bookings" headerActions={<LinkArrowTo href="/bookings">View all</LinkArrowTo>}>
+          <Panel icon={Icons.Calendar} title="Upcoming bookings" headerActions={<LinkArrowTo href="/check-in">View all</LinkArrowTo>}>
             {!upcomingBookings.length ? (
               <p data-empty-note>No arrivals today.</p>
             ) : (
