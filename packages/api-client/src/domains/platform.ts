@@ -2,6 +2,7 @@ import { client } from '../client';
 import type {
   PlatformDashboard,
   PlatformTenant,
+  TenantAddonSubscription,
   PlatformAgency,
   RevenuePoint,
   PlatformSubscription,
@@ -28,6 +29,31 @@ export const platformApi = {
     client.patch<PlatformTenant>(`/platform/tenants/${id}/status`, { status, reason }),
   setTenantFeatured: (id: string, featured: boolean, featuredUntil?: string | null) =>
     client.patch<PlatformTenant>(`/platform/tenants/${id}/featured`, { featured, featuredUntil }),
+
+  // ── Tenant add-on subscriptions — platform:plans:manage ────────────────
+  // Same permission as plan management — granting/cancelling an add-on
+  // changes what a tenant can access and pay for, same as editing the plan
+  // catalogue itself. parentSubscriptionId is resolved server-side from the
+  // tenant's TenantSubscription — never send one.
+  listTenantAddons: (tenantId: string) =>
+    client.get<TenantAddonSubscription[]>(`/platform/tenants/${tenantId}/addons`),
+  createTenantAddon: (tenantId: string, input: {
+    addonKey: string;
+    monthlyPrice: number;
+    currency?: string | undefined;
+    billingCycle?: 'monthly' | 'annual' | undefined;
+    extraBedBlocks?: number | undefined;
+    storageGBBlocks?: number | undefined;
+  }) => client.post<TenantAddonSubscription>(`/platform/tenants/${tenantId}/addons`, input),
+  updateTenantAddon: (tenantId: string, addonId: string, input: {
+    monthlyPrice?: number | undefined;
+    currency?: string | undefined;
+    billingCycle?: 'monthly' | 'annual' | undefined;
+    extraBedBlocks?: number | undefined;
+    storageGBBlocks?: number | undefined;
+  }) => client.patch<TenantAddonSubscription>(`/platform/tenants/${tenantId}/addons/${addonId}`, input),
+  cancelTenantAddon: (tenantId: string, addonId: string, cancellationReason: string) =>
+    client.patch<TenantAddonSubscription>(`/platform/tenants/${tenantId}/addons/${addonId}/cancel`, { cancellationReason }),
 
   // ── Agencies — agency:manage ───────────────────────────────────────────
   listAgencies: (params?: { page?: number | undefined; limit?: number | undefined; status?: string | undefined; search?: string | undefined }) =>

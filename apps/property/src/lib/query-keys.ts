@@ -126,6 +126,12 @@ export const reportKeys = {
   maintenance: (params: Record<string, unknown>) => ['reports', 'maintenance', params] as const,
   students:    (params: Record<string, unknown>) => ['reports', 'students', params] as const,
   nightAudit:  (date: string) => ['reports', 'night-audit', date] as const,
+  // Restaurant / POS module (TAD 23 dashboard §3.6)
+  restaurantSalesSummary:        (params: Record<string, unknown>) => ['reports', 'restaurant-sales-summary', params] as const,
+  restaurantFoodCost:            (params: Record<string, unknown>) => ['reports', 'restaurant-food-cost', params] as const,
+  restaurantShiftReconciliation: (params: Record<string, unknown>) => ['reports', 'restaurant-shift-reconciliation', params] as const,
+  restaurantTabAging:            (params: Record<string, unknown>) => ['reports', 'restaurant-tab-aging', params] as const,
+  restaurantSalesByStaff:        (params: Record<string, unknown>) => ['reports', 'restaurant-sales-by-staff', params] as const,
 };
 
 export const chatKeys = {
@@ -152,4 +158,36 @@ export const supportKeys = {
 export const guestMessagingKeys = {
   threads: (filters?: Record<string, unknown>) => ['messaging', 'threads', filters ?? {}] as const,
   thread:  (threadId: string) => ['messaging', 'threads', threadId] as const,
+};
+
+// ── Restaurant / POS module (TAD 23 dashboard §4) ────────────────────────────
+
+export const outletKeys = {
+  list:   (params?: Record<string, unknown>) => ['restaurant', 'outlets', params ?? {}] as const,
+  detail: (id: string) => ['restaurant', 'outlets', id] as const,
+};
+
+export const menuKeys = {
+  categories:     (outletId: string) => ['restaurant', 'menu', 'categories', outletId] as const,
+  items:          (outletId: string, params?: Record<string, unknown>) =>
+    ['restaurant', 'menu', 'items', outletId, params ?? {}] as const,
+  itemDetail:     (id: string) => ['restaurant', 'menu', 'items', 'detail', id] as const,
+};
+
+export const tableKeys = {
+  list: (outletId: string) => ['restaurant', 'tables', outletId] as const,
+};
+
+export const tabKeys = {
+  list:   (params?: Record<string, unknown>) => ['restaurant', 'tabs', params ?? {}] as const,
+  detail: (id: string) => ['restaurant', 'tabs', id] as const,
+};
+
+export const shiftKeys = {
+  list:   (params?: Record<string, unknown>) => ['restaurant', 'shifts', params ?? {}] as const,
+  detail: (id: string) => ['restaurant', 'shifts', id] as const,
+};
+
+export const tillKeys = {
+  list: (params?: Record<string, unknown>) => ['restaurant', 'tills', params ?? {}] as const,
 };

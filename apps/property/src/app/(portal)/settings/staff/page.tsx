@@ -48,6 +48,10 @@ const PROPERTY_ROLES = [
   'maintenance_supervisor',
   'maintenance_technician',
   'property_accountant',
+  'restaurant_manager',
+  'cashier',
+  'waiter',
+  'bartender',
 ];
 
 const createStaffSchema = z.object({

@@ -7,6 +7,7 @@ export {
   useSession,
   useSessionLoading,
   useSessionContext,
+  useSessionRefresh,
 } from './SessionProvider';
 
 export { performLogout } from './logout';

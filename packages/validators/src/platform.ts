@@ -1,10 +1,11 @@
 import { z } from 'zod';
-import { PLAN_FEATURES, PLATFORM_ROLES, TENANT_STATUS, AGENCY_STATUS } from '@stayos/constants';
+import { PLAN_FEATURES, PLATFORM_ROLES, TENANT_STATUS, AGENCY_STATUS, ADDON_KEYS } from '@stayos/constants';
 
 const TENANT_STATUS_VALUES = Object.values(TENANT_STATUS) as [string, ...string[]];
 const AGENCY_STATUS_VALUES = Object.values(AGENCY_STATUS) as [string, ...string[]];
 const PLATFORM_ROLE_VALUES = Object.values(PLATFORM_ROLES) as [string, ...string[]];
 const PLAN_FEATURE_VALUES = Object.values(PLAN_FEATURES) as [string, ...string[]];
+const ADDON_KEY_VALUES = Object.values(ADDON_KEYS) as [string, ...string[]];
 
 // ── Tenant status / featured (Document 14 §3) ──────────────────────────────
 // Mongoose-level validation only on the backend (isValidTenantTransition,
@@ -21,6 +22,31 @@ export const setFeaturedSchema = z.object({
   featuredUntil: z.string().optional().nullable(),
 });
 export type SetFeaturedInput = z.infer<typeof setFeaturedSchema>;
+
+// ── Tenant add-on subscriptions ─────────────────────────────────────────────
+// Mirrors createAddonSchema / updateAddonSchema in platform.validation.js
+// on the backend exactly. addonKey is fixed once granted — cancel and grant
+// a fresh row instead of changing what add-on an existing row represents,
+// matching the model's unique (tenantId, addonKey) index.
+export const createAddonSchema = z.object({
+  addonKey: z.enum(ADDON_KEY_VALUES, { errorMap: () => ({ message: 'Select an add-on' }) }),
+  monthlyPrice: z.number({ invalid_type_error: 'Enter a monthly price' }).min(0, 'Cannot be negative'),
+  currency: z.string().default('ZAR'),
+  billingCycle: z.enum(['monthly', 'annual']).default('monthly'),
+  // university_module only — ignored for every other addonKey
+  extraBedBlocks: z.number().int().min(0).optional(),
+  // extra_storage only — ignored for every other addonKey
+  storageGBBlocks: z.number().int().min(0).optional(),
+});
+export type CreateAddonInput = z.infer<typeof createAddonSchema>;
+
+export const updateAddonSchema = createAddonSchema.partial().omit({ addonKey: true });
+export type UpdateAddonInput = z.infer<typeof updateAddonSchema>;
+
+export const cancelAddonSchema = z.object({
+  cancellationReason: z.string().min(1, 'A reason is required'),
+});
+export type CancelAddonInput = z.infer<typeof cancelAddonSchema>;
 
 // ── Agency status (Document 14 §3) ─────────────────────────────────────────
 export const changeAgencyStatusSchema = z.object({

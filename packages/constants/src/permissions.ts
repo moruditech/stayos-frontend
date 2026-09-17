@@ -88,6 +88,22 @@ export const PERMISSIONS = {
   PLATFORM_READ: 'platform:read',
   PLATFORM_USERS_MANAGE: 'platform:users:manage',
 
+  // Restaurant / POS module (TAD 23). Sourced verbatim from ROLE_PERMISSIONS
+  // in stayos-api/src/utils/constants.js — do not paraphrase these strings.
+  POS_OUTLET_MANAGE: 'pos:outlet:manage',
+  POS_MENU_MANAGE: 'pos:menu:manage',
+  POS_TABLE_MANAGE: 'pos:table:manage',
+  POS_TAB_MANAGE: 'pos:tab:manage',
+  POS_ORDER_READ: 'pos:order:read',
+  POS_ORDER_FULFILLMENT_UPDATE: 'pos:order:fulfillment:update',
+  POS_PAYMENT_PROCESS: 'pos:payment:process',
+  POS_SHIFT_OPERATE: 'pos:shift:operate',
+  POS_SHIFT_READ_ALL: 'pos:shift:read:all',
+  POS_VOID_APPROVE: 'pos:void:approve',
+  POS_DISCOUNT_APPROVE: 'pos:discount:approve',
+  POS_STAFF_PIN_RESET: 'pos:staff_pin:reset',
+  POS_REPORTS_READ: 'pos:reports:read',
+
   PROCUREMENT_MANAGE: 'procurement:manage',
 
   PROMOTION_MANAGE: 'promotion:manage',

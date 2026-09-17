@@ -24,6 +24,8 @@ export type {
 export type {
   PlatformDashboard,
   PlatformTenant,
+  TenantAddonSubscription,
+  AddonKey,
   PlatformAgency,
   RevenuePoint,
   PlatformSubscription,

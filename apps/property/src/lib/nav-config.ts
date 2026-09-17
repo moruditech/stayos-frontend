@@ -11,7 +11,7 @@
  * If requiresPerm is omitted: visible to any authenticated tenant-scope session.
  */
 
-import { PERMISSIONS } from '@stayos/constants';
+import { PERMISSIONS, PLAN_FEATURES } from '@stayos/constants';
 import type { NavItem } from '@stayos/ui';
 import { Icons } from '@stayos/ui';
 
@@ -110,6 +110,60 @@ export const NAV_CONFIG: NavGroup[] = [
         path: '/channels',
         icon: Icons.Plug,
         requiresPerm: [PERMISSIONS.CHANNEL_MANAGE],
+      },
+    ],
+  },
+
+  // ── RESTAURANT ───────────────────────────────────────────────────────────
+  // Order-taking, payment, and the kitchen queue live on their own separate
+  // apps (POS mobile, KDS mobile) — this dashboard covers management and
+  // oversight only. requiresFeature on every child rather than the group
+  // node itself, since NavGroup doesn't carry requiresFeature in its own
+  // right — filterNav hides a group once every child is filtered out.
+  {
+    id: 'restaurant-group',
+    label: 'Restaurant',
+    group: true,
+    children: [
+      {
+        id: 'restaurant-outlets',
+        label: 'Outlets',
+        path: '/restaurant/outlets',
+        icon: Icons.Building,
+        requiresPerm: [PERMISSIONS.POS_OUTLET_MANAGE],
+        requiresFeature: PLAN_FEATURES.RESTAURANT_MODULE,
+      },
+      {
+        id: 'restaurant-menu',
+        label: 'Menu & Recipes',
+        path: '/restaurant/menu',
+        icon: Icons.UtensilsCrossed,
+        requiresPerm: [PERMISSIONS.POS_MENU_MANAGE],
+        requiresFeature: PLAN_FEATURES.RESTAURANT_MODULE,
+      },
+      {
+        id: 'restaurant-tables',
+        label: 'Table Map',
+        path: '/restaurant/tables',
+        icon: Icons.LayoutGrid,
+        requiresPerm: [PERMISSIONS.POS_TABLE_MANAGE],
+        requiresFeature: PLAN_FEATURES.RESTAURANT_MODULE,
+      },
+      {
+        id: 'restaurant-tabs',
+        label: 'Tabs',
+        path: '/restaurant/tabs',
+        icon: Icons.FileText,
+        requiresPerm: [PERMISSIONS.POS_TAB_MANAGE],
+        requiresFeature: PLAN_FEATURES.RESTAURANT_MODULE,
+      },
+      {
+        id: 'restaurant-shifts',
+        label: 'Cashier Shifts',
+        path: '/restaurant/shifts',
+        icon: Icons.History,
+        requiresPerm: [PERMISSIONS.POS_SHIFT_READ_ALL],
+        requiresFeature: PLAN_FEATURES.RESTAURANT_MODULE,
       },
     ],
   },

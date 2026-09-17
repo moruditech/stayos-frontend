@@ -9,8 +9,8 @@ export { AGENCY_TO_PROPERTY_ROLE, UNRESTRICTED_AGENCY_ROLES } from './agency-rol
 export { ACCESS_MODE, MANDATE_STATUS } from './access';
 export type { AccessMode, MandateStatus } from './access';
 
-export { PLAN_FEATURES } from './plan-features';
-export type { PlanFeature } from './plan-features';
+export { PLAN_FEATURES, ADDON_KEYS, ADDON_PRICES } from './plan-features';
+export type { PlanFeature, AddonKeyConstant } from './plan-features';
 
 export { PERMISSIONS } from './permissions';
 export type { Permission } from './permissions';

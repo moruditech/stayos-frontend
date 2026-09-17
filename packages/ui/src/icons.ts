@@ -144,9 +144,11 @@ export {
   Megaphone,
   Inbox,
   Archive,
-  CalendarDays,
-  BedDouble,
-  Key,
+
+  // Restaurant / POS module (TAD 23) — Building/LayoutGrid/History/FileText
+  // already covered outlets/table-map/shift-history/tabs; only the menu
+  // concept had no existing fit.
+  UtensilsCrossed,
 } from 'lucide-react';
 
 export type { LucideIcon, LucideProps } from 'lucide-react';

@@ -31,6 +31,35 @@ export type PlatformTenant = Tenant & {
   contactEmail?: string;
 };
 
+// ── Tenant Add-on Subscriptions (GET/POST/PATCH /platform/tenants/:id/addons) ──
+// Verified against models/AddonSubscription.model.js exactly. A tenant can
+// have at most one row per addonKey (unique compound index on the model).
+export type AddonKey = 'university_module' | 'ai_pricing' | 'white_label' | 'extra_storage' | 'restaurant_module';
+
+export interface TenantAddonSubscription {
+  _id: string;
+  tenantId: string;
+  parentSubscriptionId: string;
+  addonKey: AddonKey;
+  monthlyPrice: number;
+  currency: string;
+  // university_module only — default 30/0/149/30 for every other addonKey
+  includedBeds: number;
+  extraBedBlocks: number;
+  extraBedBlockPrice: number;
+  totalBedCapacity: number;
+  // extra_storage only — default 0 for every other addonKey
+  storageGBBlocks: number;
+  status: 'active' | 'cancelled' | 'suspended';
+  activatedAt: string;
+  cancelledAt?: string;
+  cancellationReason?: string;
+  billingCycle: 'monthly' | 'annual';
+  nextBillingDate?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // ── Agencies (GET /platform/agencies, GET /platform/agencies/:id) ─────────
 export interface PlatformAgency {
   _id: string;

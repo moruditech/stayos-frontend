@@ -4,14 +4,31 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { api } from '@stayos/api-client';
-import type { ApiError } from '@stayos/api-client';
-import { TENANT_STATUS_TRANSITIONS } from '@stayos/constants';
-import type { TenantStatus } from '@stayos/constants';
-import { changeTenantStatusSchema, setFeaturedSchema } from '@stayos/validators';
-import type { ChangeTenantStatusInput } from '@stayos/validators';
+import type { ApiError, TenantAddonSubscription } from '@stayos/api-client';
+import { TENANT_STATUS_TRANSITIONS, ADDON_KEYS, ADDON_PRICES } from '@stayos/constants';
+import type { TenantStatus, AddonKeyConstant } from '@stayos/constants';
+import {
+  changeTenantStatusSchema,
+  setFeaturedSchema,
+  createAddonSchema,
+  updateAddonSchema,
+  cancelAddonSchema,
+} from '@stayos/validators';
+import type { ChangeTenantStatusInput, CreateAddonInput, UpdateAddonInput, CancelAddonInput } from '@stayos/validators';
 import { PageHeader, Panel, LoadingBlock, EmptyBlock, InlineError, useToast, Modal, Icons } from '@stayos/ui';
 import { platformKeys } from '../lib/query-keys';
 import { formatDate, formatNumber, titleCase } from '../lib/format';
+
+// Local to this page, matching how PlansPage.tsx's own FEATURE_LABELS map
+// is scoped — these are addon-subscription labels specifically, distinct
+// from that page's plan-tier-feature checkbox labels.
+const ADDON_LABELS: Record<AddonKeyConstant, string> = {
+  university_module: 'Student Accommodation Module',
+  restaurant_module: 'Restaurant / POS Module',
+  ai_pricing: 'AI Pricing',
+  white_label: 'White Label',
+  extra_storage: 'Extra Storage',
+};
 
 export default function TenantsPage(): React.ReactElement {
   const { id } = useParams<{ id: string }>();
@@ -120,8 +137,16 @@ function TenantDetailView({ id }: { id: string }): React.ReactElement {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [statusModalOpen, setStatusModalOpen] = React.useState(false);
+  const [grantModalKey, setGrantModalKey] = React.useState<AddonKeyConstant | null>(null);
+  const [editingAddon, setEditingAddon] = React.useState<TenantAddonSubscription | null>(null);
+  const [cancellingAddonId, setCancellingAddonId] = React.useState<string | null>(null);
 
   const { data: tenant, isLoading } = useQuery({ queryKey: platformKeys.tenant(id), queryFn: () => api.platform.getTenant(id) });
+
+  const { data: addons, isLoading: addonsLoading } = useQuery({
+    queryKey: platformKeys.tenantAddons(id),
+    queryFn: () => api.platform.listTenantAddons(id),
+  });
 
   const statusForm = useForm<ChangeTenantStatusInput>({ resolver: zodResolver(changeTenantStatusSchema) });
 
@@ -147,6 +172,63 @@ function TenantDetailView({ id }: { id: string }): React.ReactElement {
     },
     onError: (err) => toast((err as ApiError).message ?? 'Could not update featured status', 'error'),
   });
+
+  const grantForm = useForm<CreateAddonInput>({ resolver: zodResolver(createAddonSchema) });
+  const cancelForm = useForm<CancelAddonInput>({ resolver: zodResolver(cancelAddonSchema) });
+
+  const grantMutation = useMutation({
+    mutationFn: (input: CreateAddonInput) => api.platform.createTenantAddon(id, input),
+    onSuccess: () => {
+      toast('Add-on granted.', 'success');
+      setGrantModalKey(null);
+      grantForm.reset();
+      queryClient.invalidateQueries({ queryKey: platformKeys.tenantAddons(id) });
+    },
+    onError: (err) => toast((err as ApiError).message ?? 'Could not grant add-on', 'error'),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (input: UpdateAddonInput) => api.platform.updateTenantAddon(id, editingAddon!._id, input),
+    onSuccess: () => {
+      toast('Add-on updated.', 'success');
+      setEditingAddon(null);
+      queryClient.invalidateQueries({ queryKey: platformKeys.tenantAddons(id) });
+    },
+    onError: (err) => toast((err as ApiError).message ?? 'Could not update add-on', 'error'),
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: (input: CancelAddonInput) => api.platform.cancelTenantAddon(id, cancellingAddonId!, input.cancellationReason),
+    onSuccess: () => {
+      toast('Add-on cancelled.', 'success');
+      setCancellingAddonId(null);
+      cancelForm.reset();
+      queryClient.invalidateQueries({ queryKey: platformKeys.tenantAddons(id) });
+    },
+    onError: (err) => toast((err as ApiError).message ?? 'Could not cancel add-on', 'error'),
+  });
+
+  const openGrantModal = (key: AddonKeyConstant) => {
+    grantForm.reset({
+      addonKey: key,
+      monthlyPrice: ADDON_PRICES[key].base,
+      currency: 'ZAR',
+      billingCycle: 'monthly',
+    });
+    setGrantModalKey(key);
+  };
+
+  const openEditModal = (addon: TenantAddonSubscription) => {
+    grantForm.reset({
+      addonKey: addon.addonKey,
+      monthlyPrice: addon.monthlyPrice,
+      currency: addon.currency,
+      billingCycle: addon.billingCycle,
+      extraBedBlocks: addon.extraBedBlocks,
+      storageGBBlocks: addon.storageGBBlocks,
+    });
+    setEditingAddon(addon);
+  };
 
   if (isLoading) return <LoadingBlock rows={5} />;
   if (!tenant) return <EmptyBlock icon={Icons.Building2} title="Tenant not found" />;
@@ -209,6 +291,58 @@ function TenantDetailView({ id }: { id: string }): React.ReactElement {
         </Panel>
       </div>
 
+      <Panel
+        title="Modules & Add-ons"
+        description="Paid features this tenant has beyond their base plan — student accommodation, restaurant/POS, and the rest."
+      >
+        {addonsLoading ? (
+          <LoadingBlock rows={3} />
+        ) : (
+          <table data-table>
+            <thead>
+              <tr><th>Module</th><th>Status</th><th>Price</th><th>Billing</th><th></th></tr>
+            </thead>
+            <tbody>
+              {(Object.values(ADDON_KEYS) as AddonKeyConstant[]).map((key) => {
+                const active = addons?.find((a) => a.addonKey === key && a.status === 'active');
+                return (
+                  <tr key={key}>
+                    <td>{ADDON_LABELS[key]}</td>
+                    <td>
+                      <span data-status-badge data-status={active ? 'active' : 'inactive'}>
+                        {active ? 'Active' : 'Not granted'}
+                      </span>
+                    </td>
+                    <td>{active ? `R${formatNumber(active.monthlyPrice)}/mo` : '—'}</td>
+                    <td>{active ? titleCase(active.billingCycle) : '—'}</td>
+                    <td>
+                      {active ? (
+                        <>
+                          <button type="button" data-btn-ghost onClick={() => openEditModal(active)}>
+                            Edit price
+                          </button>
+                          <button
+                            type="button"
+                            data-btn-ghost
+                            onClick={() => { cancelForm.reset(); setCancellingAddonId(active._id); }}
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <button type="button" data-btn-secondary onClick={() => openGrantModal(key)}>
+                          + Grant
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </Panel>
+
       <Modal open={statusModalOpen} onClose={() => setStatusModalOpen(false)} title="Change tenant status">
         <form onSubmit={statusForm.handleSubmit((values) => statusMutation.mutate(values))}>
           <div data-form-group>
@@ -229,6 +363,84 @@ function TenantDetailView({ id }: { id: string }): React.ReactElement {
             <button type="button" data-btn-secondary onClick={() => setStatusModalOpen(false)}>Cancel</button>
             <button type="submit" data-btn-primary disabled={statusMutation.isPending}>
               {statusMutation.isPending ? 'Saving…' : 'Update Status'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal
+        open={!!grantModalKey || !!editingAddon}
+        onClose={() => { setGrantModalKey(null); setEditingAddon(null); }}
+        title={
+          editingAddon
+            ? `Edit ${ADDON_LABELS[editingAddon.addonKey]} price`
+            : grantModalKey
+              ? `Grant ${ADDON_LABELS[grantModalKey]}`
+              : 'Add-on'
+        }
+      >
+        <form
+          onSubmit={grantForm.handleSubmit((values) => {
+            if (editingAddon) {
+              const { addonKey: _addonKey, ...updatePayload } = values;
+              updateMutation.mutate(updatePayload as UpdateAddonInput);
+            } else {
+              grantMutation.mutate(values);
+            }
+          })}
+        >
+          <input type="hidden" {...grantForm.register('addonKey')} />
+          <div data-form-group>
+            <label>Monthly price (R)</label>
+            <input type="number" step={0.01} min={0} {...grantForm.register('monthlyPrice', { valueAsNumber: true })} />
+            {!editingAddon && grantModalKey && ADDON_PRICES[grantModalKey].note ? (
+              <p data-field-hint>{ADDON_PRICES[grantModalKey].note}</p>
+            ) : null}
+            {grantForm.formState.errors.monthlyPrice ? <InlineError message={grantForm.formState.errors.monthlyPrice.message} /> : null}
+          </div>
+          <div data-form-group>
+            <label>Billing cycle</label>
+            <select {...grantForm.register('billingCycle')}>
+              <option value="monthly">Monthly</option>
+              <option value="annual">Annual</option>
+            </select>
+          </div>
+          {(editingAddon?.addonKey ?? grantModalKey) === 'university_module' ? (
+            <div data-form-group>
+              <label>Extra 30-bed blocks beyond the included 30</label>
+              <input type="number" min={0} {...grantForm.register('extraBedBlocks', { valueAsNumber: true })} />
+            </div>
+          ) : null}
+          {(editingAddon?.addonKey ?? grantModalKey) === 'extra_storage' ? (
+            <div data-form-group>
+              <label>10GB blocks</label>
+              <input type="number" min={0} {...grantForm.register('storageGBBlocks', { valueAsNumber: true })} />
+            </div>
+          ) : null}
+          <div data-modal-footer style={{ padding: 0, borderTop: 'none', marginTop: 'var(--space-6)' }}>
+            <button type="button" data-btn-secondary onClick={() => { setGrantModalKey(null); setEditingAddon(null); }}>Cancel</button>
+            <button type="submit" data-btn-primary disabled={grantMutation.isPending || updateMutation.isPending}>
+              {editingAddon
+                ? (updateMutation.isPending ? 'Saving…' : 'Save Price')
+                : (grantMutation.isPending ? 'Granting…' : 'Grant Add-on')}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal open={!!cancellingAddonId} onClose={() => setCancellingAddonId(null)} title="Cancel add-on">
+        <form onSubmit={cancelForm.handleSubmit((values) => cancelMutation.mutate(values))}>
+          <div data-form-group>
+            <label>Reason</label>
+            <textarea rows={3} {...cancelForm.register('cancellationReason')} />
+            {cancelForm.formState.errors.cancellationReason ? (
+              <InlineError message={cancelForm.formState.errors.cancellationReason.message} />
+            ) : null}
+          </div>
+          <div data-modal-footer style={{ padding: 0, borderTop: 'none', marginTop: 'var(--space-6)' }}>
+            <button type="button" data-btn-secondary onClick={() => setCancellingAddonId(null)}>Back</button>
+            <button type="submit" data-btn-primary disabled={cancelMutation.isPending}>
+              {cancelMutation.isPending ? 'Cancelling…' : 'Cancel Add-on'}
             </button>
           </div>
         </form>

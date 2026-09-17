@@ -56,8 +56,11 @@ export interface PropertySessionBootstrap {
     tier: string;
     monthlyPrice: number;
     features: string[];
-    // NOTE: can diverge from checkPlanFeature enforcement under active mandate.
-    // See plan-features.ts in @stayos/constants.
+    // Resolved through the same resolveFeatures() checkPlanFeature.js uses
+    // for route enforcement (tenants.service.js#getProfile) — add-ons and
+    // the active-mandate substitution both correctly reflect here now.
+    // Previously returned raw plan.features only, which could diverge from
+    // actual enforcement; that gap is closed.
   };
   agencyId: {
     name: string;

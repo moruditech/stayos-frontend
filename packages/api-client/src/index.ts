@@ -11,6 +11,7 @@ import { maintenanceApi }  from './domains/maintenance';
 import { foliosApi }       from './domains/folios';
 import { accountingApi }   from './domains/accounting';
 import { messagingApi }    from './domains/messaging';
+import { contactApi, newsletterApi, mailboxApi } from './domains/public';
 import {
   pricingApi,
   promotionsApi,
@@ -34,6 +35,16 @@ import {
   universityApi,
   paymentsApi,
 } from './domains/customer';
+import {
+  outletsApi,
+  menuApi,
+  tablesApi,
+  tabsApi,
+  shiftsApi,
+  tillsApi,
+  posStaffApi,
+  restaurantReportsApi,
+} from './domains/restaurant';
 
 export const api = {
   // ── Cross-portal auth ──────────────────────────────────────────────────
@@ -71,6 +82,17 @@ export const api = {
   staff:         staffApi,
   guestregister: guestregisterApi,
 
+  // Restaurant / POS module (TAD 23) — management/oversight dashboard only;
+  // order-taking, payment, and the kitchen queue live on separate mobile apps.
+  restaurantOutlets:  outletsApi,
+  restaurantMenu:     menuApi,
+  restaurantTables:   tablesApi,
+  restaurantTabs:     tabsApi,
+  restaurantShifts:   shiftsApi,
+  restaurantTills:    tillsApi,
+  posStaff:           posStaffApi,
+  restaurantReports:  restaurantReportsApi,
+
   // ── Customer Portal (Next.js — my.stayos.co.za) ───────────────────────
   discovery:     discoveryApi,
   customer:      customerApi,
@@ -79,6 +101,11 @@ export const api = {
   support:       supportApi,
   university:    universityApi,
   payments:      paymentsApi,
+
+  // ── Marketing site (Next.js — apps/public / stayos.co.za) & mailbox ──
+  contact:       contactApi,
+  newsletter:    newsletterApi,
+  mailbox:       mailboxApi,
 } as const;
 
 export { ApiError, setTokenGetter, setTenantIdGetter, setRefreshCallback } from './client';
@@ -133,3 +160,30 @@ export type {
   GuestThreadWrappedKeyDTO,
 } from './domains/customer';
 export type { OwnerMandate, OwnerMandateAcceptResponse } from './domains/owner';
+export type { TenantAddonSubscription } from '@stayos/types';
+export type {
+  Outlet,
+  OutletSettings,
+  MenuCategory,
+  MenuItem,
+  ModifierGroup,
+  ModifierOption,
+  RecipeIngredient,
+  StockItemOption,
+  RestaurantTable,
+  PosTab,
+  PosDiscount,
+  PosServiceCharge,
+  PosOrder,
+  PosOrderItem,
+  SelectedModifier,
+  PosPayment,
+  CashierShift,
+  CashierShiftSalesSummary,
+  PosTill,
+  RestaurantSalesSummary,
+  RestaurantFoodCost,
+  RestaurantShiftReconciliation,
+  RestaurantTabAgingEntry,
+  RestaurantSalesByStaff,
+} from './domains/restaurant';

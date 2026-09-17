@@ -65,6 +65,9 @@ export type {
 export {
   changeTenantStatusSchema,
   setFeaturedSchema,
+  createAddonSchema,
+  updateAddonSchema,
+  cancelAddonSchema,
   changeAgencyStatusSchema,
   refundSubscriptionSchema,
   createPlatformUserSchema,
@@ -86,6 +89,9 @@ export {
 export type {
   ChangeTenantStatusInput,
   SetFeaturedInput,
+  CreateAddonInput,
+  UpdateAddonInput,
+  CancelAddonInput,
   ChangeAgencyStatusInput,
   RefundSubscriptionInput,
   CreatePlatformUserInput,

@@ -14,6 +14,7 @@ import {
   getActiveToken,
   setActiveToken,
   setOwnerToken,
+  getOwnerToken,
   clearAllTokens,
   getStoredRefreshToken,
   setStoredRefreshToken,
@@ -38,6 +39,15 @@ interface SessionContextValue {
   // Used by property-entry flows (owner enters property, agency callback)
   // to swap the active token and rebuild session without a full re-mount.
   setSession: (token: string, refreshToken?: string) => Promise<void>;
+  // Re-runs buildSession against the CURRENT token — refetches permissions
+  // and features (GET /properties/me) without touching the token itself.
+  // Session.features previously only ever got set once, at bootstrap;
+  // granting/cancelling an add-on (or a permission change) while someone
+  // is already logged in had no way to reach them short of a full
+  // logout/login. Call this after any action that might change entitlements,
+  // or on mount of a page (like Settings > Subscription) where stale
+  // entitlement data would be actively misleading.
+  refreshSession: () => Promise<void>;
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -164,6 +174,12 @@ export function SessionProvider({
       if (newToken) {
         setActiveToken(newToken);
         writeMarkerCookie(decodeToken(newToken)?.scope ?? '');
+        // Previously stopped here, leaving session.features/permissions
+        // frozen at whatever they were on the PRIOR token — rebuilding
+        // means a routine refresh cycle (every ~15 min) also re-syncs any
+        // entitlement change made while the person stayed logged in.
+        const built = await buildSession(newToken);
+        if (built) setSessionState(built);
       } else {
         clearAllTokens();
         clearMarkerCookie();
@@ -173,7 +189,7 @@ export function SessionProvider({
       }
     })().finally(() => { refreshInFlight = null; });
     return refreshInFlight;
-  }, [doRefresh, onUnauthenticated, onDisconnect]);
+  }, [doRefresh, onUnauthenticated, onDisconnect, buildSession]);
 
   // ── Public setSession — used by login and property-entry flows ────────────
   // refreshToken is only passed by callers using the localStorage flow
@@ -196,6 +212,16 @@ export function SessionProvider({
     setSessionState(null);
     onDisconnect?.();
   }, [onDisconnect]);
+
+  // ── refreshSession — re-fetch permissions/features against the current
+  // token, without a full re-login. See the doc comment on
+  // SessionContextValue for why this exists.
+  const refreshSession = useCallback(async (): Promise<void> => {
+    const token = getActiveToken();
+    if (!token) return;
+    const built = await buildSession(token);
+    if (built) setSessionState(built);
+  }, [buildSession]);
 
   // ── Bootstrap on mount ────────────────────────────────────────────────────
   useEffect(() => {
@@ -295,10 +321,11 @@ export function SessionProvider({
         setIsLoading(false);
       }
     })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
-    <SessionContext.Provider value={{ session, isLoading, clearSession, setSession }}>
+    <SessionContext.Provider value={{ session, isLoading, clearSession, setSession, refreshSession }}>
       {children}
     </SessionContext.Provider>
   );
@@ -322,4 +349,11 @@ export function useSessionContext(): SessionContextValue {
   const ctx = useContext(SessionContext);
   if (!ctx) throw new Error('useSessionContext() must be used within a SessionProvider');
   return ctx;
+}
+
+// Convenience hook for the common case of just wanting to trigger a refetch
+// (e.g. a Settings > Subscription page re-syncing entitlements on mount)
+// without pulling in the rest of the context.
+export function useSessionRefresh(): () => Promise<void> {
+  return useSessionContext().refreshSession;
 }

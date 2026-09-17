@@ -1962,3 +1962,74 @@ a[data-link]:hover { text-decoration: underline; }
   border-radius: var(--radius-sm);
 }
 [data-gm-reply-tabs] button[data-active] { background: var(--color-primary-tint); color: var(--color-primary); }
+
+/* Restaurant ▸ Table Map — drag-and-place floor plan canvas (@dnd-kit/core).
+   The one page in this module with a genuinely new visual concept; every
+   other restaurant page reuses the vocabulary above. Status colors mirror
+   the existing booking-chip / legend-dot convention (data-status attribute
+   selectors against the shared palette) rather than inventing new tokens. */
+[data-floor-plan-toolbar] { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-4); flex-wrap: wrap; }
+
+[data-floor-plan-canvas] {
+  position: relative;
+  min-height: 560px;
+  background: var(--color-bg-sunk);
+  background-image: radial-gradient(var(--color-border-strong) 1px, transparent 1px);
+  background-size: 24px 24px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  touch-action: none; /* required for @dnd-kit pointer sensor on touch devices */
+}
+
+[data-floor-plan-empty] {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+[data-table-token] {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 88px;
+  height: 88px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border-strong);
+  cursor: grab;
+  user-select: none;
+  box-shadow: 0 1px 2px rgba(33, 31, 26, 0.08);
+  transition: box-shadow 120ms ease, transform 120ms ease;
+}
+[data-table-token]:active { cursor: grabbing; }
+[data-table-token][data-dragging='true'] { box-shadow: 0 6px 16px rgba(33, 31, 26, 0.22); transform: scale(1.04); z-index: 10; }
+
+[data-table-token][data-status='available']      { border-color: var(--color-success-border); background: var(--color-success-bg); }
+[data-table-token][data-status='seated']         { border-color: var(--color-info-border); background: var(--color-info-bg); }
+[data-table-token][data-status='ordered']        { border-color: var(--color-primary); background: var(--color-primary-tint); }
+[data-table-token][data-status='bill_requested'] { border-color: var(--color-warning-border); background: var(--color-warning-bg); }
+[data-table-token][data-status='needs_cleaning'] { border-color: var(--color-neutral); background: var(--color-neutral-bg); }
+
+[data-table-token-label] { font-weight: 700; font-size: 13px; color: var(--color-text); }
+[data-table-token-capacity] { font-size: 11px; color: var(--color-text-muted); }
+[data-table-token-status-dot] { width: 7px; height: 7px; border-radius: 50%; }
+[data-table-token-status-dot][data-status='available']      { background: var(--color-success); }
+[data-table-token-status-dot][data-status='seated']         { background: var(--color-info); }
+[data-table-token-status-dot][data-status='ordered']        { background: var(--color-primary); }
+[data-table-token-status-dot][data-status='bill_requested'] { background: var(--color-warning); }
+[data-table-token-status-dot][data-status='needs_cleaning'] { background: var(--color-neutral); }
+
+[data-floor-plan-legend] { display: flex; gap: var(--space-4); flex-wrap: wrap; margin-top: var(--space-3); font-size: 12px; color: var(--color-text-secondary); }
+[data-floor-plan-legend-item] { display: flex; align-items: center; gap: var(--space-1); }
+
+/* Restaurant ▸ shared — sub-section headings within a dense settings form
+   (Outlets create/edit, Menu item detail) */
+[data-section-heading] { font-size: 13px; font-weight: 700; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.02em; margin: var(--space-5) 0 var(--space-2); }

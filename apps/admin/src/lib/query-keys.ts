@@ -2,6 +2,7 @@ export const platformKeys = {
   dashboard: () => ['platform', 'dashboard'] as const,
   tenants: (filters?: Record<string, unknown>) => ['platform', 'tenants', filters ?? {}] as const,
   tenant: (id: string) => ['platform', 'tenant', id] as const,
+  tenantAddons: (id: string) => ['platform', 'tenant', id, 'addons'] as const,
   agencies: (filters?: Record<string, unknown>) => ['platform', 'agencies', filters ?? {}] as const,
   agency: (id: string) => ['platform', 'agency', id] as const,
   revenue: (params?: Record<string, unknown>) => ['platform', 'revenue', params ?? {}] as const,

@@ -1280,7 +1280,10 @@ input[type='checkbox'] {
 [data-status-badge][data-status='paid'],
 [data-status-badge][data-status='rewarded'],
 [data-status-badge][data-status='signed_up'],
-[data-status-badge][data-status='first_payment_made'] {
+[data-status-badge][data-status='first_payment_made'],
+[data-status-badge][data-status='settled'],
+[data-status-badge][data-status='delivered'],
+[data-status-badge][data-status='ready'] {
   background: var(--color-success-bg); color: var(--color-success); border-color: var(--color-success-border);
 }
 
@@ -1304,7 +1307,11 @@ input[type='checkbox'] {
 [data-status-badge][data-status='onboarding'],
 [data-status-badge][data-status='in_progress'],
 [data-status-badge][data-status='upcoming'],
-[data-status-badge][data-status='termination_notice'] {
+[data-status-badge][data-status='termination_notice'],
+[data-status-badge][data-status='bill_requested'],
+[data-status-badge][data-status='needs_cleaning'],
+[data-status-badge][data-status='received'],
+[data-status-badge][data-status='preparing'] {
   background: var(--color-warning-bg); color: var(--color-warning); border-color: var(--color-warning-border);
 }
 
@@ -1326,7 +1333,11 @@ input[type='checkbox'] {
 [data-status-badge][data-status='degraded'],
 [data-status-badge][data-status='outage'],
 [data-status-badge][data-status='overstaying'],
-[data-status-badge][data-status='suspicious'] {
+[data-status-badge][data-status='suspicious'],
+[data-status-badge][data-status='void'],
+[data-status-badge][data-status='voided'],
+[data-status-badge][data-status='refunded'],
+[data-status-badge][data-status='inactive'] {
   background: var(--color-danger-bg); color: var(--color-danger); border-color: var(--color-danger-border);
 }
 
@@ -1339,7 +1350,10 @@ input[type='checkbox'] {
 [data-status-badge][data-status='normal'],
 [data-status-badge][data-status='property'],
 [data-status-badge][data-status='agency'],
-[data-status-badge][data-status='low'] {
+[data-status-badge][data-status='low'],
+[data-status-badge][data-status='seated'],
+[data-status-badge][data-status='ordered'],
+[data-status-badge][data-status='available'] {
   background: var(--color-info-bg); color: var(--color-info); border-color: var(--color-info-border);
 }
 

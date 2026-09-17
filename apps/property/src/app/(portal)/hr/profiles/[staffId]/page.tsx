@@ -323,6 +323,33 @@ export default function HrProfilePage(): React.ReactElement {
               )}
             </>
           )}
+
+          {/* Restaurant / POS module — PIN is personal (staff set their own from
+              their own profile or first POS use); a manager can only force a
+              reset here, never view or set the PIN value itself. */}
+          <RoleGate perm={PERMISSIONS.POS_STAFF_PIN_RESET}>
+            <div data-section-header style={{ marginTop: 'var(--space-6)' }}>
+              <h2>Restaurant POS access</h2>
+            </div>
+            <p data-field-hint>
+              Resets this staff member&rsquo;s till PIN. They&rsquo;ll need to set a new one from their own
+              profile or at next POS login — you cannot view or set it for them directly.
+            </p>
+            <button
+              type="button"
+              data-btn-ghost
+              data-btn-sm
+              onClick={() => {
+                void api.posStaff.resetPin(staffId).then(() => {
+                  toast('PIN reset. They can set a new one at next POS login.', 'success');
+                }).catch(() => {
+                  toast('Failed to reset PIN.', 'error');
+                });
+              }}
+            >
+              Reset POS PIN
+            </button>
+          </RoleGate>
         </section>
       )}
 

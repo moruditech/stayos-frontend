@@ -46,5 +46,21 @@ export const SOCKET_EVENTS = {
 
   // Additional confirmed events are added here per-portal, in the phase
   // that needs them, each individually verified.
+
+  // Confirmed against pos-orders.service.js#fireOrder's literal emitToProperty
+  // call (Restaurant / POS module, TAD 23).
+  POS_ORDER_FIRED: 'pos:order_fired',
+  // Confirmed against pos-orders.service.js#bumpItem — only fires when a
+  // line reaches 'ready', not on every fulfillment status change.
+  POS_ORDER_BUMPED: 'pos:order_bumped',
+  // Confirmed against pos-tabs.service.js#recalculateTab, openTab,
+  // voidTab, mergeTabs, and transferTab, and tables.service.js#updateTableStatus
+  // — one shared event covering both tab and table status changes, same
+  // payload shape (tabId, outletId, tableId, status) across all call sites.
+  POS_TAB_UPDATED: 'pos:tab_updated',
+  // Confirmed against pos.worker.js's idle-tab-check job — property-wide
+  // broadcast; per-recipient persistence is a separate Notification record,
+  // not this event.
+  POS_TAB_IDLE_ALERT: 'pos:tab_idle_alert',
 } as const;
 export type SocketEvent = (typeof SOCKET_EVENTS)[keyof typeof SOCKET_EVENTS];

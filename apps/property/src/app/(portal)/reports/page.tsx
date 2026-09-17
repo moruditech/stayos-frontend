@@ -81,6 +81,43 @@ const REPORTS: ReportEntry[] = [
   },
 ];
 
+// Restaurant / POS module (TAD 23 dashboard §3.6) — every one of these five
+// needs both pos:reports:read AND the restaurant_module add-on, same dual-gate
+// shape as student financials below, so they share one RoleGate+PlanGate pair
+// rather than repeating it five times.
+const RESTAURANT_REPORTS: Omit<ReportEntry, 'perm'>[] = [
+  {
+    id: 'restaurant-sales-summary',
+    title: 'Sales Summary',
+    description: 'Z-report style summary — totals by payment method, tips, refunds, discounts, voids.',
+    href: '/reports/restaurant-sales-summary',
+  },
+  {
+    id: 'restaurant-food-cost',
+    title: 'Food Cost',
+    description: 'Theoretical vs. actual food cost, comparing recipe-driven usage against wastage and stock-take adjustments.',
+    href: '/reports/restaurant-food-cost',
+  },
+  {
+    id: 'restaurant-shift-reconciliation',
+    title: 'Shift Reconciliation',
+    description: 'Cash variance history across cashier shifts, broken down by staff member.',
+    href: '/reports/restaurant-shift-reconciliation',
+  },
+  {
+    id: 'restaurant-tab-aging',
+    title: 'Tab Aging',
+    description: 'Currently open tabs, sorted by how long they have sat idle.',
+    href: '/reports/restaurant-tab-aging',
+  },
+  {
+    id: 'restaurant-sales-by-staff',
+    title: 'Sales by Staff',
+    description: 'Sales, tips, discounts and voids attributed to each cashier or waiter.',
+    href: '/reports/restaurant-sales-by-staff',
+  },
+];
+
 export default function ReportsPage(): React.ReactElement {
   return (
     <div data-page="reports">
@@ -115,6 +152,19 @@ export default function ReportsPage(): React.ReactElement {
               </p>
               <span data-report-link>View report <Icons.ArrowRight aria-hidden="true" /></span>
             </Link>
+          </PlanGate>
+        </RoleGate>
+
+        {/* Restaurant / POS module — see RESTAURANT_REPORTS comment above. */}
+        <RoleGate perm={PERMISSIONS.POS_REPORTS_READ}>
+          <PlanGate feature={PLAN_FEATURES.RESTAURANT_MODULE}>
+            {RESTAURANT_REPORTS.map((report) => (
+              <Link key={report.id} href={report.href} data-report-card>
+                <h2 data-report-title>{report.title}</h2>
+                <p data-report-description>{report.description}</p>
+                <span data-report-link>View report <Icons.ArrowRight aria-hidden="true" /></span>
+              </Link>
+            ))}
           </PlanGate>
         </RoleGate>
       </div>
