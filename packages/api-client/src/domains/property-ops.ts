@@ -816,7 +816,7 @@ export const guestregisterApi = {
   // GET /guestregister — paginated (50/page server-side default). Returns
   // { data, meta } via getPaginated so the ledger page can page through the
   // full history instead of silently only ever seeing the newest 50 entries.
-  list: (params?: { from?: string; to?: string; page?: number; limit?: number }) =>
+  list: (params?: { from?: string | undefined; to?: string | undefined; page?: number | undefined; limit?: number | undefined }) =>
     client.getPaginated<GuestRegisterListEntry>('/guestregister', {
       params: params as Record<string, string | number | boolean | undefined>,
     }),
@@ -825,7 +825,7 @@ export const guestregisterApi = {
   // (backend caps at 1000, not client-paginated), unmasked. Intentionally a
   // plain array, not getPaginated: export always fetches the whole matching
   // range in one call rather than a browsable page at a time.
-  export: (params?: { from?: string; to?: string }) =>
+  export: (params?: { from?: string | undefined; to?: string | undefined }) =>
     client.get<GuestRegisterListEntry[]>('/guestregister/export', {
       params: params as Record<string, string | number | boolean | undefined>,
     }),
