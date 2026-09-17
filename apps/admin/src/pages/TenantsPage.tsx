@@ -11,7 +11,6 @@ import {
   changeTenantStatusSchema,
   setFeaturedSchema,
   createAddonSchema,
-  updateAddonSchema,
   cancelAddonSchema,
 } from '@stayos/validators';
 import type { ChangeTenantStatusInput, CreateAddonInput, UpdateAddonInput, CancelAddonInput } from '@stayos/validators';

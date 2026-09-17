@@ -67,7 +67,7 @@ function NewMenuItemContent(): React.ReactElement {
         ...(values.description ? { description: values.description } : {}),
         ...(values.imageUrl ? { imageUrl: values.imageUrl } : {}),
       }),
-    onSuccess: (item) => {
+    onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: menuKeys.items(outletId) });
       toast('Menu item created.', 'success');
       router.push(`/restaurant/menu?outletId=${outletId}`);

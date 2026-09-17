@@ -7,7 +7,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
 import type { ApiError, TenantAddonSubscription } from '@stayos/api-client';
 import { SkeletonLoader, ReadOnlyField, RoleGate, useToast, ConfirmDialog, Modal, Icons } from '@stayos/ui';
-import { PERMISSIONS, ADDON_KEYS } from '@stayos/constants';
+import { PERMISSIONS } from '@stayos/constants';
 import type { AddonKeyConstant } from '@stayos/constants';
 import { useSessionRefresh } from '@stayos/auth';
 
@@ -40,7 +40,6 @@ export default function SubscriptionPage(): React.ReactElement {
   // underlying resolver) would otherwise stay stale until a full re-login.
   useEffect(() => {
     void refreshSession();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const { data: subscription, isLoading } = useQuery({

@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { useFieldArray, useForm, useWatch, type Control, type UseFormRegister, type UseFormSetValue } from 'react-hook-form';
+import { useFieldArray, useWatch, type Control, type UseFormRegister, type UseFormSetValue } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
-import type { MenuCategory, MenuItem, StockItemOption } from '@stayos/api-client';
-import { InlineError, Icons, StatCard } from '@stayos/ui';
+import type { MenuCategory, StockItemOption } from '@stayos/api-client';
+import { Icons, StatCard } from '@stayos/ui';
 
 const modifierOptionSchema = z.object({
   name: z.string().min(1, 'Required'),

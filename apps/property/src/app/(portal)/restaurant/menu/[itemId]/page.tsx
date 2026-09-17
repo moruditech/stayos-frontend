@@ -72,7 +72,6 @@ function MenuItemDetailContent({ itemId }: { itemId: string }): React.ReactEleme
       modifierGroups: item.modifierGroups,
       recipe: item.recipe,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item]);
 
   const updateMutation = useMutation({

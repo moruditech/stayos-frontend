@@ -1,4 +1,4 @@
-import { client, type PaginatedResult } from '../client';
+import { client } from '../client';
 
 // =============================================================================
 // TYPES

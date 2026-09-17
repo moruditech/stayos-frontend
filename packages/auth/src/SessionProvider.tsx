@@ -14,7 +14,6 @@ import {
   getActiveToken,
   setActiveToken,
   setOwnerToken,
-  getOwnerToken,
   clearAllTokens,
   getStoredRefreshToken,
   setStoredRefreshToken,
@@ -321,7 +320,6 @@ export function SessionProvider({
         setIsLoading(false);
       }
     })();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
