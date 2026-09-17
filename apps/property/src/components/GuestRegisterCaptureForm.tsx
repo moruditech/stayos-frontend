@@ -32,7 +32,7 @@ export function GuestRegisterCaptureForm({
 }: {
   bookingId: string;
   /** Pre-fills the name field from the booking's guest record — still editable, since the register requires the name of whoever is physically checking in, which isn't always the paying/booking guest. */
-  defaultFullName?: string;
+  defaultFullName?: string | undefined;
   onCaptured: () => void;
 }): React.ReactElement {
   const { toast } = useToast();
