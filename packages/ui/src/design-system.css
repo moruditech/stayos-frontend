@@ -378,6 +378,25 @@ svg { display: block; }
 [data-download-button]:disabled { opacity: 0.7; cursor: default; }
 [data-download-button] svg { width: 16px; height: 16px; }
 
+/* Wraps DownloadButton's button so a download failure can show inline
+   feedback instead of a native alert() — absolutely positioned so it can
+   never shift whatever layout this sits in across its several call sites. */
+[data-download-button-wrap] { position: relative; display: inline-flex; }
+[data-download-error] {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger-border);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  max-width: 240px;
+  z-index: 5;
+}
+
 .spin { animation: stayos-spin 0.8s linear infinite; }
 @keyframes stayos-spin { to { transform: rotate(360deg); } }
 

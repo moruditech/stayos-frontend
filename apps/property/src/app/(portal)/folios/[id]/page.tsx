@@ -93,8 +93,7 @@ function escapeHtml(s: string): string {
 function printReceiptViaBrowser(data: ReceiptData): void {
   const win = window.open('', '_blank', 'width=380,height=600');
   if (!win) {
-    window.alert('Please allow pop-ups for this site to print the receipt.');
-    return;
+    throw new Error('Please allow pop-ups for this site to print the receipt.');
   }
   const rows: [string, string][] = [
     ['Date', new Date(data.date).toLocaleString('en-ZA')],
@@ -222,9 +221,7 @@ async function findWritableCharacteristic(server: BleServer): Promise<BleCharact
     const writable = chars.find((c) => c.properties.write || c.properties.writeWithoutResponse);
     if (writable) return writable;
   }
-  throw new Error(
-    "No printable service found on that device. It may be a classic Bluetooth (SPP) printer, which browsers can't print to directly — try \"Print (browser)\" instead."
-  );
+  throw new Error('No printable service found on that device. Try "Print (browser)" instead.');
 }
 
 async function writeInChunks(characteristic: BleCharacteristic, bytes: Uint8Array): Promise<void> {
@@ -747,7 +744,13 @@ export default function FolioDetailPage(): React.ReactElement {
 
                 <button
                   type="button" data-btn-secondary
-                  onClick={() => printReceiptViaBrowser(data)}
+                  onClick={() => {
+                    try {
+                      printReceiptViaBrowser(data);
+                    } catch (err) {
+                      toast(err instanceof Error ? err.message : 'Could not print the receipt.', 'error');
+                    }
+                  }}
                 >
                   <Icons.Receipt size={15} aria-hidden="true" />
                   Print (browser)
@@ -769,14 +772,6 @@ export default function FolioDetailPage(): React.ReactElement {
                   {printing === 'bluetooth' ? 'Connecting…' : 'Print via Bluetooth'}
                 </button>
               </div>
-
-              <p data-field-hint style={{ marginTop: 'var(--space-4)' }}>
-                Bluetooth printing needs Chrome or Edge and a Bluetooth-LE receipt
-                printer — many inexpensive printers use classic Bluetooth instead,
-                which browsers can&apos;t reach directly. If it doesn&apos;t find your
-                printer, use &quot;Print (browser)&quot; with a printer already set up
-                on this device.
-              </p>
             </div>
           );
         })()}
