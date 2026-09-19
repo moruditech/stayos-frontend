@@ -394,10 +394,7 @@ export default function FolioDetailPage(): React.ReactElement {
             </button>
           </RoleGate>
           <DownloadButton
-            href={async () => {
-              const result = await api.folios.getPdfUrl(id);
-              return result.pdfUrl;
-            }}
+            href={api.folios.getInvoicePdfUrl(id)}
             filename={`folio-${f.bookingId.confirmationNumber}.pdf`}
             label="Print folio"
           />

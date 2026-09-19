@@ -143,6 +143,15 @@ export const foliosApi = {
   // GET /folios/:id/pdf — see folios.service.js#getPdfUrl, returns { pdfUrl }
   getPdfUrl: (id: string) => client.get<{ pdfUrl: string }>(`/folios/${id}/pdf`),
 
+  // GET /folios/:id/pdf/download — "Print folio". Streams the invoice PDF
+  // directly rather than pointing at a Cloudinary URL, so it works
+  // regardless of whether cloud storage is configured — see
+  // folios.service.js#generateInvoicePdfBuffer. Matches the same
+  // getBlobUrl pattern already used for statement/night-audit PDFs
+  // elsewhere (agency.ts, accounting.ts) — DownloadButton's function-form
+  // href expects exactly this shape.
+  getInvoicePdfUrl: (id: string) => () => client.getBlobUrl(`/folios/${id}/pdf/download`),
+
   // POST /payments/:id/resend-receipt — "Print receipt" → email, on the
   // folio detail page. Lives here (not a dedicated payments client — see
   // payments.service.js#resendReceipt's comment) because this page is its

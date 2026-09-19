@@ -311,10 +311,21 @@ export const client = {
 
     const response = await fetch(`${BASE_URL}/api/v1${path}`, { headers, credentials: 'include' });
     if (!response.ok) {
-      throw new ApiError(
-        { code: 'DOWNLOAD_FAILED', message: 'Could not download this file', requestId: '' },
-        response.status
-      );
+      // A failure here still comes back as the same {error:{code,message}}
+      // envelope every other endpoint uses (only a successful response is
+      // raw bytes) — parse it so the real reason (e.g. "Settle the folio
+      // before printing the invoice") reaches the caller instead of a
+      // generic message for every possible failure.
+      let code = 'DOWNLOAD_FAILED';
+      let message = 'Could not download this file';
+      try {
+        const body = (await response.json()) as { error?: { code?: string; message?: string } };
+        if (body?.error?.message) message = body.error.message;
+        if (body?.error?.code) code = body.error.code;
+      } catch {
+        // Non-JSON error body — keep the generic message above.
+      }
+      throw new ApiError({ code, message, requestId: '' }, response.status);
     }
     const blob = await response.blob();
     return URL.createObjectURL(blob);
