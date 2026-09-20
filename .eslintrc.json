@@ -1,8 +1,8 @@
 {
   "root": true,
   "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint", "boundaries"],
-  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  "plugins": ["@typescript-eslint", "boundaries", "react-hooks"],
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended", "plugin:react-hooks/recommended"],
   "settings": {
     "boundaries/elements": [
       { "type": "app", "pattern": "apps/*" },
