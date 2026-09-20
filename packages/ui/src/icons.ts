@@ -149,6 +149,10 @@ export {
   // already covered outlets/table-map/shift-history/tabs; only the menu
   // concept had no existing fit.
   UtensilsCrossed,
+
+  // Room-photo lightbox zoom toolbar (packages/ui/src/ImageLightbox.tsx)
+  ZoomIn,
+  ZoomOut,
 } from 'lucide-react';
 
 export type { LucideIcon, LucideProps } from 'lucide-react';

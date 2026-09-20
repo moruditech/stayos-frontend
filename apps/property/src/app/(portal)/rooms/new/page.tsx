@@ -16,13 +16,13 @@ import Link from 'next/link';
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { InlineError, applyServerErrors, useToast, Icons } from '@stayos/ui';
+import { InlineError, applyServerErrors, useToast, TagInput, Icons } from '@stayos/ui';
 import { roomKeys } from '@/lib/query-keys';
 
 const ROOM_TYPES = [
@@ -40,7 +40,9 @@ const schema = z.object({
   adultCapacity: z.coerce.number().int().min(0).optional(),
   childCapacity: z.coerce.number().int().min(0).optional(),
   bedCount:      z.coerce.number().int().min(1).default(1),
-  amenities:     z.string().optional(),
+  // See rooms/[id]/page.tsx's identical comment — was a comma-separated
+  // string, now a real array matching TagInput and the backend field.
+  amenities:     z.array(z.string()).default([]),
   description:   z.string().max(2000).optional(),
   baseRate:      z.coerce.number().positive('Base rate must be a positive number'),
   rateUnit:      z.enum(RATE_UNITS).default('per_night'),
@@ -63,20 +65,12 @@ export default function NewRoomPage(): React.ReactElement {
 
   const form = useForm<FormInput>({
     resolver: zodResolver(schema),
-    defaultValues: { bedCount: 1, rateUnit: 'per_night' },
+    defaultValues: { bedCount: 1, rateUnit: 'per_night', amenities: [] },
   });
 
   const createMutation = useMutation({
-    mutationFn: (input: FormInput) => {
-      const { amenities, ...rest } = input;
-      const amenitiesList = amenities
-        ? amenities.split(',').map((a) => a.trim()).filter(Boolean)
-        : undefined;
-      return api.rooms.create({
-        ...rest,
-        ...(amenitiesList ? { amenities: amenitiesList } : {}),
-      } as unknown as Parameters<typeof api.rooms.create>[0]);
-    },
+    mutationFn: (input: FormInput) =>
+      api.rooms.create(input as unknown as Parameters<typeof api.rooms.create>[0]),
     onSuccess: (room) => {
       void queryClient.invalidateQueries({ queryKey: roomKeys.all });
       toast('Room created.', 'success');
@@ -151,8 +145,18 @@ export default function NewRoomPage(): React.ReactElement {
 
           <div data-form-group>
             <label htmlFor="amenities">Amenities <span data-optional>(optional)</span></label>
-            <input id="amenities" type="text" placeholder="Comma-separated, e.g. Wi-Fi, TV, Air conditioning" {...form.register('amenities')} />
-            <p data-field-hint>Separate multiple amenities with commas.</p>
+            <Controller
+              control={form.control}
+              name="amenities"
+              render={({ field }) => (
+                <TagInput
+                  id="amenities"
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="e.g. Wi-Fi, then press Enter or +"
+                />
+              )}
+            />
           </div>
 
           <div data-form-group>

@@ -83,3 +83,6 @@ export { default as ResetPasswordPage } from './ResetPasswordPage';
 // <select multiple>, which renders as an always-open scroll box)
 export { Dropdown, MultiSelectDropdown } from './Dropdown';
 export type { DropdownOption } from './Dropdown';
+export { SearchableSelect } from './SearchableSelect';
+export { TagInput } from './TagInput';
+export { ImageLightbox } from './ImageLightbox';

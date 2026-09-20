@@ -24,7 +24,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -39,6 +39,8 @@ import {
   useToast,
   ConfirmDialog,
   RoleGate,
+  TagInput,
+  ImageLightbox,
   Icons,
 } from '@stayos/ui';
 import { PERMISSIONS } from '@stayos/constants';
@@ -59,7 +61,11 @@ const schema = z.object({
   adultCapacity: z.coerce.number().int().min(0).optional(),
   childCapacity: z.coerce.number().int().min(0).optional(),
   bedCount:      z.coerce.number().int().min(1).default(1),
-  amenities:     z.string().optional(),
+  // Was a single comma-separated string (matching how the backend's own
+  // amenities: string[] got typed into one text field) — now a real array,
+  // matching TagInput's value type and the backend field directly, with no
+  // comma-splitting/joining needed on either side of the request.
+  amenities:     z.array(z.string()).default([]),
   description:   z.string().max(2000).optional(),
   baseRate:      z.coerce.number().positive('Base rate must be a positive number'),
   rateUnit:      z.enum(RATE_UNITS).default('per_night'),
@@ -83,7 +89,7 @@ function roomToFormInput(room: Room): FormInput {
     adultCapacity: room.adultCapacity,
     childCapacity: room.childCapacity,
     bedCount:      room.bedCount,
-    amenities:     (room.amenities ?? []).join(', '),
+    amenities:     room.amenities ?? [],
     description:   room.description ?? '',
     baseRate:      room.baseRate,
     rateUnit:      room.rateUnit as FormInput['rateUnit'],
@@ -98,6 +104,12 @@ export default function RoomDetailPage(): React.ReactElement {
   const queryClient = useQueryClient();
 
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  // Selected-but-not-yet-uploaded photos — see the "Upload images" section
+  // below. Kept as parallel arrays (File + object URL) rather than
+  // re-deriving the preview URL on every render, so each preview doesn't
+  // get revoked and recreated on unrelated state changes.
+  const [stagedFiles, setStagedFiles] = useState<{ file: File; previewUrl: string }[]>([]);
 
   const { data: room, isLoading } = useQuery({
     queryKey: roomKeys.detail(id),
@@ -112,22 +124,16 @@ export default function RoomDetailPage(): React.ReactElement {
     if (room) form.reset(roomToFormInput(room));
   }, [room]);
 
+  // Staged photo previews are blob: URLs (URL.createObjectURL) — revoke
+  // any still-staged ones if the user navigates away without uploading,
+  // rather than leaking them for the life of the tab.
+  useEffect(() => {
+    return () => stagedFiles.forEach((f) => URL.revokeObjectURL(f.previewUrl));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const updateMutation = useMutation({
-    mutationFn: (input: FormInput) => {
-      const { amenities, ...rest } = input;
-      // Unlike rooms/new/page.tsx (where a blank field just omits amenities
-      // so the backend's own default applies to a brand-new room), this is
-      // an edit of a room that already has amenities loaded into this
-      // field — clearing it here is a deliberate "remove all amenities",
-      // so an empty result is sent as [] rather than left out of the request.
-      const amenitiesList = amenities
-        ? amenities.split(',').map((a) => a.trim()).filter(Boolean)
-        : [];
-      return api.rooms.update(id, {
-        ...rest,
-        amenities: amenitiesList,
-      } as unknown as Partial<Room>);
-    },
+    mutationFn: (input: FormInput) => api.rooms.update(id, input as unknown as Partial<Room>),
     onSuccess: (updated) => {
       queryClient.setQueryData(roomKeys.detail(id), updated);
       void queryClient.invalidateQueries({ queryKey: roomKeys.all });
@@ -153,17 +159,19 @@ export default function RoomDetailPage(): React.ReactElement {
   });
 
   const uploadMutation = useMutation({
-    mutationFn: (files: FileList) => {
+    mutationFn: (files: File[]) => {
       const formData = new FormData();
       // Field name 'images' matches multer's upload.array('images', 10) on
       // the backend (rooms.routes.js) — a different key here would arrive
       // as req.files === undefined and 400 with "At least one image file
       // is required" regardless of what was actually attached.
-      Array.from(files).forEach((file) => formData.append('images', file));
+      files.forEach((file) => formData.append('images', file));
       return api.rooms.uploadImage(id, formData);
     },
     onSuccess: (updated) => {
       queryClient.setQueryData(roomKeys.detail(id), updated);
+      stagedFiles.forEach((f) => URL.revokeObjectURL(f.previewUrl));
+      setStagedFiles([]);
       toast('Image(s) uploaded.', 'success');
     },
     onError: (err: ApiError) => toast(err.message ?? 'Failed to upload image.', 'error'),
@@ -227,7 +235,11 @@ export default function RoomDetailPage(): React.ReactElement {
           <div data-room-image-grid>
             {sortedImages.map((img, index) => (
               <div key={img._id} data-room-image-card>
-                <img src={img.url} alt={img.caption || `${room.roomNumber} photo ${index + 1}`} />
+                <img
+                  src={img.url}
+                  alt={img.caption || `${room.roomNumber} photo ${index + 1}`}
+                  onClick={() => setLightboxIndex(index)}
+                />
                 <RoleGate perm={PERMISSIONS.ROOM_MANAGE}>
                   <div data-room-image-actions>
                     <button
@@ -264,6 +276,9 @@ export default function RoomDetailPage(): React.ReactElement {
         <RoleGate perm={PERMISSIONS.ROOM_MANAGE}>
           <div data-form-group>
             <label htmlFor="room-images">Upload images <span data-optional>(JPEG, PNG, or WebP)</span></label>
+            {/* Selecting files only stages them below — nothing is sent
+                until "Upload" is clicked, so a wrong pick can be removed
+                first instead of already being on its way to the server. */}
             <input
               id="room-images"
               type="file"
@@ -271,15 +286,63 @@ export default function RoomDetailPage(): React.ReactElement {
               multiple
               disabled={uploadMutation.isPending}
               onChange={(e) => {
-                const files = e.target.files;
-                if (files && files.length > 0) uploadMutation.mutate(files);
+                const files = Array.from(e.target.files ?? []);
+                if (files.length > 0) {
+                  setStagedFiles((prev) => [
+                    ...prev,
+                    ...files.map((file) => ({ file, previewUrl: URL.createObjectURL(file) })),
+                  ]);
+                }
                 e.target.value = '';
               }}
             />
-            {uploadMutation.isPending && <p data-field-hint>Uploading…</p>}
+
+            {stagedFiles.length > 0 && (
+              <>
+                <div data-upload-staging>
+                  {stagedFiles.map((staged, i) => (
+                    <div key={staged.previewUrl} data-upload-staging-item>
+                      <img src={staged.previewUrl} alt={staged.file.name} />
+                      <button
+                        type="button"
+                        data-upload-staging-remove
+                        disabled={uploadMutation.isPending}
+                        onClick={() => {
+                          URL.revokeObjectURL(staged.previewUrl);
+                          setStagedFiles((prev) => prev.filter((_, idx) => idx !== i));
+                        }}
+                        aria-label={`Remove ${staged.file.name}`}
+                      >
+                        <Icons.X aria-hidden="true" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  data-btn-primary
+                  data-btn-sm
+                  disabled={uploadMutation.isPending}
+                  onClick={() => uploadMutation.mutate(stagedFiles.map((s) => s.file))}
+                >
+                  <Icons.Upload size={14} aria-hidden="true" />
+                  {uploadMutation.isPending
+                    ? 'Uploading…'
+                    : `Upload ${stagedFiles.length} photo${stagedFiles.length === 1 ? '' : 's'}`}
+                </button>
+              </>
+            )}
           </div>
         </RoleGate>
       </section>
+
+      {lightboxIndex !== null && (
+        <ImageLightbox
+          images={sortedImages.map((img) => ({ url: img.url, caption: img.caption }))}
+          startIndex={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
+      )}
 
       <RoleGate
         perm={PERMISSIONS.ROOM_MANAGE}
@@ -338,8 +401,18 @@ export default function RoomDetailPage(): React.ReactElement {
 
             <div data-form-group>
               <label htmlFor="amenities">Amenities <span data-optional>(optional)</span></label>
-              <input id="amenities" type="text" placeholder="Comma-separated, e.g. Wi-Fi, TV, Air conditioning" {...form.register('amenities')} />
-              <p data-field-hint>Separate multiple amenities with commas.</p>
+              <Controller
+                control={form.control}
+                name="amenities"
+                render={({ field }) => (
+                  <TagInput
+                    id="amenities"
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="e.g. Wi-Fi, then press Enter or +"
+                  />
+                )}
+              />
             </div>
 
             <div data-form-group>

@@ -153,7 +153,14 @@ export default function RoomsPage(): React.ReactElement {
                         data-btn-ghost data-btn-sm
                         onClick={() => {
                           setStatusModalRoomId(room._id);
-                          setNewStatus(room.status);
+                          // room.status can be 'occupied', which isn't a
+                          // submittable option below (see the comment by
+                          // the <select>) — seeding it here meant clicking
+                          // Update without first touching the dropdown sent
+                          // {status:'occupied'} straight to the validator,
+                          // which always rejects it. Blank forces an actual
+                          // choice instead of an invalid default.
+                          setNewStatus(room.status === 'occupied' ? '' : room.status);
                         }}
                       >
                         Update status
@@ -181,6 +188,7 @@ export default function RoomsPage(): React.ReactElement {
               value={newStatus}
               onChange={(e) => setNewStatus(e.target.value)}
             >
+              <option value="" disabled>Select a status…</option>
               <option value="available">Available</option>
               <option value="dirty">Dirty</option>
               <option value="cleaning">Cleaning</option>
@@ -209,7 +217,7 @@ export default function RoomsPage(): React.ReactElement {
             <button
               type="button"
               data-btn-primary
-              disabled={updateStatusMutation.isPending}
+              disabled={updateStatusMutation.isPending || !newStatus}
               onClick={() => {
                 if (statusModalRoomId) {
                   updateStatusMutation.mutate({ id: statusModalRoomId, status: newStatus });

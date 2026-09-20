@@ -378,25 +378,6 @@ svg { display: block; }
 [data-download-button]:disabled { opacity: 0.7; cursor: default; }
 [data-download-button] svg { width: 16px; height: 16px; }
 
-/* Wraps DownloadButton's button so a download failure can show inline
-   feedback instead of a native alert() — absolutely positioned so it can
-   never shift whatever layout this sits in across its several call sites. */
-[data-download-button-wrap] { position: relative; display: inline-flex; }
-[data-download-error] {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  margin-top: var(--space-1);
-  padding: var(--space-1) var(--space-2);
-  background: var(--color-danger-bg);
-  color: var(--color-danger);
-  border: 1px solid var(--color-danger-border);
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  max-width: 240px;
-  z-index: 5;
-}
-
 .spin { animation: stayos-spin 0.8s linear infinite; }
 @keyframes stayos-spin { to { transform: rotate(360deg); } }
 
@@ -458,6 +439,11 @@ svg { display: block; }
 [data-form-group] input[type='date'],
 [data-form-group] input[type='tel'],
 [data-form-group] input[type='url'],
+/* An <input> with no type attribute defaults to text, but the [type='text']
+   selector above only matches when that attribute is literally present —
+   several forms (this one included) never set it explicitly, so those
+   fields matched none of the rules above and rendered fully unstyled. */
+[data-form-group] input:not([type]),
 [data-form-group] textarea,
 [data-form-group] select,
 [data-input],
@@ -487,6 +473,28 @@ svg { display: block; }
 [data-form-group] input::placeholder,
 [data-form-group] textarea::placeholder { color: var(--color-text-muted); }
 
+/* Browser autofill (name/address/etc. — very aggressive on Android Chrome)
+   paints its own background over ours with enough specificity that the
+   rules above don't win by default, even on a correctly-matched input. The
+   long transition delay is the standard trick for overriding it, since
+   -webkit-text-fill-color/-webkit-box-shadow are the only properties that
+   actually beat the browser's internal autofill styling. */
+[data-form-group] input:-webkit-autofill,
+[data-form-group] input:-webkit-autofill:hover,
+[data-form-group] input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--color-text);
+  -webkit-box-shadow: 0 0 0px 1000px var(--color-surface) inset;
+  box-shadow: 0 0 0px 1000px var(--color-surface) inset;
+  transition: background-color 600000s 0s, color 600000s 0s;
+}
+
+[data-form-actions] {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
 [data-input-with-suffix] {
   position: relative;
   display: flex;
@@ -511,6 +519,237 @@ svg { display: block; }
   flex: 1;
   min-width: 0;
   margin-bottom: 0;
+}
+
+/* Room detail page (rooms/[id]/page.tsx) — both of these existed with zero
+   rules anywhere, so the Photos section and the edit form had no card
+   boundary, no section spacing, nothing beyond each individual field's own
+   [data-form-group] treatment — hence the cramped, boundary-less look. */
+[data-detail-section],
+[data-form-container] {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-5) var(--space-6);
+  margin-bottom: var(--space-6);
+}
+[data-detail-section] h2 {
+  margin: 0 0 var(--space-4) 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+[data-form-container] [data-form-actions] { margin-bottom: 0; }
+
+[data-room-image-grid] {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+[data-room-image-card] {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-muted, var(--color-surface));
+}
+[data-room-image-card] img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  cursor: zoom-in;
+}
+[data-room-image-actions] {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+[data-room-image-card]:hover [data-room-image-actions],
+[data-room-image-card]:focus-within [data-room-image-actions] {
+  opacity: 1;
+}
+[data-room-image-actions] button {
+  background: rgba(20, 20, 18, 0.65);
+  border-color: transparent;
+  color: #fff;
+}
+
+/* Staged-upload strip — selected-but-not-yet-uploaded photos (see
+   rooms/[id]/page.tsx's "upload button instead of upload-on-select" fix) */
+[data-upload-staging] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: var(--space-3) 0;
+}
+[data-upload-staging-item] {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+}
+[data-upload-staging-item] img { width: 100%; height: 100%; object-fit: cover; display: block; }
+[data-upload-staging-remove] {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: none;
+  background: rgba(20, 20, 18, 0.75);
+  color: #fff;
+  cursor: pointer;
+  padding: 0;
+}
+[data-upload-staging-remove] svg { width: 11px; height: 11px; }
+
+/* Generic tag input (packages/ui/src/TagInput.tsx) — room amenities and
+   anywhere else a free-text, user-defined tag list is needed. Chip visual
+   language matches the multiselect dropdown's data-dropdown-tag* above,
+   under a generic name since this isn't a dropdown. */
+[data-tag-input-row] {
+  display: flex;
+  gap: var(--space-2);
+}
+[data-tag-input-row] input { flex: 1; }
+[data-tag-list] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  list-style: none;
+  margin: var(--space-2) 0 0 0;
+  padding: 0;
+}
+[data-tag-chip] {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-tint);
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 600;
+}
+[data-tag-chip-remove] {
+  display: inline-flex;
+  border: none;
+  background: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  padding: 0;
+  line-height: 0;
+}
+[data-tag-chip-remove] svg { width: 12px; height: 12px; }
+
+/* Full-screen image lightbox (packages/ui/src/ImageLightbox.tsx) */
+[data-lightbox] {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+[data-lightbox-backdrop] {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 8, 0.92);
+}
+[data-lightbox-viewport] {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  touch-action: none;
+}
+[data-lightbox-image] {
+  max-width: 92vw;
+  max-height: 82vh;
+  object-fit: contain;
+  will-change: transform;
+  user-select: none;
+}
+[data-lightbox-close] {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  cursor: pointer;
+}
+[data-lightbox-close]:hover { background: rgba(255, 255, 255, 0.22); }
+[data-lightbox-close] svg { width: 18px; height: 18px; }
+[data-lightbox-nav] {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  cursor: pointer;
+}
+[data-lightbox-nav]:hover { background: rgba(255, 255, 255, 0.22); }
+[data-lightbox-nav] svg { width: 20px; height: 20px; }
+[data-lightbox-nav="prev"] { left: var(--space-4); }
+[data-lightbox-nav="next"] { right: var(--space-4); }
+[data-lightbox-toolbar] {
+  position: absolute;
+  bottom: var(--space-5);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(6px);
+}
+[data-lightbox-toolbar] button {
+  background: transparent;
+  border-color: transparent;
+  color: #fff;
+}
+[data-lightbox-toolbar] button:hover { background: rgba(255, 255, 255, 0.16); }
+[data-lightbox-zoom-level],
+[data-lightbox-count] {
+  font-size: 12.5px;
+  color: #fff;
+  min-width: 36px;
+  text-align: center;
 }
 
 /* Access control — visitor host search combobox (guest/staff lookup) */
@@ -559,6 +798,51 @@ svg { display: block; }
 }
 [data-host-search-result-name] { font-weight: 600; }
 [data-host-search-result-sub] { font-size: 12px; color: var(--color-text-muted); }
+
+/* Generic searchable select (packages/ui/src/SearchableSelect.tsx) — same
+   treatment as the host-search combobox above, under a name that isn't
+   tied to that one feature since this is meant to be reused anywhere a
+   long static option list (e.g. countries) needs in-place filtering. */
+[data-search-select] {
+  position: relative;
+}
+[data-search-select-results] {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-raised);
+}
+[data-search-select-status] {
+  padding: var(--space-2) var(--space-3);
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+[data-search-select-option] {
+  display: block;
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-radius: var(--radius-sm, 6px);
+  background: none;
+  text-align: left;
+  font-size: 13.5px;
+  color: var(--color-text);
+  cursor: pointer;
+}
+[data-search-select-option]:hover,
+[data-search-select-option]:focus-visible {
+  background: var(--color-primary-tint);
+}
 
 [data-form-checkbox] label {
   display: flex;
