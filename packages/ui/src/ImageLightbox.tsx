@@ -5,7 +5,7 @@ import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from './icons';
 
 interface LightboxImage {
   url: string;
-  caption?: string;
+  caption?: string | undefined;
 }
 
 interface ImageLightboxProps {
