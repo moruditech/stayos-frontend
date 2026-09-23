@@ -203,7 +203,11 @@ export default function RoomDetailPage(): React.ReactElement {
     );
   }
 
-  const sortedImages = [...room.images].sort((a, b) => a.order - b.order);
+  // Rooms created before photo upload shipped have no `images` key at all
+  // in the stored document (Mongoose's [] default only applies to documents
+  // created after the schema had this field) — guard the same way
+  // roomToFormInput above already guards amenities/name/floor/description.
+  const sortedImages = [...(room.images ?? [])].sort((a, b) => a.order - b.order);
 
   function moveImage(index: number, direction: -1 | 1): void {
     const target = index + direction;

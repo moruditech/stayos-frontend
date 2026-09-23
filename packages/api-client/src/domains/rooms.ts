@@ -22,7 +22,11 @@ export interface Room {
   baseRate: number;
   rateUnit: string;
   weekendRate?: number;
-  images: { _id: string; url: string; caption?: string; order: number }[];
+  // Optional, not just possibly-empty: rooms created before photo upload
+  // shipped have no `images` key in the stored document at all (see
+  // scripts/migrations/002_backfill_room_images.js) — always read this via
+  // `room.images ?? []`, never assume the array is present.
+  images?: { _id: string; url: string; caption?: string; order: number }[];
   createdAt: string;
   updatedAt: string;
 }
