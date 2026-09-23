@@ -113,6 +113,7 @@ export function ImageLightbox({ images, startIndex, onClose }: ImageLightboxProp
           activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
           if (activePointers.current.size === 2) {
             const [a, b] = [...activePointers.current.values()];
+            if (!a || !b) return;
             pinchState.current = { startDist: Math.hypot(a.x - b.x, a.y - b.y), startScale: scale };
             dragState.current = null;
           } else if (scale > 1) {
@@ -125,6 +126,7 @@ export function ImageLightbox({ images, startIndex, onClose }: ImageLightboxProp
 
           if (activePointers.current.size === 2 && pinchState.current) {
             const [a, b] = [...activePointers.current.values()];
+            if (!a || !b) return;
             const dist = Math.hypot(a.x - b.x, a.y - b.y);
             const mid = pointFromEvent((a.x + b.x) / 2, (a.y + b.y) / 2);
             zoomToward(mid, pinchState.current.startScale * (dist / pinchState.current.startDist));
