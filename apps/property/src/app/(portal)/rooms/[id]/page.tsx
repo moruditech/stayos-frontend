@@ -116,7 +116,17 @@ export default function RoomDetailPage(): React.ReactElement {
     queryFn: () => api.rooms.get(id),
   });
 
-  const form = useForm<FormInput>({ resolver: zodResolver(schema) });
+  // amenities needs an explicit default — see rooms/new/page.tsx's identical
+  // defaultValues.amenities: []. Without it, the amenities Controller hands
+  // TagInput value={undefined} on the render where the form first appears
+  // (room is loaded, but the effect below that calls form.reset hasn't run
+  // yet — effects fire after render), and TagInput does value.length /
+  // value.map unconditionally. That's a client-side crash on every room,
+  // regardless of what's actually stored for it.
+  const form = useForm<FormInput>({
+    resolver: zodResolver(schema),
+    defaultValues: { amenities: [] },
+  });
 
   // Populate the form once the room loads — it isn't available yet on the
   // first render that creates the form above.

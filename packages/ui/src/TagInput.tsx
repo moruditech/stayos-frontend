@@ -22,7 +22,7 @@ interface TagInputProps {
  * generic name (data-tag-* rather than data-dropdown-tag*) since this isn't
  * a dropdown at all.
  */
-export function TagInput({ id, value, onChange, placeholder = 'Add an amenity…', disabled }: TagInputProps): React.ReactElement {
+export function TagInput({ id, value = [], onChange, placeholder = 'Add an amenity…', disabled }: TagInputProps): React.ReactElement {
   const [draft, setDraft] = useState('');
 
   function commitDraft(): void {
