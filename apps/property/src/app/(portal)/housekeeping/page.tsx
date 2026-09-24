@@ -78,7 +78,8 @@ function dueLabel(task: HousekeepingTask): string {
 // (self-review) — matches housekeeping.service.js#inspectTask exactly.
 function canVerify(task: HousekeepingTask, userId?: string): boolean {
   if (!userId) return false;
-  return task.reviewerId ? task.reviewerId._id === userId : task.assignedTo?._id === userId;
+  if (task.reviewerId) return task.reviewerId._id === userId;
+  return !task.assignedTo || task.assignedTo._id === userId;
 }
 
 interface TaskCardProps {

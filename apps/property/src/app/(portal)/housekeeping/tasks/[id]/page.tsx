@@ -125,7 +125,7 @@ export default function HousekeepingTaskDetailPage(): React.ReactElement {
 
   const roomLabel = typeof task.roomId === 'object' ? `Room ${task.roomId.roomNumber}` : 'Room —';
   const isReviewer = !!session && task.reviewerId?._id === session.userId;
-  const isSelfReviewing = !!session && !task.reviewerId && task.assignedTo?._id === session.userId;
+  const isSelfReviewing = !!session && !task.reviewerId && (!task.assignedTo || task.assignedTo._id === session.userId);
   const allChecked = localChecklist.length > 0 && localChecklist.every((c) => c.completed);
   const checklistEditable =
     task.status === 'in_progress' || task.status === 're_clean' || (task.status === 'completed' && isReviewer);
