@@ -125,6 +125,7 @@ export type {
 } from './domains/rooms';
 export type { RatePlanSummary, RatePlan, PricingRule, SeasonalRate, Promotion, PromotionUsage, PromotionUsageBooking } from './domains/property-ops';
 export { RATE_PLAN_TYPES, RULE_CONDITIONS } from './domains/property-ops';
+export { HOUSEKEEPING_CATEGORY_LABELS, housekeepingCategoryOf } from './domains/housekeeping';
 export type { VisitorLogEntry, HostSearchResult, VisitorPolicy } from './domains/property-ops';
 export type {
   ChatChannel,
@@ -138,6 +139,8 @@ export type {
   HousekeepingTask,
   HousekeepingTaskStatus,
   HousekeepingTaskType,
+  HousekeepingCategory,
+  HousekeepingTaskFilters,
   ChecklistItem,
   ResolvedChecklist,
   CreateHousekeepingTaskInput,

@@ -23,11 +23,16 @@ export interface HousekeepingTask {
   roomId: { _id: string; roomNumber: string; type: string; floor?: string } | string;
   bookingId?: string | null;
   assignedTo: { _id: string; firstName: string; lastName: string } | null;
-  // Who is expected to review this task once marked done — see
-  // reviewerId's comment on the model. null means no separate review step:
-  // the assigned housekeeper's own "mark done" self-verifies.
+  // Who is expected to review this task once marked done. If null and the
+  // task has a checklist, the assigned housekeeper self-verifies instead
+  // (a separate explicit action — see housekeepingCategoryOf below and
+  // inspectTask). A task with no checklist at all skips verification
+  // entirely regardless of this field.
   reviewerId: { _id: string; firstName: string; lastName: string } | null;
   scheduledDate: string;
+  // Distinct from scheduledDate — optional, not every task has a hard
+  // deadline.
+  dueDate?: string | null;
   type: HousekeepingTaskType;
   priority: 'low' | 'normal' | 'high';
   status: HousekeepingTaskStatus;
@@ -52,6 +57,7 @@ export interface CreateHousekeepingTaskInput {
   assignedTo?: string;
   reviewerId?: string;
   scheduledDate?: string;
+  dueDate?: string; // optional — not every task has a hard deadline
   checklist?: string[]; // plain item text — omit to use the resolved template
   notes?: string;
 }
@@ -61,11 +67,40 @@ export interface HousekeepingTaskFilters {
   assignedTo?: string;
   type?: HousekeepingTaskType;
   date?: string;
+  // Independent range filters — a task can be filtered by when it's due,
+  // when it was created, both, or neither.
+  dueDateFrom?: string;
+  dueDateTo?: string;
+  createdFrom?: string;
+  createdTo?: string;
   // Narrows to completed tasks where the caller is the assigned reviewer
   // — see housekeeping.service.js#listTasks. Base 'housekeeper' role
   // accounts are additionally always server-side restricted to their own
   // assigned (or unassigned) tasks regardless of what's passed here.
   view?: 'reviewer';
+}
+
+// The four user-facing categories, and the one place that maps the real
+// wire statuses onto them. 'completed' is Waiting Verification, not Done —
+// a task in 'completed' still needs the reviewer (or, with no reviewer,
+// the housekeeper's own self-review) to move it into 'inspected' before
+// it's actually finished. 'assigned' folds into Pending (it hasn't been
+// started yet) and 're_clean' folds into In Progress (rejected, needs
+// more work — not a fresh unstarted task).
+export type HousekeepingCategory = 'pending' | 'in_progress' | 'waiting_verification' | 'done';
+
+export const HOUSEKEEPING_CATEGORY_LABELS: Record<HousekeepingCategory, string> = {
+  pending:               'Pending',
+  in_progress:           'In Progress',
+  waiting_verification:  'Waiting Verification',
+  done:                  'Done',
+};
+
+export function housekeepingCategoryOf(status: HousekeepingTaskStatus): HousekeepingCategory {
+  if (status === 'pending' || status === 'assigned') return 'pending';
+  if (status === 'in_progress' || status === 're_clean') return 'in_progress';
+  if (status === 'completed') return 'waiting_verification';
+  return 'done'; // 'inspected'
 }
 
 export interface ResolvedChecklist {

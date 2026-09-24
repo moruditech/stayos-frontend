@@ -6,12 +6,23 @@ import Link from 'next/link';
  * Housekeeping board — Kanban with drag-and-drop, plus a separate
  * reviewer queue view.
  *
- * Columns map to the real HousekeepingTask.status enum (pending/assigned,
- * in_progress, completed, inspected) — the UI's "Pending/In Progress/
- * Done/Verified" labels are just display text, not the wire values.
- * re_clean tasks are folded into the "In Progress" column with a
- * distinct marker, since that's functionally where they belong (rejected,
- * needs more work — not a fresh unstarted task).
+ * The four columns are the canonical categories from
+ * housekeepingCategoryOf/HOUSEKEEPING_CATEGORY_LABELS (@stayos/api-client):
+ * Pending, In Progress, Waiting Verification, Done. Those map onto the
+ * real HousekeepingTask.status enum (pending/assigned, in_progress,
+ * completed, inspected) — see that helper for exactly how, and don't
+ * duplicate the mapping here; the task detail page relies on the same one
+ * so the two can't drift apart on what "Waiting Verification" means.
+ * re_clean tasks are folded into In Progress with a distinct marker,
+ * since that's functionally where they belong (rejected, needs more work
+ * — not a fresh unstarted task).
+ *
+ * Waiting Verification -> Done always requires an explicit verify action
+ * (never a drag alone — see canVerify) from whoever owns that step: the
+ * assigned reviewer if one is set, or the housekeeper themselves
+ * (self-review) if not. A task with no checklist at all has nothing to
+ * verify, so it skips Waiting Verification entirely and lands straight in
+ * Done the moment it's marked done.
  *
  * Visibility is enforced server-side (housekeeping.service.js#listTasks):
  * a base 'housekeeper' account only ever gets back tasks assigned to them
@@ -27,29 +38,16 @@ import {
 } from '@dnd-kit/core';
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { api } from '@stayos/api-client';
-import type { HousekeepingTask, HousekeepingTaskStatus } from '@stayos/api-client';
-import type { ApiError } from '@stayos/api-client';
+import { api, HOUSEKEEPING_CATEGORY_LABELS, housekeepingCategoryOf } from '@stayos/api-client';
+import type { HousekeepingTask, HousekeepingCategory, ApiError } from '@stayos/api-client';
 import { SkeletonLoader, useToast, RoleGate, Icons } from '@stayos/ui';
 import { PERMISSIONS } from '@stayos/constants';
 import { useSession, hasPermission } from '@stayos/auth';
 import { housekeepingKeys } from '@/lib/query-keys';
 
-type ColumnKey = 'pending' | 'in_progress' | 'done' | 'verified';
+type ColumnKey = HousekeepingCategory;
 
-const COLUMNS: { key: ColumnKey; label: string }[] = [
-  { key: 'pending',     label: 'Pending' },
-  { key: 'in_progress', label: 'In progress' },
-  { key: 'done',        label: 'Done' },
-  { key: 'verified',    label: 'Verified' },
-];
-
-function columnFor(status: HousekeepingTaskStatus): ColumnKey {
-  if (status === 'pending' || status === 'assigned') return 'pending';
-  if (status === 'in_progress' || status === 're_clean') return 'in_progress';
-  if (status === 'completed') return 'done';
-  return 'verified'; // 'inspected'
-}
+const COLUMN_ORDER: ColumnKey[] = ['pending', 'in_progress', 'waiting_verification', 'done'];
 
 function roomNumberOf(task: HousekeepingTask): string {
   return typeof task.roomId === 'string' ? task.roomId : task.roomId.roomNumber;
@@ -61,9 +59,31 @@ function checklistProgress(task: HousekeepingTask): string {
   return `${done}/${task.checklist.length} checked`;
 }
 
+function fullName(p: { firstName: string; lastName: string } | null | undefined): string {
+  return p ? `${p.firstName} ${p.lastName}` : '';
+}
+
+function isOverdue(task: HousekeepingTask): boolean {
+  return !!task.dueDate && housekeepingCategoryOf(task.status) !== 'done' && new Date(task.dueDate) < new Date();
+}
+
+function dueLabel(task: HousekeepingTask): string {
+  return task.dueDate
+    ? new Date(task.dueDate).toLocaleString('en-ZA', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+    : '';
+}
+
+// Who's allowed to move this task out of Waiting Verification: the
+// assigned reviewer if one is set, otherwise the housekeeper themselves
+// (self-review) — matches housekeeping.service.js#inspectTask exactly.
+function canVerify(task: HousekeepingTask, userId?: string): boolean {
+  if (!userId) return false;
+  return task.reviewerId ? task.reviewerId._id === userId : task.assignedTo?._id === userId;
+}
+
 interface TaskCardProps {
   task: HousekeepingTask;
-  isReviewerForThis: boolean;
+  canVerifyThis: boolean;
   dragging?: boolean;
   onStart: (id: string) => void;
   onMarkDone: (id: string) => void;
@@ -72,9 +92,10 @@ interface TaskCardProps {
   pendingAction: string | null;
 }
 
-function TaskCardBody({ task, isReviewerForThis, onStart, onMarkDone, onVerify, onReject, pendingAction }: Omit<TaskCardProps, 'dragging'>): React.ReactElement {
-  const col = columnFor(task.status);
+function TaskCardBody({ task, canVerifyThis, onStart, onMarkDone, onVerify, onReject, pendingAction }: Omit<TaskCardProps, 'dragging'>): React.ReactElement {
+  const col = housekeepingCategoryOf(task.status);
   const progress = checklistProgress(task);
+  const overdue = isOverdue(task);
 
   return (
     <>
@@ -94,7 +115,18 @@ function TaskCardBody({ task, isReviewerForThis, onStart, onMarkDone, onVerify, 
           {' '}Reviewer: {task.reviewerId.firstName} {task.reviewerId.lastName}
         </span>
       )}
-      {progress && col !== 'verified' && <span data-task-assignee>{progress}</span>}
+      {task.dueDate && (
+        <span data-task-due data-overdue={overdue || undefined}>
+          <Icons.Clock width={11} height={11} aria-hidden="true" />
+          {' '}{overdue ? 'Overdue — ' : 'Due '}{dueLabel(task)}
+        </span>
+      )}
+      {progress && col !== 'done' && <span data-task-assignee>{progress}</span>}
+      {col === 'done' && task.inspectedBy && (
+        <span data-task-assignee>
+          {task.inspectedBy._id === task.assignedTo?._id ? 'Self-verified by' : 'Reviewed by'} {fullName(task.inspectedBy)}
+        </span>
+      )}
       {task.status === 're_clean' && (
         <span data-reclean-note>Needs re-clean{task.reCleanReason ? `: ${task.reCleanReason}` : ''}</span>
       )}
@@ -122,7 +154,7 @@ function TaskCardBody({ task, isReviewerForThis, onStart, onMarkDone, onVerify, 
           </button>
         )}
 
-        {col === 'done' && isReviewerForThis && (
+        {col === 'waiting_verification' && canVerifyThis && (
           <>
             <button
               type="button" data-btn-primary data-btn-sm
@@ -131,13 +163,17 @@ function TaskCardBody({ task, isReviewerForThis, onStart, onMarkDone, onVerify, 
             >
               Verify
             </button>
-            <button
-              type="button" data-btn-ghost data-btn-sm data-destructive
-              disabled={pendingAction === task._id}
-              onClick={(e) => { e.stopPropagation(); onReject(task._id); }}
-            >
-              Reject
-            </button>
+            {/* Rejecting back for a re-clean only makes sense when someone
+                else did the work — a self-review has no one to reject to. */}
+            {task.reviewerId && (
+              <button
+                type="button" data-btn-ghost data-btn-sm data-destructive
+                disabled={pendingAction === task._id}
+                onClick={(e) => { e.stopPropagation(); onReject(task._id); }}
+              >
+                Reject
+              </button>
+            )}
           </>
         )}
       </div>
@@ -172,13 +208,14 @@ function DraggableTaskCard(props: TaskCardProps): React.ReactElement {
 }
 
 function KanbanColumn({
-  column, tasks, ...cardProps
+  column, tasks, userId, ...cardProps
 }: {
   column: ColumnKey;
   tasks: HousekeepingTask[];
-} & Omit<TaskCardProps, 'task' | 'dragging' | 'isReviewerForThis'> & { reviewerId?: string }): React.ReactElement {
+  userId?: string;
+} & Omit<TaskCardProps, 'task' | 'dragging' | 'canVerifyThis'>): React.ReactElement {
   const { setNodeRef, isOver } = useDroppable({ id: column });
-  const label = COLUMNS.find((c) => c.key === column)!.label;
+  const label = HOUSEKEEPING_CATEGORY_LABELS[column];
 
   return (
     <div ref={setNodeRef} data-kanban-column data-drop-active={isOver || undefined}>
@@ -194,7 +231,7 @@ function KanbanColumn({
             <DraggableTaskCard
               key={task._id}
               task={task}
-              isReviewerForThis={!!cardProps.reviewerId && task.reviewerId?._id === cardProps.reviewerId}
+              canVerifyThis={canVerify(task, userId)}
               onStart={cardProps.onStart}
               onMarkDone={cardProps.onMarkDone}
               onVerify={cardProps.onVerify}
@@ -218,7 +255,24 @@ export default function HousekeepingBoardPage(): React.ReactElement {
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
 
-  const filters = view === 'reviews' ? { view: 'reviewer' as const } : {};
+  // Filter by creation date or due date — independent of the board/reviews
+  // toggle above, and only meaningful in the board view (the reviews queue
+  // is already narrowed server-side to a specific small set).
+  const [dateField, setDateField] = useState<'' | 'createdAt' | 'dueDate'>('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+
+  const dateRangeFilters = useMemo(() => {
+    if (view !== 'board' || !dateField) return {};
+    const from = dateField === 'createdAt' ? { createdFrom: dateFrom } : { dueDateFrom: dateFrom };
+    const to   = dateField === 'createdAt' ? { createdTo: dateTo } : { dueDateTo: dateTo };
+    return {
+      ...(dateFrom ? from : {}),
+      ...(dateTo ? to : {}),
+    };
+  }, [view, dateField, dateFrom, dateTo]);
+
+  const filters = view === 'reviews' ? { view: 'reviewer' as const } : dateRangeFilters;
   const { data: tasks, isLoading } = useQuery({
     queryKey: housekeepingKeys.tasks(filters),
     queryFn: () => api.housekeeping.listTasks(filters),
@@ -252,8 +306,8 @@ export default function HousekeepingBoardPage(): React.ReactElement {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
   const grouped = useMemo(() => {
-    const map: Record<ColumnKey, HousekeepingTask[]> = { pending: [], in_progress: [], done: [], verified: [] };
-    for (const t of tasks ?? []) map[columnFor(t.status)].push(t);
+    const map: Record<ColumnKey, HousekeepingTask[]> = { pending: [], in_progress: [], waiting_verification: [], done: [] };
+    for (const t of tasks ?? []) map[housekeepingCategoryOf(t.status)].push(t);
     return map;
   }, [tasks]);
 
@@ -271,17 +325,17 @@ export default function HousekeepingBoardPage(): React.ReactElement {
     const task = active.data.current?.task as HousekeepingTask | undefined;
     if (!task) return;
 
-    const from = columnFor(task.status);
+    const from = housekeepingCategoryOf(task.status);
     const to = over.id as ColumnKey;
     if (from === to) return;
 
     if (from === 'pending' && to === 'in_progress') {
       statusMutation.mutate({ id: task._id, status: 'in_progress' });
-    } else if (from === 'in_progress' && to === 'done') {
+    } else if (from === 'in_progress' && to === 'waiting_verification') {
       statusMutation.mutate({ id: task._id, status: 'completed' });
-    } else if (from === 'done' && to === 'verified') {
-      if (task.reviewerId?._id !== session?.userId) {
-        toast('Only the assigned reviewer can verify this task.', 'error');
+    } else if (from === 'waiting_verification' && to === 'done') {
+      if (!canVerify(task, session?.userId)) {
+        toast('Only the assigned reviewer, or the housekeeper if none is set, can verify this task.', 'error');
         return;
       }
       inspectMutation.mutate({ id: task._id, passed: true });
@@ -326,6 +380,27 @@ export default function HousekeepingBoardPage(): React.ReactElement {
         </div>
       </div>
 
+      {view === 'board' && (
+        <div data-filter-bar>
+          <select
+            value={dateField}
+            onChange={(e) => setDateField(e.target.value as typeof dateField)}
+            data-filter-input
+            aria-label="Filter tasks by date"
+          >
+            <option value="">All tasks</option>
+            <option value="createdAt">Created date</option>
+            <option value="dueDate">Due date</option>
+          </select>
+          {dateField && (
+            <>
+              <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} data-filter-input placeholder="From" aria-label="From" />
+              <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} data-filter-input placeholder="To" aria-label="To" />
+            </>
+          )}
+        </div>
+      )}
+
       {isLoading ? (
         <SkeletonLoader rows={6} />
       ) : view === 'reviews' ? (
@@ -337,7 +412,7 @@ export default function HousekeepingBoardPage(): React.ReactElement {
               <div key={task._id} data-task-card data-priority={task.priority}>
                 <TaskCardBody
                   task={task}
-                  isReviewerForThis
+                  canVerifyThis
                   {...cardHandlers}
                 />
               </div>
@@ -347,12 +422,12 @@ export default function HousekeepingBoardPage(): React.ReactElement {
       ) : (
         <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <div data-kanban>
-            {COLUMNS.map((c) => (
+            {COLUMN_ORDER.map((key) => (
               <KanbanColumn
-                key={c.key}
-                column={c.key}
-                tasks={grouped[c.key]}
-                {...(session?.userId ? { reviewerId: session.userId } : {})}
+                key={key}
+                column={key}
+                tasks={grouped[key]}
+                {...(session?.userId ? { userId: session.userId } : {})}
                 {...cardHandlers}
               />
             ))}
@@ -367,7 +442,7 @@ export default function HousekeepingBoardPage(): React.ReactElement {
               >
                 <TaskCardBody
                   task={activeTask}
-                  isReviewerForThis={activeTask.reviewerId?._id === session?.userId}
+                  canVerifyThis={canVerify(activeTask, session?.userId)}
                   {...cardHandlers}
                 />
               </div>

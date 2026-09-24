@@ -6,7 +6,7 @@ import React, { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
 import { api } from '@stayos/api-client';
-import type { ApiError, ChecklistItem } from '@stayos/api-client';
+import type { ApiError, ChecklistItem, HousekeepingTaskStatus } from '@stayos/api-client';
 import {
   SkeletonLoader, StatusBadge, ReadOnlyField, RoleGate, useToast, InlineError, Icons,
 } from '@stayos/ui';
@@ -18,6 +18,18 @@ const HK_ROLES = ['housekeeper', 'housekeeper_supervisor', 'property_manager', '
 
 function fullName(p: { firstName: string; lastName: string } | null | undefined): string {
   return p ? `${p.firstName} ${p.lastName}` : 'Unassigned';
+}
+
+// 'completed' and 'inspected' are the two wire values that don't read as
+// user-facing category names — see housekeepingCategoryOf in
+// @stayos/api-client for the full pending/assigned/in_progress/re_clean
+// mapping this board uses elsewhere. Only those two need remapping here:
+// StatusBadge colors 'completed' as success/green (correct for most other
+// domains, wrong here — nothing is actually done at that stage yet).
+function displayStatus(status: HousekeepingTaskStatus): string {
+  if (status === 'completed') return 'waiting_verification';
+  if (status === 'inspected') return 'done';
+  return status;
 }
 
 export default function HousekeepingTaskDetailPage(): React.ReactElement {
@@ -66,7 +78,7 @@ export default function HousekeepingTaskDetailPage(): React.ReactElement {
       invalidateAll();
       toast(
         updated.status === 'inspected'
-          ? 'Marked done — no reviewer assigned, so this is self-verified.'
+          ? 'Marked done — no checklist on this task, so nothing to verify.'
           : 'Status updated.',
         'success'
       );
@@ -113,6 +125,7 @@ export default function HousekeepingTaskDetailPage(): React.ReactElement {
 
   const roomLabel = typeof task.roomId === 'object' ? `Room ${task.roomId.roomNumber}` : 'Room —';
   const isReviewer = !!session && task.reviewerId?._id === session.userId;
+  const isSelfReviewing = !!session && !task.reviewerId && task.assignedTo?._id === session.userId;
   const allChecked = localChecklist.length > 0 && localChecklist.every((c) => c.completed);
   const checklistEditable =
     task.status === 'in_progress' || task.status === 're_clean' || (task.status === 'completed' && isReviewer);
@@ -133,7 +146,7 @@ export default function HousekeepingTaskDetailPage(): React.ReactElement {
           <Link href="/housekeeping" data-breadcrumb><Icons.ChevronLeft data-breadcrumb-icon aria-hidden="true" /> Housekeeping</Link>
           <h1>{task.type.replace(/_/g, ' ')}</h1>
         </div>
-        <StatusBadge status={task.status} />
+        <StatusBadge status={displayStatus(task.status)} />
       </div>
 
       <div data-detail-grid>
@@ -152,6 +165,12 @@ export default function HousekeepingTaskDetailPage(): React.ReactElement {
               label="Scheduled"
               value={new Date(task.scheduledDate).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })}
             />
+            {task.dueDate && (
+              <ReadOnlyField
+                label="Due"
+                value={new Date(task.dueDate).toLocaleString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              />
+            )}
             {task.notes && <ReadOnlyField label="Notes" value={task.notes} />}
             {task.status === 're_clean' && task.reCleanReason && (
               <ReadOnlyField label="Re-clean reason" value={task.reCleanReason} />
@@ -278,6 +297,23 @@ export default function HousekeepingTaskDetailPage(): React.ReactElement {
 
         {task.status === 'completed' && !isReviewer && task.reviewerId && (
           <span data-form-note>Awaiting review by {fullName(task.reviewerId)}.</span>
+        )}
+
+        {/* No reviewer assigned — this is the housekeeper's own
+            self-review. No reject option here: there's no one else to
+            send the work back to. */}
+        {task.status === 'completed' && !task.reviewerId && isSelfReviewing && (
+          <button
+            type="button" data-btn-primary
+            disabled={inspectMutation.isPending}
+            onClick={() => inspectMutation.mutate({ passed: true })}
+          >
+            Verify
+          </button>
+        )}
+
+        {task.status === 'completed' && !task.reviewerId && !isSelfReviewing && (
+          <span data-form-note>Awaiting self-review by {fullName(task.assignedTo)}.</span>
         )}
       </div>
 

@@ -36,6 +36,7 @@ const schema = z.object({
   reviewerId:    z.string().optional(),
   notes:         z.string().optional(),
   scheduledDate: z.string().optional(),
+  dueDate:       z.string().optional(),
 });
 type FormInput = z.infer<typeof schema>;
 
@@ -114,7 +115,7 @@ export default function NewHousekeepingTaskPage(): React.ReactElement {
 
   const createMutation = useMutation({
     mutationFn: async (input: FormInput) => {
-      const { roomId, type, priority, assignedTo, reviewerId, notes, scheduledDate } = input;
+      const { roomId, type, priority, assignedTo, reviewerId, notes, scheduledDate, dueDate } = input;
       const task = await api.housekeeping.createTask({
         roomId,
         type,
@@ -123,6 +124,7 @@ export default function NewHousekeepingTaskPage(): React.ReactElement {
         ...(reviewerId ? { reviewerId } : {}),
         ...(notes ? { notes } : {}),
         ...(scheduledDate ? { scheduledDate } : {}),
+        ...(dueDate ? { dueDate: new Date(dueDate).toISOString() } : {}),
         checklist: checklistItems.filter((it) => it.trim().length > 0),
       });
 
@@ -201,6 +203,13 @@ export default function NewHousekeepingTaskPage(): React.ReactElement {
 
           <div data-form-row>
             <div data-form-group>
+              <label htmlFor="hk-due">Due date &amp; time <span data-optional>(optional)</span></label>
+              <input id="hk-due" type="datetime-local" {...form.register('dueDate')} />
+            </div>
+          </div>
+
+          <div data-form-row>
+            <div data-form-group>
               <label htmlFor="hk-assign">Assign to <span data-optional>(optional)</span></label>
               <select id="hk-assign" {...form.register('assignedTo')}>
                 <option value="">Unassigned</option>
@@ -220,8 +229,9 @@ export default function NewHousekeepingTaskPage(): React.ReactElement {
             </div>
           </div>
           <p data-field-hint>
-            Leave reviewer blank and the housekeeper&apos;s own &quot;mark done&quot; is the verification.
-            Set one and the task waits for that person to check it off before it&apos;s considered verified.
+            With a checklist, the task waits in Waiting Verification after it&apos;s marked done — leave
+            reviewer blank and the housekeeper verifies their own work there, or set one and it waits for
+            that person instead. Checklist-free tasks skip this step entirely.
           </p>
 
           <div data-form-group>

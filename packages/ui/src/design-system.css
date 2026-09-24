@@ -1593,6 +1593,7 @@ input[type='checkbox'] {
 /* Attention / pending states */
 [data-status-badge][data-status='pending'],
 [data-status-badge][data-status='pending_review'],
+[data-status-badge][data-status='waiting_verification'],
 [data-status-badge][data-status='pending_setup'],
 [data-status-badge][data-status='pending_vetting'],
 [data-status-badge][data-status='pending_user'],
