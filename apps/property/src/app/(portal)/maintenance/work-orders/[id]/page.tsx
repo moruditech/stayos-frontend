@@ -154,6 +154,7 @@ export default function WorkOrderDetailPage(): React.ReactElement {
                 placeholder="Add a note…"
                 rows={2}
                 data-note-input
+                data-textarea
               />
               <button
                 type="button"
@@ -197,7 +198,7 @@ export default function WorkOrderDetailPage(): React.ReactElement {
 
           <RoleGate perm={PERMISSIONS.MAINTENANCE_ALL}>
             <div data-assign-row>
-              <select value={assignId} onChange={(e) => setAssignId(e.target.value)} data-assign-select>
+              <select value={assignId} onChange={(e) => setAssignId(e.target.value)} data-assign-select data-select>
                 <option value="">Assign to…</option>
                 {mxStaff.map((s) => (
                   <option key={s._id} value={s._id}>
@@ -224,6 +225,7 @@ export default function WorkOrderDetailPage(): React.ReactElement {
                   placeholder="What was done to resolve this? (optional)"
                   rows={2}
                   data-note-input
+                  data-textarea
                 />
                 <div data-action-cluster>
                   <button type="button" data-btn-ghost data-btn-sm

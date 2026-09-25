@@ -1047,6 +1047,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
 [data-action-cluster],
 [data-action-bar],
 [data-action-row] { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+[data-action-bar] { margin-top: var(--space-5); padding-top: var(--space-4); border-top: 1px solid var(--color-border); }
 
 /* Room photos — apps/property rooms/[id]/page.tsx. Actions sit in a footer
    strip below the image (rather than overlaid on top of it) so they use
@@ -1581,9 +1582,9 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   background: var(--color-bg-sunk);
   color: var(--color-text-secondary);
 }
-[data-priority-badge][data-priority='urgent'] { background: var(--color-danger-bg); color: var(--color-danger); }
-[data-priority-badge][data-priority='high']   { background: var(--tone-amber-bg); color: var(--tone-amber-fg); }
-[data-priority-badge][data-priority='medium'] { background: var(--tone-blue-bg); color: var(--tone-blue-fg); }
+[data-priority-badge][data-priority='critical'] { background: var(--color-danger-bg); color: var(--color-danger); }
+[data-priority-badge][data-priority='high']     { background: var(--tone-amber-bg); color: var(--tone-amber-fg); }
+[data-priority-badge][data-priority='normal']   { background: var(--tone-blue-bg); color: var(--tone-blue-fg); }
 [data-maintenance-grid] { display: grid; grid-template-columns: 1fr; gap: var(--space-5); }
 @media (min-width: 1000px) { [data-maintenance-grid] { grid-template-columns: 1.5fr 1fr; align-items: start; } }
 [data-maintenance-section] { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5); }

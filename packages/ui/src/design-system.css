@@ -447,7 +447,8 @@ svg { display: block; }
 [data-form-group] textarea,
 [data-form-group] select,
 [data-input],
-[data-select] {
+[data-select],
+[data-textarea] {
   height: 40px;
   padding: 0 var(--space-3);
   border-radius: var(--radius-md);
@@ -459,19 +460,22 @@ svg { display: block; }
   width: 100%;
 }
 
-[data-form-group] textarea { height: auto; min-height: 96px; padding: var(--space-3); resize: vertical; }
+[data-form-group] textarea,
+[data-textarea] { height: auto; min-height: 96px; padding: var(--space-3); resize: vertical; }
 
 [data-form-group] input:focus,
 [data-form-group] textarea:focus,
 [data-form-group] select:focus,
 [data-input]:focus,
-[data-select]:focus {
+[data-select]:focus,
+[data-textarea]:focus {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px var(--color-primary-tint);
 }
 
 [data-form-group] input::placeholder,
-[data-form-group] textarea::placeholder { color: var(--color-text-muted); }
+[data-form-group] textarea::placeholder,
+[data-textarea]::placeholder { color: var(--color-text-muted); }
 
 /* Browser autofill (name/address/etc. — very aggressive on Android Chrome)
    paints its own background over ours with enough specificity that the
