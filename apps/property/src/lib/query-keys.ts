@@ -40,6 +40,13 @@ export const housekeepingKeys = {
   analytics: () => ['housekeeping', 'analytics'] as const,
 };
 
+export const universityKeys = {
+  applications:      (params?: Record<string, unknown>) => ['university', 'applications', params ?? {}] as const,
+  application:       (id: string) => ['university', 'application', id] as const,
+  leases:            (params?: Record<string, unknown>) => ['university', 'leases', params ?? {}] as const,
+  announcements:     (params?: Record<string, unknown>) => ['university', 'announcements', params ?? {}] as const,
+};
+
 export const folioKeys = {
   list:    (filters?: Record<string, unknown>) => ['folios', 'list', filters ?? {}] as const,
   detail:  (id: string) => ['folios', 'detail', id] as const,

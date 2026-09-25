@@ -114,6 +114,39 @@ export const NAV_CONFIG: NavGroup[] = [
     ],
   },
 
+  // ── STUDENT HOUSING ──────────────────────────────────────────────────────
+  // Every route this links to (/api/v1/university/*) is gated server-side
+  // behind BOTH checkPlanFeature('university_module') and
+  // checkPermission('property:*') (see the staffChain in
+  // stayos-api/.../university/*.routes.js) — requiresFeature/requiresPerm
+  // below mirror that exactly, the same way Restaurant below mirrors its
+  // own POS_* permission + RESTAURANT_MODULE feature gate. Only Applications
+  // has a real management page so far; Leases, Allocations, Announcements,
+  // and Student Billing exist as full APIs with no staff UI yet.
+  {
+    id: 'student-housing-group',
+    label: 'Student Housing',
+    group: true,
+    children: [
+      {
+        id: 'student-housing-overview',
+        label: 'Overview',
+        path: '/student-housing',
+        icon: Icons.GraduationCap,
+        requiresPerm: [PERMISSIONS.PROPERTY_ALL],
+        requiresFeature: PLAN_FEATURES.UNIVERSITY_MODULE,
+      },
+      {
+        id: 'student-housing-applications',
+        label: 'Applications',
+        path: '/student-housing/applications',
+        icon: Icons.FileText,
+        requiresPerm: [PERMISSIONS.PROPERTY_ALL],
+        requiresFeature: PLAN_FEATURES.UNIVERSITY_MODULE,
+      },
+    ],
+  },
+
   // ── RESTAURANT ───────────────────────────────────────────────────────────
   // Order-taking, payment, and the kitchen queue live on their own separate
   // apps (POS mobile, KDS mobile) — this dashboard covers management and

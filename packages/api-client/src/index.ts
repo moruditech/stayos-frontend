@@ -7,6 +7,7 @@ import { platformApi }   from './domains/platform';
 import { vettingApi }    from './domains/onboarding';
 import { roomsApi }      from './domains/rooms';
 import { housekeepingApi } from './domains/housekeeping';
+import { universityApi } from './domains/university';
 import { maintenanceApi }  from './domains/maintenance';
 import { foliosApi }       from './domains/folios';
 import { accountingApi }   from './domains/accounting';
@@ -65,6 +66,7 @@ export const api = {
   bookings:      bookingsApi,
   rooms:         roomsApi,
   housekeeping:  housekeepingApi,
+  university:    universityApi,
   maintenance:   maintenanceApi,
   folios:        foliosApi,
   accounting:    accountingApi,
@@ -146,6 +148,13 @@ export type {
   CreateHousekeepingTaskInput,
 } from './domains/housekeeping';
 export type { Folio, FolioPayment, FolioLineItem, FolioBalance, FolioListEntry, FolioListFilters } from './domains/folios';
+export type {
+  StudentApplication,
+  StudentApplicationStatus,
+  UpdateApplicationStatusInput,
+  Lease,
+  Announcement,
+} from './domains/university';
 export type { WorkOrder, Asset, MaintenanceSchedule, MaintenanceAnalytics } from './domains/maintenance';
 export type { IcalSubscription, IcalSyncResult } from './domains/property-ops';
 export type {
