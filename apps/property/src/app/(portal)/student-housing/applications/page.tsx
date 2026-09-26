@@ -41,7 +41,7 @@ function ApplicationsListInner(): React.ReactElement {
   const params = { page, limit: 20, ...(status ? { status } : {}) };
   const { data, isLoading } = useQuery({
     queryKey: universityKeys.applications(params),
-    queryFn: () => api.university.listApplications(params),
+    queryFn: () => api.studentHousing.listApplications(params),
   });
 
   return (

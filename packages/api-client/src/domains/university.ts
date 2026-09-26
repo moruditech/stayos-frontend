@@ -72,7 +72,11 @@ export interface UpdateApplicationStatusInput {
 
 type QueryParams = Record<string, string | number | boolean | undefined>;
 
-export const universityApi = {
+// Named studentHousingApi, not universityApi — that name is already taken by
+// the customer-facing student API in domains/customer.ts (getForm,
+// submitApplication, getInvoice, payInvoice, getLease, signLease). This one
+// is the staff/property-portal side: application review, leases, allocations.
+export const studentHousingApi = {
   // ── Applications ──────────────────────────────────────────────────────────
   listApplications: (params?: Record<string, unknown>) =>
     client.getPaginated<StudentApplication>('/university/applications', { params: params as QueryParams }),

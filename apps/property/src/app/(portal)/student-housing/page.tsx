@@ -9,7 +9,7 @@
  * announcements.
  *
  * Leases, Allocations, Announcements (composing), and Student Billing all
- * have complete APIs already (see universityApi in @stayos/api-client) but
+ * have complete APIs already (see studentHousingApi in @stayos/api-client) but
  * no dedicated staff management page yet — this reads them read-only for
  * the summary lists below. Applications is the one module with a real
  * management page so far (./applications).
@@ -33,23 +33,23 @@ function StudentHousingOverviewInner(): React.ReactElement {
   // (submitted + under_review) needs two counts summed client-side.
   const { data: submitted } = useQuery({
     queryKey: universityKeys.applications({ status: 'submitted', limit: 1 }),
-    queryFn: () => api.university.listApplications({ status: 'submitted', limit: 1 }),
+    queryFn: () => api.studentHousing.listApplications({ status: 'submitted', limit: 1 }),
   });
   const { data: underReview } = useQuery({
     queryKey: universityKeys.applications({ status: 'under_review', limit: 1 }),
-    queryFn: () => api.university.listApplications({ status: 'under_review', limit: 1 }),
+    queryFn: () => api.studentHousing.listApplications({ status: 'under_review', limit: 1 }),
   });
   const { data: recentApplications, isLoading: applicationsLoading } = useQuery({
     queryKey: universityKeys.applications({ limit: 5 }),
-    queryFn: () => api.university.listApplications({ limit: 5 }),
+    queryFn: () => api.studentHousing.listApplications({ limit: 5 }),
   });
   const { data: activeLeases, isLoading: leasesLoading } = useQuery({
     queryKey: universityKeys.leases({ status: 'active', limit: 5 }),
-    queryFn: () => api.university.listLeases({ status: 'active', limit: 5 }),
+    queryFn: () => api.studentHousing.listLeases({ status: 'active', limit: 5 }),
   });
   const { data: announcements, isLoading: announcementsLoading } = useQuery({
     queryKey: universityKeys.announcements({ limit: 5 }),
-    queryFn: () => api.university.listAnnouncements({ limit: 5 }),
+    queryFn: () => api.studentHousing.listAnnouncements({ limit: 5 }),
   });
 
   const needsReview = (submitted?.meta.total ?? 0) + (underReview?.meta.total ?? 0);

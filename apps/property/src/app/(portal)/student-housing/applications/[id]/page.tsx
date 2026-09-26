@@ -40,7 +40,7 @@ function ApplicationDetailInner(): React.ReactElement {
 
   const { data: application, isLoading } = useQuery({
     queryKey: universityKeys.application(id),
-    queryFn: () => api.university.getApplication(id),
+    queryFn: () => api.studentHousing.getApplication(id),
   });
 
   const [mode, setMode] = useState<Mode>(null);
@@ -53,8 +53,8 @@ function ApplicationDetailInner(): React.ReactElement {
   };
 
   const statusMutation = useMutation({
-    mutationFn: (input: Parameters<typeof api.university.updateApplicationStatus>[1]) =>
-      api.university.updateApplicationStatus(id, input),
+    mutationFn: (input: Parameters<typeof api.studentHousing.updateApplicationStatus>[1]) =>
+      api.studentHousing.updateApplicationStatus(id, input),
     onSuccess: () => {
       invalidate();
       setMode(null);
@@ -66,7 +66,7 @@ function ApplicationDetailInner(): React.ReactElement {
   });
 
   const docsMutation = useMutation({
-    mutationFn: (docsNote: string) => api.university.requestApplicationDocs(id, docsNote),
+    mutationFn: (docsNote: string) => api.studentHousing.requestApplicationDocs(id, docsNote),
     onSuccess: () => {
       invalidate();
       setMode(null);

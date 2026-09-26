@@ -7,7 +7,7 @@ import { platformApi }   from './domains/platform';
 import { vettingApi }    from './domains/onboarding';
 import { roomsApi }      from './domains/rooms';
 import { housekeepingApi } from './domains/housekeeping';
-import { universityApi } from './domains/university';
+import { studentHousingApi } from './domains/university';
 import { maintenanceApi }  from './domains/maintenance';
 import { foliosApi }       from './domains/folios';
 import { accountingApi }   from './domains/accounting';
@@ -66,7 +66,7 @@ export const api = {
   bookings:      bookingsApi,
   rooms:         roomsApi,
   housekeeping:  housekeepingApi,
-  university:    universityApi,
+  studentHousing: studentHousingApi,
   maintenance:   maintenanceApi,
   folios:        foliosApi,
   accounting:    accountingApi,
