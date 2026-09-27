@@ -7,7 +7,7 @@ import { platformApi }   from './domains/platform';
 import { vettingApi }    from './domains/onboarding';
 import { roomsApi }      from './domains/rooms';
 import { housekeepingApi } from './domains/housekeeping';
-import { studentHousingApi } from './domains/university';
+import { universityApi } from './domains/university';
 import { maintenanceApi }  from './domains/maintenance';
 import { foliosApi }       from './domains/folios';
 import { accountingApi }   from './domains/accounting';
@@ -66,7 +66,7 @@ export const api = {
   bookings:      bookingsApi,
   rooms:         roomsApi,
   housekeeping:  housekeepingApi,
-  studentHousing: studentHousingApi,
+  university:    universityApi,
   maintenance:   maintenanceApi,
   folios:        foliosApi,
   accounting:    accountingApi,
@@ -164,7 +164,7 @@ export type {
 } from './domains/property-ops';
 export type { LedgerAccount, JournalEntryInput, JournalLineInput, OtherIncomeEntryInput } from './domains/accounting';
 export type { SubmitExpenseInput } from './domains/property-ops';
-export type { GuestRegisterEntry, GuestRegisterListEntry, GuestRegisterCaptureInput } from './domains/property-ops';
+export type { GuestRegisterEntry, GuestRegisterListEntry, GuestRegisterCaptureInput, ResidentialAddress } from './domains/property-ops';
 export type {
   GuestThreadDTO,
   GuestThreadMessageDTO,

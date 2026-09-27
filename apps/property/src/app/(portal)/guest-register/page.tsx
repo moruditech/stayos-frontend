@@ -6,8 +6,9 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
 import type { ApiError, GuestRegisterListEntry } from '@stayos/api-client';
 import { SkeletonLoader, Pagination, RoleGate, Icons, useToast, EmptyBlock } from '@stayos/ui';
-import { PERMISSIONS } from '@stayos/constants';
+import { PERMISSIONS, countryName } from '@stayos/constants';
 import { guestRegisterKeys } from '@/lib/query-keys';
+import type { ResidentialAddress } from '@stayos/api-client';
 
 const DOCUMENT_LABELS: Record<string, string> = {
   sa_id: 'SA ID',
@@ -23,6 +24,13 @@ const CAPTURED_VIA_LABELS: Record<string, string> = {
 
 function fmtDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+// One readable line for the CSV export — omits any part the guest didn't
+// have (suburb, province and postalCode are all optional).
+function formatAddress(a: ResidentialAddress | undefined | null): string {
+  if (!a) return '';
+  return [a.streetAddress, a.suburb, a.city, a.province, a.postalCode].filter(Boolean).join(', ');
 }
 
 // Minimal CSV escaping — wrap in quotes and double up any embedded quotes.
@@ -42,9 +50,9 @@ function buildCsv(entries: GuestRegisterListEntry[]): string {
     csvCell(e.fullName),
     csvCell(e.idOrPassportNumber),
     csvCell(DOCUMENT_LABELS[e.documentType] ?? e.documentType),
-    csvCell(e.nationality),
+    csvCell(countryName(e.nationality)),
     csvCell(e.residenceStatus),
-    csvCell(e.residentialAddress),
+    csvCell(formatAddress(e.residentialAddress)),
     csvCell(e.bookingId?.confirmationNumber),
     csvCell(fmtDate(e.checkInAt)),
   ].join(','));
@@ -157,7 +165,7 @@ export default function GuestRegisterPage(): React.ReactElement {
                       {entry.idOrPassportNumber}
                       <div data-cell-entity-sub>{DOCUMENT_LABELS[entry.documentType] ?? entry.documentType}</div>
                     </td>
-                    <td>{entry.nationality}</td>
+                    <td>{countryName(entry.nationality)}</td>
                     <td>{entry.residenceStatus.replace(/_/g, ' ')}</td>
                     <td>
                       {entry.bookingId?.confirmationNumber ? (

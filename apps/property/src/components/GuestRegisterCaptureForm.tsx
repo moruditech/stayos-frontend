@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { api } from '@stayos/api-client';
 import type { ApiError } from '@stayos/api-client';
-import { InlineError, FileUpload, useToast } from '@stayos/ui';
+import { InlineError, FileUpload, SearchableSelect, useToast } from '@stayos/ui';
+import { COUNTRIES } from '@stayos/constants';
 
 const RESIDENCE_STATUSES = [
   { value: 'citizen', label: 'SA citizen' },
@@ -41,7 +42,11 @@ export function GuestRegisterCaptureForm({
   const [documentType, setDocumentType] = useState<'sa_id' | 'passport' | 'other'>('sa_id');
   const [residenceStatus, setResidenceStatus] = useState('citizen');
   const [nationality, setNationality] = useState('');
-  const [residentialAddress, setResidentialAddress] = useState('');
+  const [streetAddress, setStreetAddress] = useState('');
+  const [suburb, setSuburb] = useState('');
+  const [city, setCity] = useState('');
+  const [province, setProvince] = useState('');
+  const [postalCode, setPostalCode] = useState('');
   const [idDocument, setIdDocument] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | undefined>();
   const [signatureAcknowledged, setSignatureAcknowledged] = useState(false);
@@ -59,7 +64,13 @@ export function GuestRegisterCaptureForm({
         documentType,
         residenceStatus,
         nationality,
-        residentialAddress,
+        address: {
+          streetAddress,
+          suburb: suburb || undefined,
+          city,
+          province: province || undefined,
+          postalCode: postalCode || undefined,
+        },
         signatureData,
         idDocument,
       });
@@ -120,12 +131,38 @@ export function GuestRegisterCaptureForm({
         </div>
         <div data-form-group>
           <label htmlFor="gr-nationality">Nationality</label>
-          <input id="gr-nationality" value={nationality} onChange={(e) => setNationality(e.target.value)} required />
+          <SearchableSelect
+            id="gr-nationality"
+            options={COUNTRIES}
+            value={nationality}
+            onChange={setNationality}
+            placeholder="Search countries…"
+          />
         </div>
       </div>
       <div data-form-group>
-        <label htmlFor="gr-address">Residential address</label>
-        <input id="gr-address" value={residentialAddress} onChange={(e) => setResidentialAddress(e.target.value)} required />
+        <label htmlFor="gr-street">Street address</label>
+        <input id="gr-street" value={streetAddress} onChange={(e) => setStreetAddress(e.target.value)} required />
+      </div>
+      <div data-form-row>
+        <div data-form-group>
+          <label htmlFor="gr-suburb">Suburb <span data-optional>(optional)</span></label>
+          <input id="gr-suburb" value={suburb} onChange={(e) => setSuburb(e.target.value)} />
+        </div>
+        <div data-form-group>
+          <label htmlFor="gr-city">City / town</label>
+          <input id="gr-city" value={city} onChange={(e) => setCity(e.target.value)} required />
+        </div>
+      </div>
+      <div data-form-row>
+        <div data-form-group>
+          <label htmlFor="gr-province">Province <span data-optional>(optional)</span></label>
+          <input id="gr-province" value={province} onChange={(e) => setProvince(e.target.value)} />
+        </div>
+        <div data-form-group>
+          <label htmlFor="gr-postal">Postal code <span data-optional>(optional)</span></label>
+          <input id="gr-postal" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} />
+        </div>
       </div>
       <div data-form-group>
         <label htmlFor="gr-idDoc">ID document photo</label>

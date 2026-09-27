@@ -1,6 +1,8 @@
 export { SCOPES } from './scopes';
 export type { Scope } from './scopes';
 
+export { COUNTRIES, countryName } from './countries';
+
 export { PROPERTY_ROLES, AGENCY_ROLES, PLATFORM_ROLES, CUSTOMER_ROLES } from './roles';
 export type { PropertyRole, AgencyRole, PlatformRole, CustomerRole } from './roles';
 

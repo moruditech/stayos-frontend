@@ -760,14 +760,22 @@ export const channelsApi = {
 // Check-in is blocked with a 422 (GUEST_REGISTER_REQUIRED) until an entry
 // exists for the booking — see stayos-audit-report.md G-02.
 
+export interface ResidentialAddress {
+  streetAddress: string;
+  suburb?: string;
+  city: string;
+  province?: string;
+  postalCode?: string;
+}
+
 export interface GuestRegisterEntry {
   _id: string;
   bookingId: string;
   fullName: string;
   documentType: 'sa_id' | 'passport' | 'other';
   residenceStatus: string;
-  nationality: string;
-  residentialAddress: string;
+  nationality: string; // ISO 3166-1 alpha-2 country code, e.g. 'ZA'
+  residentialAddress: ResidentialAddress;
   checkInAt: string;
   capturedVia: string;
 }
@@ -788,8 +796,8 @@ export interface GuestRegisterCaptureInput {
   idOrPassportNumber: string;
   documentType: 'sa_id' | 'passport' | 'other';
   residenceStatus: string;
-  nationality: string;
-  residentialAddress: string;
+  nationality: string; // ISO 3166-1 alpha-2 country code, e.g. 'ZA' — see COUNTRIES in @stayos/constants
+  address: ResidentialAddress;
   signatureData: string; // base64
   idDocument: File;
 }
@@ -799,7 +807,10 @@ export const guestregisterApi = {
   getByBooking: (bookingId: string) =>
     client.get<GuestRegisterEntry | null>(`/guestregister/booking/${bookingId}`),
 
-  // POST /guestregister/:bookingId — multipart (idDocument file + form fields)
+  // POST /guestregister/:bookingId — multipart (idDocument file + form fields).
+  // Address fields are sent flat, not nested — multipart/form-data has no way
+  // to nest values — and assembled back into residentialAddress server-side
+  // (guestregister.service.js#captureEntry).
   capture: (bookingId: string, input: GuestRegisterCaptureInput) => {
     const form = new FormData();
     form.append('idDocument', input.idDocument);
@@ -808,7 +819,11 @@ export const guestregisterApi = {
     form.append('documentType', input.documentType);
     form.append('residenceStatus', input.residenceStatus);
     form.append('nationality', input.nationality);
-    form.append('residentialAddress', input.residentialAddress);
+    form.append('streetAddress', input.address.streetAddress);
+    if (input.address.suburb) form.append('suburb', input.address.suburb);
+    form.append('city', input.address.city);
+    if (input.address.province) form.append('province', input.address.province);
+    if (input.address.postalCode) form.append('postalCode', input.address.postalCode);
     form.append('signatureData', input.signatureData);
     return client.post<GuestRegisterEntry>(`/guestregister/${bookingId}`, form);
   },
