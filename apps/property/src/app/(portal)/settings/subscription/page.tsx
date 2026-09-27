@@ -40,7 +40,7 @@ export default function SubscriptionPage(): React.ReactElement {
   // underlying resolver) would otherwise stay stale until a full re-login.
   useEffect(() => {
     void refreshSession();
-  }, []);
+  }, [refreshSession]);
 
   const { data: subscription, isLoading } = useQuery({
     queryKey: ['settings', 'subscription'],

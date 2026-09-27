@@ -66,10 +66,10 @@ export function GuestRegisterCaptureForm({
         nationality,
         address: {
           streetAddress,
-          suburb: suburb || undefined,
+          ...(suburb ? { suburb } : {}),
           city,
-          province: province || undefined,
-          postalCode: postalCode || undefined,
+          ...(province ? { province } : {}),
+          ...(postalCode ? { postalCode } : {}),
         },
         signatureData,
         idDocument,
